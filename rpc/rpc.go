@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2018 The ontology Authors
+ * This file is part of The ontology library.
+ *
+ * The ontology is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The ontology is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+ //RPC client for ontology
 package rpc
 
 import (
@@ -35,7 +54,7 @@ type RpcClient struct {
 	httpClient  *http.Client
 }
 
-//Create RpcClient instance
+//NewRpcClient return RpcClient instance
 func NewRpcClient(cryptScheme string) *RpcClient {
 	return &RpcClient{
 		cryptScheme: cryptScheme, //used for crypt sig
@@ -51,46 +70,64 @@ func NewRpcClient(cryptScheme string) *RpcClient {
 	}
 }
 
+//SetCryptScheme set cryptScheme for crypt
 func (this *RpcClient) SetCryptScheme(cryptScheme string) {
 	this.cryptScheme = cryptScheme
 }
 
+//SetAddress set rpc server address. Simple http://localhost:20336
 func (this *RpcClient) SetAddress(addr string) *RpcClient {
 	this.addr = addr
 	return this
 }
 
+//SetHttpClient set http client to RpcClient. In most cases SetHttpClient is not necessary
 func (this *RpcClient) SetHttpClient(httpClient *http.Client) *RpcClient {
 	this.httpClient = httpClient
 	return this
 }
 
+//SetAddress set web socket server address. Simple http://localhost:20334
 func (this *RpcClient) SetWebSocketAddress(wsAddr string) {
 	this.wsAddr = wsAddr
 }
 
-//Get ontology version
-func (this *RpcClient) GetVersion() (string, error) {
+//GetVersion return the version of ontology
+func (this *RpcClient) GetVersion() (int, error) {
 	data, err := this.sendRpcRequest(RPC_GET_VERSION, []interface{}{})
 	if err != nil {
-		return "", fmt.Errorf("sendRpcRequest error:%s", err)
+		return 0, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	version := ""
+	version := 0
 	err = json.Unmarshal(data, &version)
 	if err != nil {
-		return "", fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
+		return 0, fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
 	}
 	return version, nil
 }
 
-//Get block of ontology by block hash
+//GetBlockByHash return block with specified block hash
 func (this *RpcClient) GetBlockByHash(hash common.Uint256) (*types.Block, error) {
-	data, err := this.sendRpcRequest(RPC_GET_BLOCK, []interface{}{hex.EncodeToString(hash.ToArray())})
+	return this.GetBlockByHashWithHexString(hex.EncodeToString(hash.ToArray()))
+}
+
+//GetBlockByHash return block with specified block hash in hex string code
+func (this *RpcClient)GetBlockByHashWithHexString(hash string)(*types.Block, error){
+	data, err := this.sendRpcRequest(RPC_GET_BLOCK, []interface{}{hash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
+	hexStr := ""
+	err = json.Unmarshal(data, &hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	blockData, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
 	block := &types.Block{}
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewBuffer(blockData)
 	err = block.Deserialize(buf)
 	if err != nil {
 		return nil, err
@@ -98,14 +135,23 @@ func (this *RpcClient) GetBlockByHash(hash common.Uint256) (*types.Block, error)
 	return block, nil
 }
 
-//Get block of ontology by block height
+//GetBlockByHeight return block by specified block height
 func (this *RpcClient) GetBlockByHeight(height uint32) (*types.Block, error) {
 	data, err := this.sendRpcRequest(RPC_GET_BLOCK, []interface{}{height})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
+	hexStr := ""
+	err = json.Unmarshal(data, &hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	blockData, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
 	block := &types.Block{}
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewBuffer(blockData)
 	err = block.Deserialize(buf)
 	if err != nil {
 		return nil, err
@@ -113,7 +159,7 @@ func (this *RpcClient) GetBlockByHeight(height uint32) (*types.Block, error) {
 	return block, nil
 }
 
-//Get total block count of ontology
+//GetBlockCount return the total block count of ontology
 func (this *RpcClient) GetBlockCount() (uint32, error) {
 	data, err := this.sendRpcRequest(RPC_GET_BLOCK_COUNT, []interface{}{})
 	if err != nil {
@@ -127,38 +173,48 @@ func (this *RpcClient) GetBlockCount() (uint32, error) {
 	return count, nil
 }
 
-//Get current block hash of ontology
+//GetCurrentBlockHash return the current block hash of ontology
 func (this *RpcClient) GetCurrentBlockHash() (common.Uint256, error) {
 	data, err := this.sendRpcRequest(RPC_GET_CURRENT_BLOCK_HASH, []interface{}{})
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	hash, err := utils.ParseUint256FromHexString(string(data))
+	hexHash := ""
+	err = json.Unmarshal(data, &hexHash)
+	if err != nil {
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data,err)
+	}
+	hash, err := utils.ParseUint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
 	return hash, nil
 }
 
-//Get ontology block hash by block height
+//GetBlockHash return block hash by block height
 func (this *RpcClient) GetBlockHash(height uint32) (common.Uint256, error) {
 	data, err := this.sendRpcRequest(RPC_GET_BLOCK_HASH, []interface{}{height})
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	hash, err := utils.ParseUint256FromHexString(string(data))
+	hexHash := ""
+	err = json.Unmarshal(data, &hexHash)
+	if err != nil {
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data,err)
+	}
+	hash, err := utils.ParseUint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
 	return hash, nil
 }
 
-//Get ont and ong balance of a ontology address
+//GetBalance return ont and ong balance of a ontology account
 func (this *RpcClient) GetBalance(addr common.Address) (*sdkcom.Balance, error) {
 	return this.GetBalanceWithBase58(addr.ToBase58())
 }
 
-//Get ont and ong balance of a ontology address in base58 address
+//GetBalance return ont and ong balance of a ontology account in base58 code address
 func (this *RpcClient) GetBalanceWithBase58(base58Addr string) (*sdkcom.Balance, error) {
 	data, err := this.sendRpcRequest(RPC_GET_ONT_BALANCE, []interface{}{base58Addr})
 	if err != nil {
@@ -178,13 +234,15 @@ func (this *RpcClient) GetBalanceWithBase58(base58Addr string) (*sdkcom.Balance,
 	if !ok {
 		return nil, fmt.Errorf("big.Int.SetString ong %s failed", balanceRsp.Ong)
 	}
+	ongAppove, ok := new(big.Int).SetString(balanceRsp.OngAppove, 10)
 	return &sdkcom.Balance{
 		Ont: ont,
 		Ong: ong,
+		OngAppove:ongAppove,
 	}, nil
 }
 
-//Get smart contract storage item.
+//GetStorage return smart contract storage item.
 //addr is smart contact address
 //key is the key of value in smart contract
 func (this *RpcClient) GetStorage(smartContractAddress common.Address, key []byte) ([]byte, error) {
@@ -198,17 +256,26 @@ func (this *RpcClient) GetStorage(smartContractAddress common.Address, key []byt
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	v := string(data)
-	value, err := hex.DecodeString(v)
+	hexData := ""
+	err = json.Unmarshal(data, &hexData)
 	if err != nil {
-		return nil, fmt.Errorf("hex.DecodeString:%s error:%s", v, err)
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	value, err := hex.DecodeString(hexData)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
 	return value, nil
 }
 
-//Get smart contract event execute by invoke transaction
+//GetSmartContractEvent return smart contract event execute by invoke transaction.
 func (this *RpcClient) GetSmartContractEvent(txHash common.Uint256) ([]*sdkcom.SmartContactEvent, error) {
-	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT_EVENT, []interface{}{hex.EncodeToString(txHash.ToArray())})
+	return this.GetSmartContractEventWithHexString(hex.EncodeToString(txHash.ToArray()))
+}
+
+//GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
+func (this *RpcClient)GetSmartContractEventWithHexString(txHash string)([]*sdkcom.SmartContactEvent, error){
+	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT_EVENT, []interface{}{txHash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
@@ -220,13 +287,27 @@ func (this *RpcClient) GetSmartContractEvent(txHash common.Uint256) ([]*sdkcom.S
 	return events, nil
 }
 
-//Get transaction by transaction hash in ontology
+//GetRawTransaction return transaction by transaction hash
 func (this *RpcClient) GetRawTransaction(txHash common.Uint256) (*types.Transaction, error) {
-	data, err := this.sendRpcRequest(RPC_GET_TRANSACTION, []interface{}{hex.EncodeToString(txHash.ToArray())})
+	return this.GetRawTransactionWithHexString(hex.EncodeToString(txHash.ToArray()))
+}
+
+//GetRawTransaction return transaction by transaction hash in hex string code
+func (this *RpcClient) GetRawTransactionWithHexString(txHash string)(*types.Transaction, error){
+	data, err := this.sendRpcRequest(RPC_GET_TRANSACTION, []interface{}{txHash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	buf := bytes.NewBuffer(data)
+	hexStr := ""
+	err = json.Unmarshal(data, &hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	txData, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
+	buf := bytes.NewBuffer(txData)
 	tx := &types.Transaction{}
 	err = tx.Deserialize(buf)
 	if err != nil {
@@ -235,14 +316,26 @@ func (this *RpcClient) GetRawTransaction(txHash common.Uint256) (*types.Transact
 	return tx, nil
 }
 
-//Get smart contract deploy in ontology
+//GetSmartContract return smart contract deployed in ontology by specified smart contract address
 func (this *RpcClient) GetSmartContract(smartContractAddress common.Address) (*payload.DeployCode, error) {
 	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT, []interface{}{hex.EncodeToString(smartContractAddress[:])})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
+	hexStr := ""
+	err = json.Unmarshal(data, &hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	if hexStr == "" {
+		return nil, nil
+	}
+	hexData, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
+	buf := bytes.NewReader(hexData)
 	deploy := &payload.DeployCode{}
-	buf := bytes.NewReader(data)
 	err = deploy.Deserialize(buf)
 	if err != nil {
 		return nil, err
@@ -250,7 +343,8 @@ func (this *RpcClient) GetSmartContract(smartContractAddress common.Address) (*p
 	return deploy, nil
 }
 
-//Wait ontology generate block. Default wait 2 blocks. return timeout error when there is no block generate in some time.
+//WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
+//return timeout error when there is no block generate in some time.
 func (this *RpcClient) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint32) (bool, error) {
 	count := uint32(2)
 	if len(blockCount) > 0 && blockCount[0] > 0 {
@@ -314,7 +408,7 @@ func (this *RpcClient) Transfer(token string, from, to *account.Account, amount 
 		Method:  "transfer",
 		Args:    buf.Bytes(),
 	}
-	buf.Reset()
+	buf = bytes.NewBuffer(nil)
 	err = crt.Serialize(buf)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("Serialize contract error:%s", err)
@@ -332,7 +426,7 @@ func (this *RpcClient) Transfer(token string, from, to *account.Account, amount 
 	return txHash, nil
 }
 
-//Deploy smart contract to ontology
+//DeploySmartContract Deploy smart contract to ontology
 func (this *RpcClient) DeploySmartContract(
 	singer *account.Account,
 	vmType vmtypes.VmType,
@@ -346,7 +440,7 @@ func (this *RpcClient) DeploySmartContract(
 
 	c, err := hex.DecodeString(code)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("hex.DecodeString error:%s", code, err)
+		return common.Uint256{}, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
 	tx := this.NewDeployCodeTransaction(vmType, c, needStorage, name, version, author, email, desc)
 
@@ -361,7 +455,7 @@ func (this *RpcClient) DeploySmartContract(
 	return txHash, nil
 }
 
-//Sign to transaction
+//Sign sign return the signature to the data of private key
 func (this *RpcClient) sign(data []byte, signer *account.Account) ([]byte, error) {
 	scheme, err := sig.GetScheme(this.cryptScheme)
 	if err != nil {
@@ -378,8 +472,8 @@ func (this *RpcClient) sign(data []byte, signer *account.Account) ([]byte, error
 	return sigData, nil
 }
 
-//Build neovm invoke param code
-func (this *RpcClient) buildNVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []interface{}) error {
+//buildNeoVMParamInter build neovm invoke param code
+func (this *RpcClient) buildNeoVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []interface{}) error {
 	//VM load params in reverse order
 	for i := len(smartContractParams) - 1; i >= 0; i-- {
 		switch v := smartContractParams[i].(type) {
@@ -407,7 +501,7 @@ func (this *RpcClient) buildNVMParamInter(builder *neovm.ParamsBuilder, smartCon
 		case []byte:
 			builder.EmitPushByteArray(v)
 		case []interface{}:
-			err := this.buildNVMParamInter(builder, v)
+			err := this.buildNeoVMParamInter(builder, v)
 			if err != nil {
 				return err
 			}
@@ -420,10 +514,10 @@ func (this *RpcClient) buildNVMParamInter(builder *neovm.ParamsBuilder, smartCon
 	return nil
 }
 
-//Build NeoVM Invoke code
+//BuildNeoVMInvokeCode build NeoVM Invoke code for params
 func (this *RpcClient) BuildNeoVMInvokeCode(smartContractAddress common.Address, params []interface{}) ([]byte, error) {
 	builder := neovm.NewParamsBuilder(new(bytes.Buffer))
-	err := this.buildNVMParamInter(builder, params)
+	err := this.buildNeoVMParamInter(builder, params)
 	if err != nil {
 		return nil, err
 	}
@@ -434,7 +528,7 @@ func (this *RpcClient) BuildNeoVMInvokeCode(smartContractAddress common.Address,
 	return buf.Bytes(), nil
 }
 
-//Invoke neo vm smart contract
+//Invoke neo vm smart contract. if isPreExec is true, the invoke will not really execute
 func (this *RpcClient) InvokeNeoVMSmartContract(
 	siger *account.Account,
 	gasLimit *big.Int,
@@ -473,14 +567,14 @@ func (this *RpcClient) SignTransaction(tx *types.Transaction, signer *account.Ac
 	return nil
 }
 
-//multi sign to a transaction
+//MultiSignTransaction multi sign to a transaction
 func (this *RpcClient) MultiSignTransaction(tx *types.Transaction, m uint8, signers []*account.Account) error {
 	if len(signers) == 0 {
 		return fmt.Errorf("not enough signer")
 	}
 	n := len(signers)
 	if int(m) > n {
-		return fmt.Errorf("M:%d should smaller than N:%", m, n)
+		return fmt.Errorf("M:%d should smaller than N:%d", m, n)
 	}
 	txHash := tx.Hash()
 	pks := make([]keypair.PublicKey, 0, n)
@@ -506,8 +600,8 @@ func (this *RpcClient) MultiSignTransaction(tx *types.Transaction, m uint8, sign
 	return nil
 }
 
-//Send a transaction to ontology network
-//Params isPreExec is use for prepare execut in smart contract invoke transaction
+//SendRawTransaction send a transaction to ontology network, and return hash of the transaction
+//Params isPreExec is use for prepare execute and will not really execute
 func (this *RpcClient) SendRawTransaction(tx *types.Transaction, isPreExec bool) (common.Uint256, error) {
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
@@ -523,14 +617,19 @@ func (this *RpcClient) SendRawTransaction(tx *types.Transaction, isPreExec bool)
 	if err != nil {
 		return common.Uint256{}, err
 	}
-	hash, err := utils.ParseUint256FromHexString(string(data))
+	hexHash := ""
+	err = json.Unmarshal(data, &hexHash)
+	if err != nil {
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data,err)
+	}
+	hash, err := utils.ParseUint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
 	return hash, nil
 }
 
-//Create a smart contract deploy transaction instance
+//NewDeployCodeTransaction return a smart contract deploy transaction instance
 func (this *RpcClient) NewDeployCodeTransaction(
 	vmType vmtypes.VmType,
 	code []byte,
@@ -563,7 +662,7 @@ func (this *RpcClient) NewDeployCodeTransaction(
 	return tx
 }
 
-//Create smart contract invoke transaction
+//NewInvokeTransaction return smart contract invoke transaction
 func (this *RpcClient) NewInvokeTransaction(gasLimit *big.Int, vmType vmtypes.VmType, code []byte) *types.Transaction {
 	invokePayload := &payload.InvokeCode{
 		GasLimit: common.Fixed64(gasLimit.Int64()),
@@ -586,10 +685,10 @@ func (this *RpcClient) NewInvokeTransaction(gasLimit *big.Int, vmType vmtypes.Vm
 }
 
 func (this *RpcClient) getQid() string {
-	return fmt.Sprint("%d", atomic.AddUint64(&this.qid, 1))
+	return fmt.Sprintf("%d", atomic.AddUint64(&this.qid, 1))
 }
 
-//Send Rpc request to ontology
+//sendRpcRequest send Rpc request to ontology
 func (this *RpcClient) sendRpcRequest(method string, params []interface{}) ([]byte, error) {
 	rpcReq := &JsonRpcRequest{
 		Version: JSON_RPC_VERSION,

@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2018 The ontology Authors
+ * This file is part of The ontology library.
+ *
+ * The ontology is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The ontology is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package rpc
 
 import (
@@ -18,8 +36,10 @@ const (
 	RPC_GET_SMART_CONTRACT       = "getcontractstate"
 )
 
+//JsonRpc version
 const JSON_RPC_VERSION = "2.0"
 
+//JsonRpcRequest object in rpc
 type JsonRpcRequest struct {
 	Version string        `json:"jsonrpc"`
 	Id      string        `json:"id"`
@@ -27,13 +47,16 @@ type JsonRpcRequest struct {
 	Params  []interface{} `json:"params"`
 }
 
+//JsonRpcResponse object response for JsonRpcRequest
 type JsonRpcResponse struct {
 	Error  int64           `json:"error"`
 	Desc   string          `json:"desc"`
 	Result json.RawMessage `json:"result"`
 }
 
+//BalanceRsp response object for balance request
 type BalanceRsp struct {
-	Ont string `json:"ont"`
-	Ong string `json:"ong"`
+	Ont       string `json:"ont"`
+	Ong       string `json:"ong"`
+	OngAppove string `json:"ong_appove"`
 }

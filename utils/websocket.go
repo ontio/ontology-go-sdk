@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2018 The ontology Authors
+ * This file is part of The ontology library.
+ *
+ * The ontology is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The ontology is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+ //Provide some utils for ontology-go-sdk
 package utils
 
 import (
@@ -7,11 +26,13 @@ import (
 	"time"
 )
 
+//WebSocketOptions provide some options for web socket client
 type WebSocketOptions struct {
-	HeartbeatInterval time.Duration
-	HeartbeatPkg      []byte
+	HeartbeatInterval time.Duration		//The interval of sending heartbeat
+	HeartbeatPkg      []byte 		//HeartbeatPkg is data package of heartbeat
 }
 
+//WebSocketClient use for client to operation web socket
 type WebSocketClient struct {
 	addr              string
 	opts              *WebSocketOptions
@@ -26,6 +47,7 @@ type WebSocketClient struct {
 	status            bool
 }
 
+//Create WebSocketClient instance
 func NewWebSocketClient(addr string, opts ...*WebSocketOptions) *WebSocketClient {
 	var options *WebSocketOptions
 	if len(opts) == 0 {
@@ -48,6 +70,7 @@ func NewWebSocketClient(addr string, opts ...*WebSocketOptions) *WebSocketClient
 	}
 }
 
+//Connect to server
 func (this *WebSocketClient) Connect() (err error) {
 	this.conn, _, err = websocket.DefaultDialer.Dial(this.addr, nil)
 	if err != nil {
@@ -72,6 +95,7 @@ func (this *WebSocketClient) getHeartbeatTime() time.Time {
 	return this.lastHeartbeatTime
 }
 
+//Send data to server
 func (this *WebSocketClient) Send(data []byte) error {
 	this.lock.RLock()
 	defer this.lock.RUnlock()
@@ -113,12 +137,14 @@ func (this *WebSocketClient) heartbeat() {
 	}
 }
 
+//Status return the status of connection of client and server
 func (this *WebSocketClient) Status() bool {
 	this.lock.RLock()
 	defer this.lock.RUnlock()
 	return this.status
 }
 
+//Close the connection of server
 func (this *WebSocketClient) Close() error {
 	this.lock.Lock()
 	defer this.lock.Unlock()
