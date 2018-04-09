@@ -23,6 +23,17 @@ import "math/big"
 //Default crypt scheme
 const CRYPTO_SCHEME_DEFAULT = "SHA256withECDSA"
 
+//NeoVM invoke smart contract return type
+type NeoVMReturnType byte
+
+const (
+	NEOVM_TYPE_BOOL       NeoVMReturnType = 1
+	NEOVM_TYPE_INTEGER    NeoVMReturnType = 2
+	NEOVM_TYPE_BYTE_ARRAY NeoVMReturnType = 3
+	NEOVM_TYPE_STRING     NeoVMReturnType = 4
+	NEOVM_TYPE_ARRAY      NeoVMReturnType = 5
+)
+
 //Balance object for account
 type Balance struct {
 	Ont       *big.Int

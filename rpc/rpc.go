@@ -16,7 +16,7 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- //RPC client for ontology
+//RPC client for ontology
 package rpc
 
 import (
@@ -112,7 +112,7 @@ func (this *RpcClient) GetBlockByHash(hash common.Uint256) (*types.Block, error)
 }
 
 //GetBlockByHash return block with specified block hash in hex string code
-func (this *RpcClient)GetBlockByHashWithHexString(hash string)(*types.Block, error){
+func (this *RpcClient) GetBlockByHashWithHexString(hash string) (*types.Block, error) {
 	data, err := this.sendRpcRequest(RPC_GET_BLOCK, []interface{}{hash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
@@ -182,7 +182,7 @@ func (this *RpcClient) GetCurrentBlockHash() (common.Uint256, error) {
 	hexHash := ""
 	err = json.Unmarshal(data, &hexHash)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data,err)
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
 	hash, err := utils.ParseUint256FromHexString(hexHash)
 	if err != nil {
@@ -200,7 +200,7 @@ func (this *RpcClient) GetBlockHash(height uint32) (common.Uint256, error) {
 	hexHash := ""
 	err = json.Unmarshal(data, &hexHash)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data,err)
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
 	hash, err := utils.ParseUint256FromHexString(hexHash)
 	if err != nil {
@@ -236,9 +236,9 @@ func (this *RpcClient) GetBalanceWithBase58(base58Addr string) (*sdkcom.Balance,
 	}
 	ongAppove, ok := new(big.Int).SetString(balanceRsp.OngAppove, 10)
 	return &sdkcom.Balance{
-		Ont: ont,
-		Ong: ong,
-		OngAppove:ongAppove,
+		Ont:       ont,
+		Ong:       ong,
+		OngAppove: ongAppove,
 	}, nil
 }
 
@@ -274,7 +274,7 @@ func (this *RpcClient) GetSmartContractEvent(txHash common.Uint256) ([]*sdkcom.S
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
-func (this *RpcClient)GetSmartContractEventWithHexString(txHash string)([]*sdkcom.SmartContactEvent, error){
+func (this *RpcClient) GetSmartContractEventWithHexString(txHash string) ([]*sdkcom.SmartContactEvent, error) {
 	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT_EVENT, []interface{}{txHash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
@@ -293,7 +293,7 @@ func (this *RpcClient) GetRawTransaction(txHash common.Uint256) (*types.Transact
 }
 
 //GetRawTransaction return transaction by transaction hash in hex string code
-func (this *RpcClient) GetRawTransactionWithHexString(txHash string)(*types.Transaction, error){
+func (this *RpcClient) GetRawTransactionWithHexString(txHash string) (*types.Transaction, error) {
 	data, err := this.sendRpcRequest(RPC_GET_TRANSACTION, []interface{}{txHash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
@@ -374,11 +374,7 @@ func (this *RpcClient) WaitForGenerateBlock(timeout time.Duration, blockCount ..
 //Transfer ONT of ONG
 //for ONT amount is the raw value
 //for ONG amount is the raw value * 10e9
-func (this *RpcClient) Transfer(token string, from, to *account.Account, amount *big.Int, isPreExec ...bool) (common.Uint256, error) {
-	isPre := false
-	if len(isPreExec) > 0 && isPreExec[0] {
-		isPre = true
-	}
+func (this *RpcClient) Transfer(token string, from, to *account.Account, amount *big.Int) (common.Uint256, error) {
 	var contractAddress common.Address
 	switch strings.ToUpper(token) {
 	case "ONT":
@@ -419,7 +415,7 @@ func (this *RpcClient) Transfer(token string, from, to *account.Account, amount 
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SignTransaction error:%s", err)
 	}
-	txHash, err := this.SendRawTransaction(invokeTx, isPre)
+	txHash, err := this.SendRawTransaction(invokeTx)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SendTransaction error:%s", err)
 	}
@@ -448,7 +444,7 @@ func (this *RpcClient) DeploySmartContract(
 	if err != nil {
 		return common.Uint256{}, err
 	}
-	txHash, err := this.SendRawTransaction(tx, false)
+	txHash, err := this.SendRawTransaction(tx)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SendRawTransaction error:%s", err)
 	}
@@ -533,8 +529,7 @@ func (this *RpcClient) InvokeNeoVMSmartContract(
 	siger *account.Account,
 	gasLimit *big.Int,
 	smartcodeAddress common.Address,
-	params []interface{},
-	isPreExec ...bool) (common.Uint256, error) {
+	params []interface{}) (common.Uint256, error) {
 	code, err := this.BuildNeoVMInvokeCode(smartcodeAddress, params)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("BuildNVMInvokeCode error:%s", err)
@@ -544,11 +539,43 @@ func (this *RpcClient) InvokeNeoVMSmartContract(
 	if err != nil {
 		return common.Uint256{}, nil
 	}
-	isPre := false
-	if len(isPreExec) > 0 && isPreExec[0] {
-		isPre = true
+	return this.SendRawTransaction(tx)
+}
+
+//PrepareInvokeNeoVMSmartContract return the vm execute result of smart contract but not commit into ledger.
+//It's useful for debugging smart contract.
+func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
+	gasLimit *big.Int,
+	smartcodeAddress common.Address,
+	params []interface{},
+	returnType sdkcom.NeoVMReturnType,
+	) (interface{}, error) {
+	code, err := this.BuildNeoVMInvokeCode(smartcodeAddress, params)
+	if err != nil {
+		return nil, fmt.Errorf("BuildNVMInvokeCode error:%s", err)
 	}
-	return this.SendRawTransaction(tx, isPre)
+	tx := this.NewInvokeTransaction(gasLimit, vmtypes.NEOVM, code)
+
+	var buffer bytes.Buffer
+	err = tx.Serialize(&buffer)
+	if err != nil {
+		return nil, fmt.Errorf("Serialize error:%s", err)
+	}
+	txData := hex.EncodeToString(buffer.Bytes())
+	data, err := this.sendRpcRequest(RPC_SEND_TRANSACTION, []interface{}{txData, 1})
+	if err != nil {
+		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
+	}
+	var res interface{}
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		return nil,fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	v, err := utils.ParseNeoVMSmartContractReturnType(res, returnType)
+	if err != nil {
+		return nil, fmt.Errorf("ParseNeoVMSmartContractReturnType error:%s", err)
+	}
+	return v, nil
 }
 
 //Sign to a transaction
@@ -601,26 +628,21 @@ func (this *RpcClient) MultiSignTransaction(tx *types.Transaction, m uint8, sign
 }
 
 //SendRawTransaction send a transaction to ontology network, and return hash of the transaction
-//Params isPreExec is use for prepare execute and will not really execute
-func (this *RpcClient) SendRawTransaction(tx *types.Transaction, isPreExec bool) (common.Uint256, error) {
+func (this *RpcClient) SendRawTransaction(tx *types.Transaction) (common.Uint256, error) {
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("Serialize error:%s", err)
 	}
 	txData := hex.EncodeToString(buffer.Bytes())
-	params := []interface{}{txData}
-	if isPreExec {
-		params = append(params, 1)
-	}
-	data, err := this.sendRpcRequest(RPC_SEND_TRANSACTION, params)
+	data, err := this.sendRpcRequest(RPC_SEND_TRANSACTION, []interface{}{txData})
 	if err != nil {
 		return common.Uint256{}, err
 	}
 	hexHash := ""
 	err = json.Unmarshal(data, &hexHash)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data,err)
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
 	hash, err := utils.ParseUint256FromHexString(hexHash)
 	if err != nil {

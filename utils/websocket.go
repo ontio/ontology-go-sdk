@@ -16,7 +16,6 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- //Provide some utils for ontology-go-sdk
 package utils
 
 import (
