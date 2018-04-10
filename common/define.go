@@ -43,7 +43,7 @@ type Balance struct {
 
 //SmartContactEvent object for event of transaction
 type SmartContactEvent struct {
-	Address interface{} `json:"CodeHash"`
-	States  []interface{}
-	TxHash  interface{}
+	ContractAddress string
+	TxHash          string
+	States          []interface{}
 }
