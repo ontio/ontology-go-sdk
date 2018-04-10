@@ -21,27 +21,33 @@ package rpc
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
 	sig "github.com/ontio/ontology-crypto/signature"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/common/serialization"
 	"github.com/ontio/ontology/core/genesis"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/states"
+	"github.com/ontio/ontology/smartcontract/service/wasm"
 	"github.com/ontio/ontology/vm/neovm"
 	vmtypes "github.com/ontio/ontology/vm/types"
+	"github.com/ontio/ontology/vm/wasmvm/exec"
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology-go-sdk/utils"
 )
 
 //RpcClient for ontology rpc api
@@ -468,6 +474,119 @@ func (this *RpcClient) sign(data []byte, signer *account.Account) ([]byte, error
 	return sigData, nil
 }
 
+//for wasm vm
+//build param bytes for wasm contract
+func buildWasmContractParam(params []interface{}, paramType wasm.ParamType) ([]byte, error) {
+	switch paramType {
+	case wasm.Json:
+		args := make([]exec.Param, len(params))
+
+		for i, param := range params {
+			switch param.(type) {
+			case string:
+				arg := exec.Param{Ptype: "string", Pval: param.(string)}
+				args[i] = arg
+			case int:
+				arg := exec.Param{Ptype: "int", Pval: strconv.Itoa(param.(int))}
+				args[i] = arg
+			case int64:
+				arg := exec.Param{Ptype: "int64", Pval: strconv.FormatInt(param.(int64), 10)}
+				args[i] = arg
+			case []int:
+				bf := bytes.NewBuffer(nil)
+				array := param.([]int)
+				for i, tmp := range array {
+					bf.WriteString(strconv.Itoa(tmp))
+					if i != len(array)-1 {
+						bf.WriteString(",")
+					}
+				}
+				arg := exec.Param{Ptype: "int_array", Pval: bf.String()}
+				args[i] = arg
+			case []int64:
+				bf := bytes.NewBuffer(nil)
+				array := param.([]int64)
+				for i, tmp := range array {
+					bf.WriteString(strconv.FormatInt(tmp, 10))
+					if i != len(array)-1 {
+						bf.WriteString(",")
+					}
+				}
+				arg := exec.Param{Ptype: "int_array", Pval: bf.String()}
+				args[i] = arg
+			default:
+				return nil, fmt.Errorf("not a supported type :%v\n", param)
+			}
+		}
+
+		bs, err := json.Marshal(exec.Args{args})
+		if err != nil {
+			return nil, err
+		}
+		return bs, nil
+	case wasm.Raw:
+		bf := bytes.NewBuffer(nil)
+		for _, param := range params {
+			switch param.(type) {
+			case string:
+				tmp := bytes.NewBuffer(nil)
+				serialization.WriteVarString(tmp, param.(string))
+				bf.Write(tmp.Bytes())
+
+			case int:
+				tmpBytes := make([]byte, 4)
+				binary.LittleEndian.PutUint32(tmpBytes, uint32(param.(int)))
+				bf.Write(tmpBytes)
+
+			case int64:
+				tmpBytes := make([]byte, 8)
+				binary.LittleEndian.PutUint64(tmpBytes, uint64(param.(int64)))
+				bf.Write(tmpBytes)
+
+			default:
+				return nil, fmt.Errorf("not a supported type :%v\n", param)
+			}
+		}
+		return bf.Bytes(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type")
+	}
+}
+
+//Invoke wasm smart contract
+//methodName is wasm contract action name
+//paramType  is Json or Raw format
+//version should be greater than 0 (0 is reserved for test)
+func (this *RpcClient) InvokeWasmVMSmartContract(
+	siger *account.Account,
+	gasLimit *big.Int,
+	smartcodeAddress common.Address,
+	methodName string,
+	paramType wasm.ParamType,
+	version byte,
+	params []interface{}) (common.Uint256, error) {
+
+	contract := &states.Contract{}
+	contract.Address = smartcodeAddress
+	contract.Method = methodName
+	contract.Version = version
+
+	argbytes, err := buildWasmContractParam(params, paramType)
+
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
+	}
+	contract.Args = argbytes
+	bf := bytes.NewBuffer(nil)
+	contract.Serialize(bf)
+	tx := this.NewInvokeTransaction(new(big.Int), vmtypes.WASMVM, bf.Bytes())
+	err = this.SignTransaction(tx, siger)
+	if err != nil {
+		return common.Uint256{}, nil
+	}
+	return this.SendRawTransaction(tx)
+}
+
 //buildNeoVMParamInter build neovm invoke param code
 func (this *RpcClient) buildNeoVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []interface{}) error {
 	//VM load params in reverse order
@@ -549,7 +668,7 @@ func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
 	smartcodeAddress common.Address,
 	params []interface{},
 	returnType sdkcom.NeoVMReturnType,
-	) (interface{}, error) {
+) (interface{}, error) {
 	code, err := this.BuildNeoVMInvokeCode(smartcodeAddress, params)
 	if err != nil {
 		return nil, fmt.Errorf("BuildNVMInvokeCode error:%s", err)
@@ -569,7 +688,7 @@ func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
 	var res interface{}
 	err = json.Unmarshal(data, &res)
 	if err != nil {
-		return nil,fmt.Errorf("json.Unmarshal error:%s", err)
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
 	}
 	v, err := utils.ParseNeoVMSmartContractReturnType(res, returnType)
 	if err != nil {
