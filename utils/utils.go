@@ -25,7 +25,7 @@ import (
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
 	neotypes "github.com/ontio/ontology/vm/neovm/types"
-	vmtypes "github.com/ontio/ontology/vm/types"
+	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"math/big"
 	"os"
 )
