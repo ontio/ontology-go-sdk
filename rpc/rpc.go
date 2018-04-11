@@ -34,9 +34,10 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/states"
+	cstates "github.com/ontio/ontology/smartcontract/states"
 	"github.com/ontio/ontology/smartcontract/service/wasm"
 	"github.com/ontio/ontology/vm/neovm"
-	vmtypes "github.com/ontio/ontology/vm/types"
+	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
 	"io/ioutil"
 	"math/big"
@@ -405,7 +406,7 @@ func (this *RpcClient) Transfer(token string, from, to *account.Account, amount 
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("transfers.Serialize error %s", err)
 	}
-	crt := &states.Contract{
+	crt := &cstates.Contract{
 		Address: contractAddress,
 		Method:  "transfer",
 		Args:    buf.Bytes(),
@@ -566,7 +567,7 @@ func (this *RpcClient) InvokeWasmVMSmartContract(
 	version byte,
 	params []interface{}) (common.Uint256, error) {
 
-	contract := &states.Contract{}
+	contract := &cstates.Contract{}
 	contract.Address = smartcodeAddress
 	contract.Method = methodName
 	contract.Version = version
@@ -777,7 +778,7 @@ func (this *RpcClient) NewDeployCodeTransaction(
 	needStorage bool,
 	name, version, author, email, desc string) *types.Transaction {
 
-	vmCode := &vmtypes.VmCode{
+	vmCode := vmtypes.VmCode{
 		VmType: vmType,
 		Code:   code,
 	}
