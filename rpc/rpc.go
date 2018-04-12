@@ -35,7 +35,7 @@ import (
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/states"
 	cstates "github.com/ontio/ontology/smartcontract/states"
-	"github.com/ontio/ontology/smartcontract/service/wasm"
+	"github.com/ontio/ontology/smartcontract/service/wasmvm"
 	"github.com/ontio/ontology/vm/neovm"
 	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
@@ -477,9 +477,9 @@ func (this *RpcClient) sign(data []byte, signer *account.Account) ([]byte, error
 
 //for wasm vm
 //build param bytes for wasm contract
-func buildWasmContractParam(params []interface{}, paramType wasm.ParamType) ([]byte, error) {
+func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([]byte, error) {
 	switch paramType {
-	case wasm.Json:
+	case wasmvm.Json:
 		args := make([]exec.Param, len(params))
 
 		for i, param := range params {
@@ -525,7 +525,7 @@ func buildWasmContractParam(params []interface{}, paramType wasm.ParamType) ([]b
 			return nil, err
 		}
 		return bs, nil
-	case wasm.Raw:
+	case wasmvm.Raw:
 		bf := bytes.NewBuffer(nil)
 		for _, param := range params {
 			switch param.(type) {
@@ -563,7 +563,7 @@ func (this *RpcClient) InvokeWasmVMSmartContract(
 	gasLimit *big.Int,
 	smartcodeAddress common.Address,
 	methodName string,
-	paramType wasm.ParamType,
+	paramType wasmvm.ParamType,
 	version byte,
 	params []interface{}) (common.Uint256, error) {
 
