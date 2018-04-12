@@ -34,10 +34,10 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/states"
-	cstates "github.com/ontio/ontology/smartcontract/states"
 	"github.com/ontio/ontology/smartcontract/service/wasmvm"
-	"github.com/ontio/ontology/vm/neovm"
+	cstates "github.com/ontio/ontology/smartcontract/states"
 	vmtypes "github.com/ontio/ontology/smartcontract/types"
+	"github.com/ontio/ontology/vm/neovm"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
 	"io/ioutil"
 	"math/big"
@@ -637,10 +637,20 @@ func (this *RpcClient) BuildNeoVMInvokeCode(smartContractAddress common.Address,
 	if err != nil {
 		return nil, err
 	}
+	args := builder.ToArray()
+
+	crt := &cstates.Contract{
+		Address: smartContractAddress,
+		Args:    args,
+	}
+	crtBuf := bytes.NewBuffer(nil)
+	err = crt.Serialize(crtBuf)
+	if err != nil {
+		return nil, fmt.Errorf("Serialize contract error:%s", err)
+	}
 
 	buf := bytes.NewBuffer(nil)
-	buf.Write(builder.ToArray())
-	buf.Write(append([]byte{0x67}, smartContractAddress[:]...))
+	buf.Write(append([]byte{0x67}, crtBuf.Bytes()[:]...))
 	return buf.Bytes(), nil
 }
 
