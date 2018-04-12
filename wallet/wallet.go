@@ -45,7 +45,7 @@ func (this *OntWallet) SetCryptScheme(cryptScheme string) {
 
 //GetDefaultAccount return the default account
 func (this *OntWallet)GetDefaultAccount()(*account.Account, error){
-	return this.wallet.GetDefaultAccount()
+	return this.wallet.GetDefaultAccount(),nil
 }
 
 //CreateAccount return a new account
