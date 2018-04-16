@@ -47,3 +47,13 @@ type SmartContactEvent struct {
 	TxHash          string
 	States          []interface{}
 }
+
+//MerkleProof return struct
+type MerkleProof struct {
+	Type             string
+	TransactionsRoot string
+	BlockHeight      uint32
+	CurBlockRoot     string
+	CurBlockHeight   uint32
+	TargetHashes     []string
+}

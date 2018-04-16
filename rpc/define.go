@@ -34,6 +34,8 @@ const (
 	RPC_GET_SMART_CONTRACT_EVENT = "getsmartcodeevent"
 	RPC_GET_STORAGE              = "getstorage"
 	RPC_GET_SMART_CONTRACT       = "getcontractstate"
+	RPC_GET_GENERATE_BLOCK_TIME = "getgenerateblocktime"
+	RPC_GET_MERKLE_PROOF = "getmerkleproof"
 )
 
 //JsonRpc version

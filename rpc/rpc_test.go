@@ -23,20 +23,45 @@ import (
 	"fmt"
 	"github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology-go-sdk/wallet"
+	"github.com/ontio/ontology/account"
 	ontcom "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/genesis"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/smartcontract/service/native"
+	"github.com/ontio/ontology/smartcontract/types"
 	"math/big"
 	"testing"
+	"time"
 )
 
 //RpcClient instance of test only
-var testRpc *RpcClient
+var (
+	testRpc    *RpcClient
+	testWallet *wallet.OntWallet
+)
 
 func init() {
-	testRpc = NewRpcClient(common.CRYPTO_SCHEME_DEFAULT)
+	cryptScheme := common.CRYPTO_SCHEME_DEFAULT
+	testRpc = NewRpcClient(cryptScheme)
 	testRpc.SetAddress("http://localhost:20336")
+	walletFile := "./wallet.dat"
+	password := "password"
+	if utils.IsFileExist(walletFile) {
+		walletClient := account.Open(walletFile, []byte(password))
+		if walletClient == nil {
+			fmt.Printf("OpenWallet:%s failed\n", walletFile)
+			return
+		}
+		testWallet = wallet.NewOntWallet(cryptScheme, walletClient)
+	} else {
+		walletClient := account.Create("./wallet.dat", cryptScheme, []byte("password"))
+		if walletClient == nil {
+			fmt.Printf("CreateWallet:%s failed\n", walletFile)
+			return
+		}
+		testWallet = wallet.NewOntWallet(cryptScheme, walletClient)
+	}
 }
 
 func TestGetVersion(t *testing.T) {
@@ -189,4 +214,105 @@ func TestGetSmartContract(t *testing.T) {
 	}
 	fmt.Printf("TestGetSmartContract:\n Code:%x\n Author:%s\n Verson:%s\n NeedStorage:%v\n Email:%s\n Description:%s\n",
 		contract.Code.Code, contract.Author, contract.Version, contract.NeedStorage, contract.Email, contract.Description)
+}
+
+func TestGetGenerateBlockTime(t *testing.T) {
+	genTime, err := testRpc.GetGenerateBlockTime()
+	if err != nil {
+		t.Errorf("GetGenerateBlockTime error:%s", err)
+		return
+	}
+	fmt.Printf("TestGetGenerateBlockTime:%d\n", genTime)
+}
+
+func TestMerkleProof(t *testing.T) {
+	block, err := testRpc.GetBlockByHeight(0)
+	if err != nil {
+		t.Errorf("GetBlockByHeight error:%s", err)
+		return
+	}
+	txHash := block.Transactions[0].Hash()
+
+	proof, err := testRpc.GetMerkleProof(txHash)
+	if err != nil {
+		t.Errorf("GetMerkleProof error:%s", err)
+		return
+	}
+	fmt.Printf("TestMerkleProof %+v\n", proof)
+}
+
+func TestDeployContract(t *testing.T) {
+	signer, err := testWallet.GetDefaultAccount()
+	if err != nil {
+		t.Errorf("TestDeployNeoVMContract GetDefaultAccount error:%s\n", err)
+		return
+	}
+	/*
+	using Neo.SmartContract.Framework;
+	using Neo.SmartContract.Framework.Services.Neo;
+	using Neo.SmartContract.Framework.Services.System;
+	using System;
+	using System.ComponentModel;
+	using System.Numerics;
+	namespace NeoContract
+	{
+	   public class Contract1 : SmartContract
+	   {
+		   public static object Main()
+		   {
+			   Storage.Put(Storage.CurrentContext, "Hello", "World");
+			   return Storage.Get(Storage.CurrentContext, "Hello").AsString();
+		   }
+	   }
+	}
+	*/
+	//contractCode was compiled by compiler
+	contractCode := "51c56b616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f05576f726c64615272680f4e656f" +
+		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
+		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
+	contractCodeAddress := utils.GetNeoVMContractAddress(contractCode)
+	txHash, err := testRpc.DeploySmartContract(signer,
+		types.NEOVM,
+		true,
+		contractCode,
+		"TestDeploySmartContract",
+		"1.0",
+		"",
+		"",
+		"",
+	)
+
+	fmt.Printf("TestDeployContract CodeAddress:%x\n", contractCodeAddress)
+	if err != nil {
+		t.Errorf("TestDeployContract DeploySmartContract error:%s\n", err)
+		return
+	}
+	//WaitForGenerateBlock, ensure contract was be deploy in block
+	_, err = testRpc.WaitForGenerateBlock(30*time.Second, 1)
+	if err != nil {
+		t.Errorf("TestDeploySmartContract WaitForGenerateBlock error:%s", err)
+		return
+	}
+	fmt.Printf("TestDeployContract TxHash:%x\n", txHash)
+}
+
+func TestInvokeNeoVMContract(t *testing.T) {
+	//contractCode was compiled by compiler
+	contractCode := "51c56b616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f05576f726c64615272680f4e656f" +
+		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
+		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
+	contractCodeAddress := utils.GetNeoVMContractAddress(contractCode)
+	signer, err := testWallet.GetDefaultAccount()
+	if err != nil {
+		t.Errorf("TestInvokeNeoVMContract GetDefaultAccount error:%s", err)
+		return
+	}
+
+	txHash, err := testRpc.InvokeNeoVMSmartContract(signer, new(big.Int), contractCodeAddress, []interface{}{})
+	if err != nil {
+		t.Errorf("TestInvokeNeoVMContract InvokeNeoVMSmartContract error:%s", err)
+		return
+	}
+
+	fmt.Printf("TestInvokeNeoVMContract TxHash:%x\n", txHash)
 }
