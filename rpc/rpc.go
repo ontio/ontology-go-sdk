@@ -44,8 +44,8 @@ import (
 	"github.com/ontio/ontology/smartcontract/service/native/states"
 	"github.com/ontio/ontology/smartcontract/service/wasmvm"
 	cstates "github.com/ontio/ontology/smartcontract/states"
-	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"github.com/ontio/ontology/vm/neovm"
+	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
 
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
