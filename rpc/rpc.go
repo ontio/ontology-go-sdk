@@ -25,6 +25,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	sig "github.com/ontio/ontology-crypto/signature"
 	"github.com/ontio/ontology/account"
@@ -39,13 +47,6 @@ import (
 	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"github.com/ontio/ontology/vm/neovm"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
-	"io/ioutil"
-	"math/big"
-	"net/http"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
 
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
@@ -531,7 +532,7 @@ func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([
 			switch param.(type) {
 			case string:
 				tmp := bytes.NewBuffer(nil)
-				serialization.WriteVarString(tmp, param.(string))
+				serialization.WriteString(tmp, param.(string))
 				bf.Write(tmp.Bytes())
 
 			case int:
