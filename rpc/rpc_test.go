@@ -19,10 +19,13 @@
 package rpc
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
+	ontcom "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/genesis"
+	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/smartcontract/service/native"
 	"math/big"
 	"testing"
@@ -46,10 +49,9 @@ func TestGetVersion(t *testing.T) {
 }
 
 func TestGetBlockByHash(t *testing.T) {
-	genesisHash := "077b1ef80c169098a7421adc4962906e69ba8036e257945cea31125c115ba364"
-	blockHash, err := utils.ParseUint256FromHexString(genesisHash)
+	blockHash, err := testRpc.GetBlockHash(0)
 	if err != nil {
-		t.Errorf("TestGetBlockByHash ParseUint256FromHexString error:%s", err)
+		t.Errorf("GetBlockHash error:%s", err)
 		return
 	}
 	block, err := testRpc.GetBlockByHash(blockHash)
@@ -130,25 +132,32 @@ func TestGetSmartContractEvent(t *testing.T) {
 	}
 
 	fmt.Printf("GetSmartContractEvent:%+v\n", events)
-	//for _, event := range events {
-	//	fmt.Printf(" TxHash:%x\n", event.TxHash)
-	//	fmt.Printf(" SmartContractAddress:%x\n", event.Address)
-	//	name := event.States[0].(string)
-	//	from := event.States[1].([]byte)
-	//	to := event.States[2].([]byte)
-	//	value := event.States[3].(*big.Int)
-	//	fmt.Printf(" State Name:%s from:%x to:%x value:%d\n", name, from, to, value.Int64())
-	//}
+	for _, event := range events {
+		fmt.Printf(" TxHash:%x\n", event.TxHash)
+		fmt.Printf(" SmartContractAddress:%x\n", event.ContractAddress)
+		name := event.States[0].(string)
+		from := event.States[1].(string)
+		to := event.States[2].(string)
+		value := event.States[3].(string)
+		data, err := hex.DecodeString(value)
+		if err != nil {
+			t.Errorf("DecodeString error:%s", err)
+			return
+		}
+		v := new(big.Int).SetBytes(data)
+		fmt.Printf(" State Name:%s from:%s to:%s value:%d\n", name, from, to, v.Int64())
+	}
 }
 
 func TestGetRawTransaction(t *testing.T) {
-	ontInitTxHash := "476a15e30208e84dd5307e4fc3c8c268650e88c1b44f96741053bf63d23cd023"
-	ontInitTx, err := utils.ParseUint256FromHexString(ontInitTxHash)
+	block, err := testRpc.GetBlockByHeight(0)
 	if err != nil {
-		t.Errorf("ParseUint256FromHexString error:%s", err)
+		t.Errorf("GetBlockByHeight error:%s", err)
 		return
 	}
-	tx, err := testRpc.GetRawTransaction(ontInitTx)
+	//The first transaction is ont deploy transaction
+	ont := block.Transactions[0]
+	tx, err := testRpc.GetRawTransaction(ont.Hash())
 	if err != nil {
 		t.Errorf("GetRawTransaction error:%s", err)
 		return
@@ -157,17 +166,27 @@ func TestGetRawTransaction(t *testing.T) {
 }
 
 func TestGetSmartContract(t *testing.T) {
-	smAddress := "ff40227671f2b544a69fd4204a904577a01f428f" //ONT origin address
-	addr, err := utils.ParseAddressFromHexString(smAddress)
+	block, err := testRpc.GetBlockByHeight(0)
 	if err != nil {
-		t.Errorf("TestGetStorage ParseAddressFromHexString error:%s", err)
+		t.Errorf("GetBlockByHeight error:%s", err)
 		return
 	}
-	contract, err := testRpc.GetSmartContract(addr)
+	//The first transaction is ont deploy transaction
+	ont := block.Transactions[0]
+	payload := ont.Payload.(*payload.DeployCode)
+
+	//native contract is different with other (neovm or wason)
+	//if neovm the address = payload.Code.AddressFromVmCode()
+	contractAddress, err := ontcom.AddressParseFromBytes(payload.Code.Code)
+	if err != nil {
+		t.Errorf("AddressParseFromBytes error:%s", err)
+		return
+	}
+	contract, err := testRpc.GetSmartContract(contractAddress)
 	if err != nil {
 		t.Errorf("GetSmartContract error:%s", err)
 		return
 	}
-	fmt.Printf("TestGetSmartContract Code:%x\n Author:%s\n Verson:%s\n NeedStorage:%v\n Email:%s\n Description:%s\n",
+	fmt.Printf("TestGetSmartContract:\n Code:%x\n Author:%s\n Verson:%s\n NeedStorage:%v\n Email:%s\n Description:%s\n",
 		contract.Code.Code, contract.Author, contract.Version, contract.NeedStorage, contract.Email, contract.Description)
 }

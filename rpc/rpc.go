@@ -870,7 +870,7 @@ func (this *RpcClient) sendRpcRequest(method string, params []interface{}) ([]by
 		return nil, fmt.Errorf("json.Unmarshal JsonRpcResponse:%s error:%s", body, err)
 	}
 	if rpcRsp.Error != 0 {
-		return nil, fmt.Errorf("sendRpcRequest error code:%d desc:%s", rpcRsp.Error, rpcRsp.Desc)
+		return nil, fmt.Errorf("sendRpcRequest error code:%d desc:%s result:%s", rpcRsp.Error, rpcRsp.Desc, rpcRsp.Result)
 	}
 	return rpcRsp.Result, nil
 }
