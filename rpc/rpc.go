@@ -91,15 +91,15 @@ func (this *RpcClient) SetHttpClient(httpClient *http.Client) *RpcClient {
 }
 
 //GetVersion return the version of ontology
-func (this *RpcClient) GetVersion() (int, error) {
+func (this *RpcClient) GetVersion() (string, error) {
 	data, err := this.sendRpcRequest(RPC_GET_VERSION, []interface{}{})
 	if err != nil {
-		return 0, fmt.Errorf("sendRpcRequest error:%s", err)
+		return "", fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	version := 0
+	version := ""
 	err = json.Unmarshal(data, &version)
 	if err != nil {
-		return 0, fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
+		return "", fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
 	}
 	return version, nil
 }
@@ -552,7 +552,7 @@ func (this *RpcClient) SendRawTransaction(tx *types.Transaction) (common.Uint256
 	return hash, nil
 }
 
-func (this *RpcClient) GetGenerateBlockTime()(int, error){
+func (this *RpcClient) GetGenerateBlockTime() (int, error) {
 	data, err := this.sendRpcRequest(RPC_GET_GENERATE_BLOCK_TIME, []interface{}{})
 	if err != nil {
 		return 0, fmt.Errorf("sendRpcRequest error:%s", err)
@@ -566,12 +566,12 @@ func (this *RpcClient) GetGenerateBlockTime()(int, error){
 }
 
 //GetMerkleProof return the merkle proof whether tx is exist in ledger
-func (this *RpcClient) GetMerkleProof(txHash common.Uint256)(*sdkcom.MerkleProof, error){
+func (this *RpcClient) GetMerkleProof(txHash common.Uint256) (*sdkcom.MerkleProof, error) {
 	return this.GetMerkleProofWithHexString(hex.EncodeToString(txHash.ToArray()))
 }
 
 //GetMerkleProof return the merkle proof whether tx is exist in ledger. Param txHash is in hex string code
-func (this *RpcClient)GetMerkleProofWithHexString(txHash string)(*sdkcom.MerkleProof, error){
+func (this *RpcClient) GetMerkleProofWithHexString(txHash string) (*sdkcom.MerkleProof, error) {
 	data, err := this.sendRpcRequest(RPC_GET_MERKLE_PROOF, []interface{}{txHash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
