@@ -432,13 +432,9 @@ func (this *RpcClient) DeploySmartContract(
 	email,
 	desc string) (common.Uint256, error) {
 
-	c, err := hex.DecodeString(code)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("hex.DecodeString error:%s", err)
-	}
-	tx := sdkcom.NewDeployCodeTransaction(vmType, c, needStorage, name, version, author, email, desc)
+	tx := sdkcom.NewDeployCodeTransaction(vmType, []byte(code), needStorage, name, version, author, email, desc)
 
-	err = sdkcom.SignTransaction(this.cryptScheme, tx, singer)
+	err := sdkcom.SignTransaction(this.cryptScheme, tx, singer)
 	if err != nil {
 		return common.Uint256{}, err
 	}
