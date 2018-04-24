@@ -16,11 +16,10 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- //Using for create account manage crypt key, and so on.
+//Using for create account manage crypt key, and so on.
 package wallet
 
 import (
-	"fmt"
 	"github.com/ontio/ontology/account"
 )
 
@@ -34,7 +33,7 @@ type OntWallet struct {
 func NewOntWallet(cryptScheme string, walletClient *account.ClientImpl) *OntWallet {
 	return &OntWallet{
 		cryptScheme: cryptScheme,
-		wallet:walletClient,
+		wallet:      walletClient,
 	}
 }
 
@@ -44,20 +43,8 @@ func (this *OntWallet) SetCryptScheme(cryptScheme string) {
 }
 
 //GetDefaultAccount return the default account
-func (this *OntWallet)GetDefaultAccount()(*account.Account, error){
-	return this.wallet.GetDefaultAccount(),nil
+func (this *OntWallet) GetDefaultAccount() (*account.Account, error) {
+	return this.wallet.GetDefaultAccount(), nil
 }
 
-//CreateAccount return a new account
-func (this *OntWallet) CreateAccount() (*account.Account, error) {
-	return this.wallet.CreateAccount(this.cryptScheme)
-}
-
-//ChangePassword change password of wallet
-func (this *OntWallet)ChangePassword(old, new string)error{
-	res := this.wallet.ChangePassword([]byte(old), []byte(new))
-	if !res {
-		return fmt.Errorf("ChangePassword failed")
-	}
-	return nil
-}
+//TODO rewrite wallet functions
