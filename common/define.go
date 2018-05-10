@@ -18,7 +18,6 @@
 //Some common define of ontology-go-sdk
 package common
 
-import "math/big"
 
 //Default crypt scheme
 const CRYPTO_SCHEME_DEFAULT = "SHA256withECDSA"
@@ -44,9 +43,9 @@ const (
 
 //Balance object for account
 type Balance struct {
-	Ont       *big.Int
-	Ong       *big.Int
-	OngAppove *big.Int
+	Ont       uint64
+	Ong       uint64
+	OngAppove uint64
 }
 
 //SmartContactEvent object for event of transaction

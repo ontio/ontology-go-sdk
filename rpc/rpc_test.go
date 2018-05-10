@@ -130,7 +130,7 @@ func TestGetBalance(t *testing.T) {
 		t.Errorf("GetBalance error:%s", err)
 		return
 	}
-	fmt.Printf("TestGetBalance ONT:%d ONG:%d ONGAppove:%d\n", balance.Ont.Int64(), balance.Ong.Int64(), balance.OngAppove.Int64())
+	fmt.Printf("TestGetBalance ONT:%d ONG:%d ONGAppove:%d\n", balance.Ont, balance.Ong, balance.OngAppove)
 }
 
 func TestGetStorage(t *testing.T) {
