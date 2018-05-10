@@ -28,7 +28,7 @@ import (
 	ontcom "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/genesis"
 	"github.com/ontio/ontology/core/payload"
-	"github.com/ontio/ontology/smartcontract/service/native"
+	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/ontio/ontology/smartcontract/types"
 	"math/big"
 	"testing"
@@ -46,7 +46,7 @@ func init() {
 	testRpc = NewRpcClient(cryptScheme)
 	testRpc.SetAddress("http://localhost:20336")
 	walletFile := "./wallet.dat"
-	password := "password"
+	password := "wangbing"
 	if utils.IsFileExist(walletFile) {
 		walletClient := account.Open(walletFile, []byte(password))
 		if walletClient == nil {
@@ -134,7 +134,7 @@ func TestGetBalance(t *testing.T) {
 }
 
 func TestGetStorage(t *testing.T) {
-	value, err := testRpc.GetStorage(genesis.OntContractAddress, native.TOTAL_SUPPLY_NAME)
+	value, err := testRpc.GetStorage(genesis.OntContractAddress, ont.TOTAL_SUPPLY_NAME)
 	if err != nil {
 		t.Errorf("GetStorage error:%s", err)
 		return
@@ -248,30 +248,32 @@ func TestDeployContract(t *testing.T) {
 		return
 	}
 	/*
-	using Neo.SmartContract.Framework;
-	using Neo.SmartContract.Framework.Services.Neo;
-	using Neo.SmartContract.Framework.Services.System;
-	using System;
-	using System.ComponentModel;
-	using System.Numerics;
-	namespace NeoContract
-	{
-	   public class Contract1 : SmartContract
-	   {
-		   public static object Main()
+		using Neo.SmartContract.Framework;
+		using Neo.SmartContract.Framework.Services.Neo;
+		using Neo.SmartContract.Framework.Services.System;
+		using System;
+		using System.ComponentModel;
+		using System.Numerics;
+		namespace NeoContract
+		{
+		   public class Contract1 : SmartContract
 		   {
-			   Storage.Put(Storage.CurrentContext, "Hello", "World");
-			   return Storage.Get(Storage.CurrentContext, "Hello").AsString();
+			   public static object Main()
+			   {
+				   Storage.Put(Storage.CurrentContext, "Hello", "World");
+				   return Storage.Get(Storage.CurrentContext, "Hello").AsString();
+			   }
 		   }
-	   }
-	}
+		}
 	*/
 	//contractCode was compiled by compiler
 	contractCode := "51c56b616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f05576f726c64615272680f4e656f" +
 		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
 		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
 	contractCodeAddress := utils.GetNeoVMContractAddress(contractCode)
-	txHash, err := testRpc.DeploySmartContract(signer,
+	txHash, err := testRpc.DeploySmartContract(
+		0, 0,
+		signer,
 		types.NEOVM,
 		true,
 		contractCode,
@@ -282,7 +284,7 @@ func TestDeployContract(t *testing.T) {
 		"",
 	)
 
-	fmt.Printf("TestDeployContract CodeAddress:%x\n", contractCodeAddress)
+	fmt.Printf("TestDeployContract CodeAddress:%x\n", contractCodeAddress.ToBase58())
 	if err != nil {
 		t.Errorf("TestDeployContract DeploySmartContract error:%s\n", err)
 		return
@@ -308,7 +310,7 @@ func TestInvokeNeoVMContract(t *testing.T) {
 		return
 	}
 
-	txHash, err := testRpc.InvokeNeoVMSmartContract(signer, new(big.Int), contractCodeAddress, []interface{}{})
+	txHash, err := testRpc.InvokeNeoVMSmartContract(0,0,signer, 0, contractCodeAddress, []interface{}{})
 	if err != nil {
 		t.Errorf("TestInvokeNeoVMContract InvokeNeoVMSmartContract error:%s", err)
 		return

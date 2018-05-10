@@ -25,10 +25,12 @@ import (
 
 //NewDeployCodeTransaction return a smart contract deploy transaction instance
 func NewDeployCodeTransaction(
+	gasPrice,
+	gasLimit uint64,
 	vmType vmtypes.VmType,
 	code []byte,
 	needStorage bool,
-	name, version, author, email, desc string) *types.Transaction {
+	cname, cversion, cauthor, cemail, cdesc string) *types.Transaction {
 
 	vmCode := vmtypes.VmCode{
 		VmType: vmType,
@@ -37,42 +39,41 @@ func NewDeployCodeTransaction(
 	deployPayload := &payload.DeployCode{
 		Code:        vmCode,
 		NeedStorage: needStorage,
-		Name:        name,
-		Version:     version,
-		Author:      author,
-		Email:       email,
-		Description: desc,
+		Name:        cname,
+		Version:     cversion,
+		Author:      cauthor,
+		Email:       cemail,
+		Description: cdesc,
 	}
 	tx := &types.Transaction{
-		Version:    0,
+		Version:    VERSION_TRANSACTION,
 		TxType:     types.Deploy,
 		Nonce:      uint32(time.Now().Unix()),
 		Payload:    deployPayload,
 		Attributes: make([]*types.TxAttribute, 0, 0),
-		Fee:        make([]*types.Fee, 0, 0),
-		NetWorkFee: 0,
+		GasPrice:   gasPrice,
+		GasLimit:   gasLimit,
 		Sigs:       make([]*types.Sig, 0, 0),
 	}
 	return tx
 }
 
 //NewInvokeTransaction return smart contract invoke transaction
-func NewInvokeTransaction(gasLimit *big.Int, vmType vmtypes.VmType, code []byte) *types.Transaction {
+func NewInvokeTransaction(gasPirce, gasLimit uint64, vmType vmtypes.VmType, code []byte) *types.Transaction {
 	invokePayload := &payload.InvokeCode{
-		GasLimit: common.Fixed64(gasLimit.Int64()),
 		Code: vmtypes.VmCode{
 			VmType: vmType,
 			Code:   code,
 		},
 	}
 	tx := &types.Transaction{
-		Version:    0,
+		Version:    VERSION_TRANSACTION,
+		GasPrice:   gasPirce,
+		GasLimit:   gasLimit,
 		TxType:     types.Invoke,
 		Nonce:      uint32(time.Now().Unix()),
 		Payload:    invokePayload,
 		Attributes: make([]*types.TxAttribute, 0, 0),
-		Fee:        make([]*types.Fee, 0, 0),
-		NetWorkFee: 0,
 		Sigs:       make([]*types.Sig, 0, 0),
 	}
 	return tx
@@ -80,6 +81,7 @@ func NewInvokeTransaction(gasLimit *big.Int, vmType vmtypes.VmType, code []byte)
 
 //Sign to a transaction
 func SignTransaction(cryptScheme string, tx *types.Transaction, signer *account.Account) error {
+	tx.Payer = signer.Address
 	txHash := tx.Hash()
 	sigData, err := sign(cryptScheme, txHash.ToArray(), signer)
 	if err != nil {
@@ -91,6 +93,7 @@ func SignTransaction(cryptScheme string, tx *types.Transaction, signer *account.
 		SigData: [][]byte{sigData},
 	}
 	tx.Sigs = []*types.Sig{sig}
+
 	return nil
 }
 
@@ -103,20 +106,29 @@ func MultiSignTransaction(cryptScheme string, tx *types.Transaction, m uint8, si
 	if int(m) > n {
 		return fmt.Errorf("M:%d should smaller than N:%d", m, n)
 	}
-	txHash := tx.Hash()
-	pks := make([]keypair.PublicKey, 0, n)
-	sigData := make([][]byte, 0, m)
 
+	pks := make([]keypair.PublicKey, 0, n)
+	for _,signer := range signers{
+		pks = append(pks, signer.PublicKey)
+	}
+	payer, err := types.AddressFromMultiPubKeys(pks, int(m))
+	if err != nil {
+		return fmt.Errorf("AddressFromMultiPubKeys error:%s", payer)
+	}
+	tx.Payer = payer
+
+	txHash := tx.Hash()
+	sigData := make([][]byte, 0, m)
 	for i := 0; i < n; i++ {
 		signer := signers[i]
-		if i < int(m) {
-			sig, err := sign(cryptScheme, txHash.ToArray(), signer)
-			if err != nil {
-				return fmt.Errorf("sign error:%s", err)
-			}
-			sigData = append(sigData, sig)
+		if i >= int(m) {
+			break
 		}
-		pks = append(pks, signer.PublicKey)
+		sig, err := sign(cryptScheme, txHash.ToArray(), signer)
+		if err != nil {
+			return fmt.Errorf("sign error:%s", err)
+		}
+		sigData = append(sigData, sig)
 	}
 	sig := &types.Sig{
 		PubKeys: pks,
@@ -124,6 +136,7 @@ func MultiSignTransaction(cryptScheme string, tx *types.Transaction, m uint8, si
 		SigData: sigData,
 	}
 	tx.Sigs = []*types.Sig{sig}
+
 	return nil
 }
 
@@ -144,8 +157,8 @@ func sign(cryptScheme string, data []byte, signer *account.Account) ([]byte, err
 	return sigData, nil
 }
 
-//buildNeoVMParamInter build neovm invoke param code
-func buildNeoVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []interface{}) error {
+//BuildNeoVMParamInter build neovm invoke param code
+func BuildNeoVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []interface{}) error {
 	//VM load params in reverse order
 	for i := len(smartContractParams) - 1; i >= 0; i-- {
 		switch v := smartContractParams[i].(type) {
@@ -173,7 +186,7 @@ func buildNeoVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []in
 		case []byte:
 			builder.EmitPushByteArray(v)
 		case []interface{}:
-			err := buildNeoVMParamInter(builder, v)
+			err := BuildNeoVMParamInter(builder, v)
 			if err != nil {
 				return err
 			}
@@ -187,16 +200,17 @@ func buildNeoVMParamInter(builder *neovm.ParamsBuilder, smartContractParams []in
 }
 
 //BuildNeoVMInvokeCode build NeoVM Invoke code for params
-func BuildNeoVMInvokeCode(smartContractAddress common.Address, params []interface{}) ([]byte, error) {
+func BuildNeoVMInvokeCode(cversion byte, contractAddress common.Address, params []interface{}) ([]byte, error) {
 	builder := neovm.NewParamsBuilder(new(bytes.Buffer))
-	err := buildNeoVMParamInter(builder, params)
+	err := BuildNeoVMParamInter(builder, params)
 	if err != nil {
 		return nil, err
 	}
 	args := builder.ToArray()
 
 	crt := &cstates.Contract{
-		Address: smartContractAddress,
+		Version: cversion,
+		Address: contractAddress,
 		Args:    args,
 	}
 	crtBuf := bytes.NewBuffer(nil)
@@ -212,7 +226,7 @@ func BuildNeoVMInvokeCode(smartContractAddress common.Address, params []interfac
 
 //for wasm vm
 //build param bytes for wasm contract
-func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([]byte, error) {
+func BuildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([]byte, error) {
 	switch paramType {
 	case wasmvm.Json:
 		args := make([]exec.Param, len(params))
@@ -290,13 +304,13 @@ func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([
 }
 
 //BuildWasmVMInvokeCode return wasn vm invoke code
-func BuildWasmVMInvokeCode(smartcodeAddress common.Address, methodName string, paramType wasmvm.ParamType, version byte, params []interface{}) ([]byte, error) {
+func BuildWasmVMInvokeCode(cversion byte, smartcodeAddress common.Address, methodName string, paramType wasmvm.ParamType, params []interface{}) ([]byte, error) {
 	contract := &cstates.Contract{}
 	contract.Address = smartcodeAddress
 	contract.Method = methodName
-	contract.Version = version
+	contract.Version = cversion
 
-	argbytes, err := buildWasmContractParam(params, paramType)
+	argbytes, err := BuildWasmContractParam(params, paramType)
 
 	if err != nil {
 		return nil, fmt.Errorf("build wasm contract param failed:%s", err)

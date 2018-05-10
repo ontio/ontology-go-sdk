@@ -23,6 +23,14 @@ import "math/big"
 //Default crypt scheme
 const CRYPTO_SCHEME_DEFAULT = "SHA256withECDSA"
 
+const (
+	VERSION_TRANSACTION  = 0
+	VERSION_CONTRACT_ONT = 0
+)
+const (
+	NATIVE_TRANSFER = "transfer"
+)
+
 //NeoVM invoke smart contract return type
 type NeoVMReturnType byte
 
