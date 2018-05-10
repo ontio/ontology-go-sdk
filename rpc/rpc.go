@@ -46,7 +46,7 @@ import (
 	"math/rand"
 )
 
-func init(){
+func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -372,7 +372,7 @@ func (this *RpcClient) WaitForGenerateBlock(timeout time.Duration, blockCount ..
 //Transfer ONT of ONG
 //for ONT amount is the raw value
 //for ONG amount is the raw value * 10e9
-func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from, to *account.Account, amount uint64) (common.Uint256, error) {
+func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from *account.Account, to common.Address, amount uint64) (common.Uint256, error) {
 	var contractAddress common.Address
 	switch strings.ToUpper(asset) {
 	case "ONT":
@@ -387,7 +387,7 @@ func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from, t
 	var sts []*ont.State
 	sts = append(sts, &ont.State{
 		From:  from.Address,
-		To:    to.Address,
+		To:    to,
 		Value: amount,
 	})
 	transfers := &ont.Transfers{
