@@ -509,7 +509,7 @@ func (this *RpcClient) InvokeSmartContract(
 	if vmType == vmtypes.NEOVM {
 		invokCode = append([]byte{0x67}, invokCode[:]...)
 	}
-	invokeTx := sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmtypes.Native, invokCode)
+	invokeTx := sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmType, invokCode)
 	err = sdkcom.SignTransaction(this.cryptScheme, invokeTx, singer)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SignTransaction error:%s", err)
