@@ -21,9 +21,9 @@ package rpc
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology-crypto/keypair"
+	s "github.com/ontio/ontology-crypto/signature"
 	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology-go-sdk/wallet"
 	"github.com/ontio/ontology/account"
 	ontcom "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/genesis"
@@ -31,6 +31,7 @@ import (
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/ontio/ontology/smartcontract/types"
 	"math/big"
+	"os"
 	"testing"
 	"time"
 )
@@ -38,30 +39,28 @@ import (
 //RpcClient instance of test only
 var (
 	testRpc    *RpcClient
-	testWallet *wallet.OntWallet
+	testWallet account.Client
+	testPasswd = []byte("password")
 )
 
-func init() {
-	cryptScheme := common.CRYPTO_SCHEME_DEFAULT
-	testRpc = NewRpcClient(cryptScheme)
+func TestMain(t *testing.M) {
+	var err error
+	testRpc = NewRpcClient()
 	testRpc.SetAddress("http://localhost:20336")
 	walletFile := "./wallet.dat"
-	password := "wangbing"
-	if utils.IsFileExist(walletFile) {
-		walletClient := account.Open(walletFile, []byte(password))
-		if walletClient == nil {
-			fmt.Printf("OpenWallet:%s failed\n", walletFile)
-			return
-		}
-		testWallet = wallet.NewOntWallet(cryptScheme, walletClient)
-	} else {
-		walletClient := account.Create("./wallet.dat", cryptScheme, []byte("password"))
-		if walletClient == nil {
-			fmt.Printf("CreateWallet:%s failed\n", walletFile)
-			return
-		}
-		testWallet = wallet.NewOntWallet(cryptScheme, walletClient)
+	testWallet, err = account.Open(walletFile)
+	if err != nil {
+		fmt.Errorf("wallet open error:%s", err)
+		return
 	}
+	_, err = testWallet.NewAccount("t", keypair.PK_ECDSA, keypair.P256, s.SHA256withECDSA, testPasswd)
+	if err != nil {
+		fmt.Errorf("NewAccount error:%s", err)
+		return
+	}
+	t.Run()
+	os.Remove("./ActorLog")
+	os.Remove(walletFile)
 }
 
 func TestGetVersion(t *testing.T) {
@@ -242,7 +241,7 @@ func TestMerkleProof(t *testing.T) {
 }
 
 func TestDeployContract(t *testing.T) {
-	signer, err := testWallet.GetDefaultAccount()
+	signer, err := testWallet.GetDefaultAccount(testPasswd)
 	if err != nil {
 		t.Errorf("TestDeployNeoVMContract GetDefaultAccount error:%s\n", err)
 		return
@@ -304,13 +303,13 @@ func TestInvokeNeoVMContract(t *testing.T) {
 		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
 		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
 	contractCodeAddress := utils.GetNeoVMContractAddress(contractCode)
-	signer, err := testWallet.GetDefaultAccount()
+	signer, err := testWallet.GetDefaultAccount(testPasswd)
 	if err != nil {
 		t.Errorf("TestInvokeNeoVMContract GetDefaultAccount error:%s", err)
 		return
 	}
 
-	txHash, err := testRpc.InvokeNeoVMSmartContract(0,0,signer, 0, contractCodeAddress, []interface{}{})
+	txHash, err := testRpc.InvokeNeoVMSmartContract(0, 0, signer, 0, contractCodeAddress, []interface{}{})
 	if err != nil {
 		t.Errorf("TestInvokeNeoVMContract InvokeNeoVMSmartContract error:%s", err)
 		return

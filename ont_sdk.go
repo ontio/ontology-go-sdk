@@ -16,67 +16,47 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- //Ontolog sdk in golang. Using for operation with ontology
+//Ontolog sdk in golang. Using for operation with ontology
 package ontology_go_sdk
 
 import (
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/rpc"
-	"github.com/ontio/ontology-go-sdk/wallet"
 	"fmt"
-	"github.com/ontio/ontology/account"
+	"github.com/ontio/ontology-go-sdk/rpc"
 	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/account"
 )
 
 //OntologySdk is the main struct for user
 type OntologySdk struct {
-	cryptScheme string
 	//Rpc client used the rpc api of ontology
-	Rpc         *rpc.RpcClient
+	Rpc *rpc.RpcClient
 }
 
 //NewOntologySdk return OntologySdk.
 func NewOntologySdk() *OntologySdk {
-	scheme := sdkcom.CRYPTO_SCHEME_DEFAULT
 	return &OntologySdk{
-		cryptScheme: scheme,
-		Rpc:         rpc.NewRpcClient(scheme),
+		Rpc:         rpc.NewRpcClient(),
 	}
 }
 
-//GetCryptScheme return the currtn crypt scheme
-func (this *OntologySdk) GetCryptScheme() string {
-	return this.cryptScheme
-}
-
-//SetCryptScheme set a crypt scheme for sdk
-func (this *OntologySdk) SetCryptScheme(scheme string) {
-	this.cryptScheme = scheme
-}
-
 //OpenOrCreateWallet return a wllet instance.If the wallet is exist, just open it. if not, then create and open.
-func (this *OntologySdk) OpenOrCreateWallet(walletFile, pwd string) (*wallet.OntWallet, error) {
+func (this *OntologySdk) OpenOrCreateWallet(walletFile string) (account.Client, error) {
 	if utils.IsFileExist(walletFile) {
-		return  this.OpenWallet(walletFile, pwd)
+		return this.OpenWallet(walletFile)
 	} else {
-		return  this.CreateWallet(walletFile, pwd)
+		return this.CreateWallet(walletFile)
 	}
 }
 
 //CreateWallet return a new wallet
-func (this *OntologySdk) CreateWallet(walletFile, pwd string)  (*wallet.OntWallet, error)  {
-	walletClient := account.Create(walletFile, this.cryptScheme, []byte(pwd))
-	if walletClient == nil {
-		return nil, fmt.Errorf("CreateWallet:%s failed", walletFile)
+func (this *OntologySdk) CreateWallet(walletFile string) (account.Client, error) {
+	if utils.IsFileExist(walletFile) {
+		return nil, fmt.Errorf("wallet:%s has already exist", walletFile)
 	}
-	return wallet.NewOntWallet(this.cryptScheme, walletClient), nil
+	return account.Open(walletFile)
 }
 
 //OpenWallet return a wallet instance
-func (this *OntologySdk) OpenWallet(walletFile, pwd string)  (*wallet.OntWallet, error)  {
-	walletClient := account.Open(walletFile, []byte(pwd))
-	if walletClient == nil {
-		return nil, fmt.Errorf("OpenWallet:%s failed", walletFile)
-	}
-	return wallet.NewOntWallet(this.cryptScheme, walletClient), nil
+func (this *OntologySdk) OpenWallet(walletFile string) (account.Client, error) {
+	return account.Open(walletFile)
 }

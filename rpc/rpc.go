@@ -52,16 +52,14 @@ func init() {
 
 //RpcClient for ontology rpc api
 type RpcClient struct {
-	cryptScheme string
 	qid         uint64
 	addr        string
 	httpClient  *http.Client
 }
 
 //NewRpcClient return RpcClient instance
-func NewRpcClient(cryptScheme string) *RpcClient {
+func NewRpcClient() *RpcClient {
 	return &RpcClient{
-		cryptScheme: cryptScheme, //used for crypt sig
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				MaxIdleConnsPerHost:   5,
@@ -72,11 +70,6 @@ func NewRpcClient(cryptScheme string) *RpcClient {
 			Timeout: time.Second * 300, //timeout for http response
 		},
 	}
-}
-
-//SetCryptScheme set cryptScheme for crypt
-func (this *RpcClient) SetCryptScheme(cryptScheme string) {
-	this.cryptScheme = cryptScheme
 }
 
 //SetAddress set rpc server address. Simple http://localhost:20336
@@ -420,7 +413,7 @@ func (this *RpcClient) DeploySmartContract(
 	}
 	tx := sdkcom.NewDeployCodeTransaction(gasPrice, gasLimit, vmType, c, needStorage, cname, cversion, cauthor, cemail, cdesc)
 
-	err = sdkcom.SignTransaction(this.cryptScheme, tx, singer)
+	err = sdkcom.SignTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err
 	}
@@ -510,7 +503,7 @@ func (this *RpcClient) InvokeSmartContract(
 		invokCode = append([]byte{0x67}, invokCode[:]...)
 	}
 	invokeTx := sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmType, invokCode)
-	err = sdkcom.SignTransaction(this.cryptScheme, invokeTx, singer)
+	err = sdkcom.SignTransaction(invokeTx, singer)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SignTransaction error:%s", err)
 	}

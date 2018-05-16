@@ -80,10 +80,10 @@ func NewInvokeTransaction(gasPirce, gasLimit uint64, vmType vmtypes.VmType, code
 }
 
 //Sign to a transaction
-func SignTransaction(cryptScheme string, tx *types.Transaction, signer *account.Account) error {
+func SignTransaction(tx *types.Transaction, signer *account.Account) error {
 	tx.Payer = signer.Address
 	txHash := tx.Hash()
-	sigData, err := sign(cryptScheme, txHash.ToArray(), signer)
+	sigData, err := sign(txHash.ToArray(), signer)
 	if err != nil {
 		return fmt.Errorf("sign error:%s", err)
 	}
@@ -124,7 +124,7 @@ func MultiSignTransaction(cryptScheme string, tx *types.Transaction, m uint8, si
 		if i >= int(m) {
 			break
 		}
-		sig, err := sign(cryptScheme, txHash.ToArray(), signer)
+		sig, err := sign(txHash.ToArray(), signer)
 		if err != nil {
 			return fmt.Errorf("sign error:%s", err)
 		}
@@ -141,12 +141,8 @@ func MultiSignTransaction(cryptScheme string, tx *types.Transaction, m uint8, si
 }
 
 //Sign sign return the signature to the data of private key
-func sign(cryptScheme string, data []byte, signer *account.Account) ([]byte, error) {
-	scheme, err := sig.GetScheme(cryptScheme)
-	if err != nil {
-		return nil, fmt.Errorf("GetScheme by:%s error:%s", cryptScheme, err)
-	}
-	s, err := sig.Sign(scheme, signer.PrivateKey, data, nil)
+func sign(data []byte, signer *account.Account) ([]byte, error) {
+	s, err := sig.Sign(signer.SigScheme, signer.PrivateKey, data, nil)
 	if err != nil {
 		return nil, err
 	}
