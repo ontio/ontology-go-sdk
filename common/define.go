@@ -59,7 +59,7 @@ type SmartContactEvent struct {
 
 type NotifyEventInfo struct {
 	ContractAddress string
-	States          interface{}
+	States          []interface{}
 }
 
 //MerkleProof return struct

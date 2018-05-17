@@ -174,7 +174,7 @@ func TestGetSmartContractEvent(t *testing.T) {
 	fmt.Printf(" GasConsumed:%d\n", scEvt.GasConsumed)
 	for _, notify := range scEvt.Notify {
 		fmt.Printf(" SmartContractAddress:%s\n", notify.ContractAddress)
-		states := notify.States.([]interface{})
+		states := notify.States
 		name := states[0].(string)
 		from := states[1].(string)
 		to := states[2].(string)
