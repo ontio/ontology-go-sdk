@@ -62,7 +62,7 @@ func TestMain(t *testing.M) {
 	}
 
 	t.Run()
-	os.Remove("./ActorLog")
+	os.RemoveAll("./ActorLog")
 	os.Remove(walletFile)
 }
 
@@ -174,7 +174,7 @@ func TestGetSmartContractEvent(t *testing.T) {
 	fmt.Printf(" GasConsumed:%d\n", scEvt.GasConsumed)
 	for _, notify := range scEvt.Notify {
 		fmt.Printf(" SmartContractAddress:%s\n", notify.ContractAddress)
-		states := notify.States
+		states := notify.States.([]interface{})
 		name := states[0].(string)
 		from := states[1].(string)
 		to := states[2].(string)
