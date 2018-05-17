@@ -51,6 +51,7 @@ type JsonRpcRequest struct {
 
 //JsonRpcResponse object response for JsonRpcRequest
 type JsonRpcResponse struct {
+	Id     string          `json:"id"`
 	Error  int64           `json:"error"`
 	Desc   string          `json:"desc"`
 	Result json.RawMessage `json:"result"`

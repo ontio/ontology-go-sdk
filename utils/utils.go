@@ -24,8 +24,8 @@ import (
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
-	neotypes "github.com/ontio/ontology/vm/neovm/types"
 	vmtypes "github.com/ontio/ontology/smartcontract/types"
+	neotypes "github.com/ontio/ontology/vm/neovm/types"
 	"math/big"
 	"os"
 )

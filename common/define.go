@@ -18,6 +18,7 @@
 //Some common define of ontology-go-sdk
 package common
 
+//import ontcom "github.com/ontio/ontology/common"
 
 //Default crypt scheme
 const CRYPTO_SCHEME_DEFAULT = "SHA256withECDSA"
@@ -50,9 +51,15 @@ type Balance struct {
 
 //SmartContactEvent object for event of transaction
 type SmartContactEvent struct {
+	TxHash      string
+	State       byte
+	GasConsumed uint64
+	Notify      []*NotifyEventInfo
+}
+
+type NotifyEventInfo struct {
 	ContractAddress string
-	TxHash          string
-	States          []interface{}
+	States          interface{}
 }
 
 //MerkleProof return struct

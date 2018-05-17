@@ -108,7 +108,7 @@ func MultiSignTransaction(cryptScheme string, tx *types.Transaction, m uint8, si
 	}
 
 	pks := make([]keypair.PublicKey, 0, n)
-	for _,signer := range signers{
+	for _, signer := range signers {
 		pks = append(pks, signer.PublicKey)
 	}
 	payer, err := types.AddressFromMultiPubKeys(pks, int(m))

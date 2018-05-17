@@ -52,9 +52,9 @@ func init() {
 
 //RpcClient for ontology rpc api
 type RpcClient struct {
-	qid         uint64
-	addr        string
-	httpClient  *http.Client
+	qid        uint64
+	addr       string
+	httpClient *http.Client
 }
 
 //NewRpcClient return RpcClient instance
@@ -260,22 +260,22 @@ func (this *RpcClient) GetStorage(smartContractAddress common.Address, key []byt
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction.
-func (this *RpcClient) GetSmartContractEvent(txHash common.Uint256) ([]*sdkcom.SmartContactEvent, error) {
+func (this *RpcClient) GetSmartContractEvent(txHash common.Uint256) (*sdkcom.SmartContactEvent, error) {
 	return this.GetSmartContractEventWithHexString(hex.EncodeToString(txHash.ToArray()))
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
-func (this *RpcClient) GetSmartContractEventWithHexString(txHash string) ([]*sdkcom.SmartContactEvent, error) {
+func (this *RpcClient) GetSmartContractEventWithHexString(txHash string) (*sdkcom.SmartContactEvent, error) {
 	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT_EVENT, []interface{}{txHash})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	events := make([]*sdkcom.SmartContactEvent, 0)
-	err = json.Unmarshal(data, &events)
+	event := &sdkcom.SmartContactEvent{}
+	err = json.Unmarshal(data, &event)
 	if err != nil {
 		return nil, fmt.Errorf("json.Unmarshal SmartContactEvent:%s error:%s", data, err)
 	}
-	return events, nil
+	return event, nil
 }
 
 //GetRawTransaction return transaction by transaction hash
@@ -635,7 +635,6 @@ func (this *RpcClient) sendRpcRequest(method string, params []interface{}) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("read rpc response body error:%s", err)
 	}
-
 	rpcRsp := &JsonRpcResponse{}
 	err = json.Unmarshal(body, rpcRsp)
 	if err != nil {

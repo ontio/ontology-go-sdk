@@ -35,7 +35,7 @@ type OntologySdk struct {
 //NewOntologySdk return OntologySdk.
 func NewOntologySdk() *OntologySdk {
 	return &OntologySdk{
-		Rpc:         rpc.NewRpcClient(),
+		Rpc: rpc.NewRpcClient(),
 	}
 }
 

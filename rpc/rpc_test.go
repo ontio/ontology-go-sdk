@@ -19,7 +19,6 @@
 package rpc
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
@@ -53,11 +52,15 @@ func TestMain(t *testing.M) {
 		fmt.Errorf("wallet open error:%s", err)
 		return
 	}
-	_, err = testWallet.NewAccount("t", keypair.PK_ECDSA, keypair.P256, s.SHA256withECDSA, testPasswd)
-	if err != nil {
-		fmt.Errorf("NewAccount error:%s", err)
-		return
+	accMeta := testWallet.GetAccountMetadataByLabel("t")
+	if accMeta == nil {
+		_, err = testWallet.NewAccount("t", keypair.PK_ECDSA, keypair.P256, s.SHA256withECDSA, testPasswd)
+		if err != nil {
+			fmt.Errorf("NewAccount error:%s", err)
+			return
+		}
 	}
+
 	t.Run()
 	os.Remove("./ActorLog")
 	os.Remove(walletFile)
@@ -143,33 +146,40 @@ func TestGetStorage(t *testing.T) {
 }
 
 func TestGetSmartContractEvent(t *testing.T) {
-	ontInitTxHash := "476a15e30208e84dd5307e4fc3c8c268650e88c1b44f96741053bf63d23cd023"
-	ontInitTx, err := utils.ParseUint256FromHexString(ontInitTxHash)
-	if err != nil {
-		t.Errorf("TestGetSmartContractEvent ParseUint256FromHexString error:%s", err)
-		return
-	}
-	events, err := testRpc.GetSmartContractEvent(ontInitTx)
+	scEvt, err := testRpc.GetSmartContractEventWithHexString("a0cdac22f3e0554ec41bd4e8a2d151b6a6e178fcb194b449cfb13f1f22dbe8e7")
 	if err != nil {
 		t.Errorf("GetSmartContractEvent error:%s", err)
 		return
 	}
+	//Sample:
+	//{
+	//	"TxHash": "a0cdac22f3e0554ec41bd4e8a2d151b6a6e178fcb194b449cfb13f1f22dbe8e7",
+	//	"State": 1,
+	//	"GasConsumed": 0,
+	//	"Notify": [
+	//		{
+	//			"ContractAddress": "ff00000000000000000000000000000000000001",
+	//			"States": [
+	//				"transfer",
+	//				"TA9PGG2Ze5RDYXy8mYjo9Brw2WLzthncH2",
+	//				"TA4WwfrGEjcrRPQCCp6nS2f9ymRHmzeCgj",
+	//				10
+	//			]
+	//		}
+	//	]
+	//}
 
-	fmt.Printf("GetSmartContractEvent:%+v\n", events)
-	for _, event := range events {
-		fmt.Printf(" TxHash:%x\n", event.TxHash)
-		fmt.Printf(" SmartContractAddress:%x\n", event.ContractAddress)
-		name := event.States[0].(string)
-		from := event.States[1].(string)
-		to := event.States[2].(string)
-		value := event.States[3].(string)
-		data, err := hex.DecodeString(value)
-		if err != nil {
-			t.Errorf("DecodeString error:%s", err)
-			return
-		}
-		v := new(big.Int).SetBytes(data)
-		fmt.Printf(" State Name:%s from:%s to:%s value:%d\n", name, from, to, v.Int64())
+	fmt.Printf(" TxHash:%s\n", scEvt.TxHash)
+	fmt.Printf(" State:%d\n", scEvt.State)
+	fmt.Printf(" GasConsumed:%d\n", scEvt.GasConsumed)
+	for _, notify := range scEvt.Notify {
+		fmt.Printf(" SmartContractAddress:%s\n", notify.ContractAddress)
+		states := notify.States.([]interface{})
+		name := states[0].(string)
+		from := states[1].(string)
+		to := states[2].(string)
+		value := states[3].(float64)
+		fmt.Printf(" State Name:%s from:%s to:%s value:%d\n", name, from, to, int(value))
 	}
 }
 
