@@ -46,7 +46,6 @@ const (
 type Balance struct {
 	Ont       uint64
 	Ong       uint64
-	OngAppove uint64
 }
 
 //SmartContactEvent object for event of transaction

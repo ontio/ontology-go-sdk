@@ -225,11 +225,9 @@ func (this *RpcClient) GetBalanceWithBase58(base58Addr string) (*sdkcom.Balance,
 	if !ok {
 		return nil, fmt.Errorf("big.Int.SetString ong %s failed", balanceRsp.Ong)
 	}
-	ongAppove, ok := new(big.Int).SetString(balanceRsp.OngAppove, 10)
 	return &sdkcom.Balance{
 		Ont:       ont.Uint64(),
 		Ong:       ong.Uint64(),
-		OngAppove: ongAppove.Uint64(),
 	}, nil
 }
 
