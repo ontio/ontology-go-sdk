@@ -517,18 +517,15 @@ func (this *RpcClient) InvokeSmartContract(
 //PrepareInvokeNeoVMSmartContract return the vm execute result of smart contract but not commit into ledger.
 //It's useful for debugging smart contract.
 func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
-	gasPrice,
-	gasLimit uint64,
 	cversion byte,
 	contractAddress common.Address,
 	params []interface{},
-	returnType sdkcom.NeoVMReturnType,
-) (interface{}, error) {
+) (*cstates.PreExecResult, error) {
 	code, err := sdkcom.BuildNeoVMInvokeCode(cversion, contractAddress, params)
 	if err != nil {
 		return nil, fmt.Errorf("BuildNVMInvokeCode error:%s", err)
 	}
-	tx := sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmtypes.NEOVM, code)
+	tx := sdkcom.NewInvokeTransaction(0, 0, vmtypes.NEOVM, code)
 
 	var buffer bytes.Buffer
 	err = tx.Serialize(&buffer)
@@ -540,12 +537,25 @@ func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
-	var res interface{}
-	err = json.Unmarshal(data, &res)
+	preResult := &cstates.PreExecResult{}
+	err = json.Unmarshal(data, &preResult)
 	if err != nil {
-		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+		return nil, fmt.Errorf("json.Unmarshal PreExecResult:%s error:%s", data, err)
 	}
-	v, err := utils.ParseNeoVMSmartContractReturnType(res, returnType)
+	return preResult, nil
+}
+
+func (this *RpcClient) PrepareInvokeNeoVMSmartContractWithRes(
+	cversion byte,
+	contractAddress common.Address,
+	params []interface{},
+	returnType sdkcom.NeoVMReturnType,
+) (interface{}, error) {
+	preResult, err := this.PrepareInvokeNeoVMSmartContract(cversion, contractAddress, params)
+	if err != nil {
+		return nil, err
+	}
+	v, err := utils.ParseNeoVMSmartContractReturnType(preResult.Result, returnType)
 	if err != nil {
 		return nil, fmt.Errorf("ParseNeoVMSmartContractReturnType error:%s", err)
 	}
