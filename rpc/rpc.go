@@ -226,8 +226,8 @@ func (this *RpcClient) GetBalanceWithBase58(base58Addr string) (*sdkcom.Balance,
 		return nil, fmt.Errorf("big.Int.SetString ong %s failed", balanceRsp.Ong)
 	}
 	return &sdkcom.Balance{
-		Ont:       ont.Uint64(),
-		Ong:       ong.Uint64(),
+		Ont: ont.Uint64(),
+		Ong: ong.Uint64(),
 	}, nil
 }
 
@@ -391,6 +391,25 @@ func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from *a
 	return this.InvokeNativeContract(gasPrice, gasLimit, from, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, buf.Bytes())
 }
 
+func (this *RpcClient) DeploySmartContractTx(
+	gasPrice,
+	gasLimit uint64,
+	vmType vmtypes.VmType,
+	needStorage bool,
+	code,
+	cname,
+	cversion,
+	cauthor,
+	cemail,
+	cdesc string,
+) (*types.Transaction, error) {
+	c, err := hex.DecodeString(code)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
+	return sdkcom.NewDeployCodeTransaction(gasPrice, gasLimit, vmType, c, needStorage, cname, cversion, cauthor, cemail, cdesc), nil
+}
+
 //DeploySmartContract Deploy smart contract to ontology
 func (this *RpcClient) DeploySmartContract(
 	gasPrice,
@@ -404,12 +423,10 @@ func (this *RpcClient) DeploySmartContract(
 	cauthor,
 	cemail,
 	cdesc string) (common.Uint256, error) {
-
-	c, err := hex.DecodeString(code)
+	tx, err := this.DeploySmartContractTx(gasPrice, gasLimit, vmType, needStorage, code, cname, cversion, cauthor, cemail, cdesc)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("hex.DecodeString error:%s", err)
+		return common.UINT256_EMPTY, err
 	}
-	tx := sdkcom.NewDeployCodeTransaction(gasPrice, gasLimit, vmType, c, needStorage, cname, cversion, cauthor, cemail, cdesc)
 
 	err = sdkcom.SignTransaction(tx, singer)
 	if err != nil {
@@ -423,6 +440,17 @@ func (this *RpcClient) DeploySmartContract(
 	return txHash, nil
 }
 
+func (this *RpcClient) InvokeNativeContractTx(
+	gasPrice,
+	gasLimit uint64,
+	cversion byte,
+	contractAddress common.Address,
+	method string,
+	args []byte,
+) (*types.Transaction, error) {
+	return this.InvokeSmartContractTx(gasPrice, gasLimit, vmtypes.Native, cversion, contractAddress, method, args)
+}
+
 func (this *RpcClient) InvokeNativeContract(
 	gasPrice,
 	gasLimit uint64,
@@ -433,6 +461,20 @@ func (this *RpcClient) InvokeNativeContract(
 	args []byte,
 ) (common.Uint256, error) {
 	return this.InvokeSmartContract(gasPrice, gasLimit, singer, vmtypes.Native, cversion, contractAddress, method, args)
+}
+
+func (this *RpcClient) InvokeWasmVMSmartContractTx(gasPrice,
+	gasLimit uint64,
+	cversion byte, //version of contract
+	contractAddress common.Address,
+	method string,
+	paramType wasmvm.ParamType,
+	params []interface{}) (*types.Transaction, error) {
+	args, err := sdkcom.BuildWasmContractParam(params, paramType)
+	if err != nil {
+		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
+	}
+	return this.InvokeSmartContractTx(gasPrice, gasLimit, vmtypes.WASMVM, cversion, contractAddress, method, args)
 }
 
 //Invoke wasm smart contract
@@ -454,6 +496,21 @@ func (this *RpcClient) InvokeWasmVMSmartContract(
 		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
 	}
 	return this.InvokeSmartContract(gasPrice, gasLimit, siger, vmtypes.WASMVM, cversion, contractAddress, method, args)
+}
+
+func (this *RpcClient) InvokeNeoVMSmartContractTx(
+	gasPrice,
+	gasLimit uint64,
+	cversion byte,
+	contractAddress common.Address,
+	params []interface{}) (*types.Transaction, error) {
+	builder := neovm.NewParamsBuilder(new(bytes.Buffer))
+	err := sdkcom.BuildNeoVMParamInter(builder, params)
+	if err != nil {
+		return nil, err
+	}
+	args := builder.ToArray()
+	return this.InvokeSmartContractTx(gasPrice, gasLimit, vmtypes.NEOVM, cversion, contractAddress, "", args)
 }
 
 //Invoke neo vm smart contract. if isPreExec is true, the invoke will not really execute
@@ -485,6 +542,30 @@ func (this *RpcClient) InvokeSmartContract(
 	method string,
 	args []byte,
 ) (common.Uint256, error) {
+	invokeTx, err := this.InvokeSmartContractTx(gasPrice, gasLimit, vmType, cversion, contractAddress, method, args)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	err = sdkcom.SignTransaction(invokeTx, singer)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("SignTransaction error:%s", err)
+	}
+	txHash, err := this.SendRawTransaction(invokeTx)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("SendTransaction error:%s", err)
+	}
+	return txHash, nil
+}
+
+func (this *RpcClient) InvokeSmartContractTx(
+	gasPrice,
+	gasLimit uint64,
+	vmType vmtypes.VmType,
+	cversion byte,
+	contractAddress common.Address,
+	method string,
+	args []byte,
+) (*types.Transaction, error) {
 	crt := &cstates.Contract{
 		Version: cversion,
 		Address: contractAddress,
@@ -494,39 +575,18 @@ func (this *RpcClient) InvokeSmartContract(
 	buf := bytes.NewBuffer(nil)
 	err := crt.Serialize(buf)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("Serialize contract error:%s", err)
+		return nil, fmt.Errorf("Serialize contract error:%s", err)
 	}
 	invokCode := buf.Bytes()
 	if vmType == vmtypes.NEOVM {
 		invokCode = append([]byte{0x67}, invokCode[:]...)
 	}
-	invokeTx := sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmType, invokCode)
-	err = sdkcom.SignTransaction(invokeTx, singer)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("SignTransaction error:%s", err)
-	}
-	txHash, err := this.SendRawTransaction(invokeTx)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("SendTransaction error:%s", err)
-	}
-	return txHash, nil
+	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmType, invokCode), nil
 }
 
-//PrepareInvokeNeoVMSmartContract return the vm execute result of smart contract but not commit into ledger.
-//It's useful for debugging smart contract.
-func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
-	cversion byte,
-	contractAddress common.Address,
-	params []interface{},
-) (*cstates.PreExecResult, error) {
-	code, err := sdkcom.BuildNeoVMInvokeCode(cversion, contractAddress, params)
-	if err != nil {
-		return nil, fmt.Errorf("BuildNVMInvokeCode error:%s", err)
-	}
-	tx := sdkcom.NewInvokeTransaction(0, 0, vmtypes.NEOVM, code)
-
+func (this *RpcClient) PrepareInvokeSmartContract(tx *types.Transaction) (*cstates.PreExecResult, error) {
 	var buffer bytes.Buffer
-	err = tx.Serialize(&buffer)
+	err := tx.Serialize(&buffer)
 	if err != nil {
 		return nil, fmt.Errorf("Serialize error:%s", err)
 	}
@@ -541,6 +601,33 @@ func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
 		return nil, fmt.Errorf("json.Unmarshal PreExecResult:%s error:%s", data, err)
 	}
 	return preResult, nil
+}
+
+func (this *RpcClient) PrepareInvokeNativeSmartContract(
+	cversion byte,
+	contractAddress common.Address,
+	method string,
+	args []byte,
+) (*cstates.PreExecResult, error) {
+	tx, err := this.InvokeNativeContractTx(0, 0, cversion, contractAddress, method, args)
+	if err != nil {
+		return nil, err
+	}
+	return this.PrepareInvokeSmartContract(tx)
+}
+
+//PrepareInvokeNeoVMSmartContract return the vm execute result of smart contract but not commit into ledger.
+//It's useful for debugging smart contract.
+func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
+	cversion byte,
+	contractAddress common.Address,
+	params []interface{},
+) (*cstates.PreExecResult, error) {
+	tx, err := this.InvokeNeoVMSmartContractTx(0, 0, cversion, contractAddress, params)
+	if err != nil {
+		return nil, err
+	}
+	return this.PrepareInvokeSmartContract(tx)
 }
 
 func (this *RpcClient) PrepareInvokeNeoVMSmartContractWithRes(
