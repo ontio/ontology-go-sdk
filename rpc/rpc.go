@@ -739,3 +739,12 @@ func (this *RpcClient) sendRpcRequest(method string, params []interface{}) ([]by
 	}
 	return rpcRsp.Result, nil
 }
+
+//SendEmergencyGovReq return error
+func (this *RpcClient) SendEmergencyGovReq(block []byte) (error) {
+	_, err := this.sendRpcRequest(SEND_EMERGENCY_GOV_REQ, []interface{}{block})
+	if err != nil {
+		return  fmt.Errorf("sendRpcRequest error:%s", err)
+	}
+	return nil
+}
