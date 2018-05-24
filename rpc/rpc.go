@@ -748,3 +748,17 @@ func (this *RpcClient) SendEmergencyGovReq(block []byte) (error) {
 	}
 	return nil
 }
+//GetGetBlockRoot return common.Uint256
+func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.Uint256,error) {
+	data, err := this.sendRpcRequest(GET_BLOCK_ROOT_WITH_NEW_TX_ROOT,[]interface{}{})
+	if err != nil {
+		return common.Uint256{},err
+	}
+	blockroot := common.Uint256{}
+	err = json.Unmarshal(data,&blockroot)
+	if err != nil {
+		return common.Uint256{}, fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
+	}
+	return blockroot, nil
+
+}
