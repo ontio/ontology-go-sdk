@@ -25,9 +25,9 @@ import (
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
 	ontcom "github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/genesis"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
+	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	"github.com/ontio/ontology/smartcontract/types"
 	"math/big"
 	"os"
@@ -132,11 +132,11 @@ func TestGetBalance(t *testing.T) {
 		t.Errorf("GetBalance error:%s", err)
 		return
 	}
-	fmt.Printf("TestGetBalance ONT:%d ONG:%d ONGAppove:%d\n", balance.Ont, balance.Ong, balance.OngAppove)
+	fmt.Printf("TestGetBalance ONT:%d ONG:%d\n", balance.Ont, balance.Ong)
 }
 
 func TestGetStorage(t *testing.T) {
-	value, err := testRpc.GetStorage(genesis.OntContractAddress, ont.TOTAL_SUPPLY_NAME)
+	value, err := testRpc.GetStorage(nvutils.OntContractAddress, ont.TOTAL_SUPPLY_NAME)
 	if err != nil {
 		t.Errorf("GetStorage error:%s", err)
 		return

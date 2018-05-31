@@ -24,26 +24,25 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"math/big"
-	"net/http"
-	"strings"
-	"sync/atomic"
-	"time"
-
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/genesis"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
+	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	"github.com/ontio/ontology/smartcontract/service/wasmvm"
 	cstates "github.com/ontio/ontology/smartcontract/states"
 	vmtypes "github.com/ontio/ontology/smartcontract/types"
 	"github.com/ontio/ontology/vm/neovm"
+	"io/ioutil"
+	"math/big"
 	"math/rand"
+	"net/http"
+	"strings"
+	"sync/atomic"
+	"time"
 )
 
 func init() {
@@ -367,9 +366,9 @@ func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from *a
 	var contractAddress common.Address
 	switch strings.ToUpper(asset) {
 	case "ONT":
-		contractAddress = genesis.OntContractAddress
+		contractAddress = nvutils.OntContractAddress
 	case "ONG":
-		contractAddress = genesis.OngContractAddress
+		contractAddress = nvutils.OngContractAddress
 	default:
 		return common.Uint256{}, fmt.Errorf("asset:%s not equal ont or ong", asset)
 	}
