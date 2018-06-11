@@ -36,6 +36,8 @@ const (
 	RPC_GET_SMART_CONTRACT       = "getcontractstate"
 	RPC_GET_GENERATE_BLOCK_TIME  = "getgenerateblocktime"
 	RPC_GET_MERKLE_PROOF         = "getmerkleproof"
+	SEND_EMERGENCY_GOV_REQ		 = "sendemergencygovreq"
+	GET_BLOCK_ROOT_WITH_NEW_TX_ROOT 	 = "getblockrootwithnewtxroot"
 )
 
 //JsonRpc version
