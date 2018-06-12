@@ -655,17 +655,17 @@ func (this *RpcClient) sendRpcRequest(method string, params []interface{}) ([]by
 }
 
 //SendEmergencyGovReq return error
-func (this *RpcClient) SendEmergencyGovReq(block []byte) (error) {
+func (this *RpcClient) SendEmergencyGovReq(block []byte) error {
 	blockString := hex.EncodeToString(block)
 	_, err := this.sendRpcRequest(SEND_EMERGENCY_GOV_REQ, []interface{}{blockString})
 	if err != nil {
-		return  fmt.Errorf("sendRpcRequest error:%s", err)
+		return fmt.Errorf("sendRpcRequest error:%s", err)
 	}
 	return nil
 }
-//GetGetBlockRoot return common.Uint256
-func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.Uint256,error) {
 
+//GetGetBlockRoot return common.Uint256
+func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.Uint256, error) {
 	hashString := hex.EncodeToString(txRoot.ToArray())
 	data, err := this.sendRpcRequest(GET_BLOCK_ROOT_WITH_NEW_TX_ROOT, []interface{}{hashString})
 	if err != nil {
@@ -676,7 +676,7 @@ func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
-	hash, err := utils.ParseUint256FromHexString(hexHash)
+	hash, err := common.Uint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
