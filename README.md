@@ -13,7 +13,7 @@ First of all, Create OntologySDK instance by NewOntologySdk method.
 
 Then, set rpc server address.
 
-`sdk.SetAddress("http://localhost:20336")`
+`sdk.Rpc.SetAddress("http://localhost:20336")`
 
 Then, call rpc server through sdk instance.
 
