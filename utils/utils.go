@@ -19,57 +19,36 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
-	vmtypes "github.com/ontio/ontology/smartcontract/types"
-	neotypes "github.com/ontio/ontology/vm/neovm/types"
+	"github.com/ontio/ontology/core/types"
+	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	"math/big"
 	"os"
+	"strings"
 )
 
-//ParseUint256FromHexString return Uint256 parse from hex string
-func ParseUint256FromHexString(value string) (common.Uint256, error) {
-	data, err := hex.DecodeString(value)
+func GetContractAddress(contractCode string) (common.Address, error) {
+	code, err := hex.DecodeString(contractCode)
 	if err != nil {
-		return common.Uint256{}, fmt.Errorf("hex.DecodeString error:%s", err)
+		return common.ADDRESS_EMPTY, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	res, err := common.Uint256ParseFromBytes(data)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("Uint160ParseFromBytes error:%s", err)
-	}
-	return res, nil
+	return types.AddressFromVmCode(code), nil
 }
 
-//ParseAddressFromHexString return address parse from hex string
-func ParseAddressFromHexString(address string) (common.Address, error) {
-	data, err := hex.DecodeString(address)
-	if err != nil {
-		return common.Address{}, fmt.Errorf("hex.DecodeString error:%s", err)
+func GetAssetAddress(asset string) (common.Address, error) {
+	var contractAddress common.Address
+	switch strings.ToUpper(asset) {
+	case "ONT":
+		contractAddress = nvutils.OntContractAddress
+	case "ONG":
+		contractAddress = nvutils.OngContractAddress
+	default:
+		return common.ADDRESS_EMPTY, fmt.Errorf("asset:%s not equal ont or ong", asset)
 	}
-	var addr common.Address
-	err = addr.Deserialize(bytes.NewBuffer(data))
-	if err != nil {
-		return common.Address{}, fmt.Errorf("Address Deserialize error:%s", err)
-	}
-	return addr, nil
-}
-
-//GetContractAddress return contract address
-func GetContractAddress(code string, vmType vmtypes.VmType) common.Address {
-	data, _ := hex.DecodeString(code)
-	vmCode := &vmtypes.VmCode{
-		VmType: vmType,
-		Code:   data,
-	}
-	return vmCode.AddressFromVmCode()
-}
-
-//GetNeoVMContractAddress return neo vm smart contract address
-func GetNeoVMContractAddress(code string) common.Address {
-	return GetContractAddress(code, vmtypes.NEOVM)
+	return contractAddress, nil
 }
 
 //IsFileExist return is file is exist
@@ -78,25 +57,25 @@ func IsFileExist(file string) bool {
 	return err == nil || os.IsExist(err)
 }
 
-//ParseNeoVMSmartContractReturnType return value for result of smart contract execute code.
-func ParseNeoVMSmartContractReturnType(value interface{}, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
+//ParseNeoVMContractReturnType return value for result of smart contract execute code.
+func ParseNeoVMContractReturnType(value interface{}, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
 	switch returnType {
 	case sdkcom.NEOVM_TYPE_BOOL:
-		return ParseNeoVMSmartContractReturnTypeBool(value)
+		return ParseNeoVMContractReturnTypeBool(value)
 	case sdkcom.NEOVM_TYPE_INTEGER:
-		return ParseNeoVMSmartContractReturnTypeInteger(value)
+		return ParseNeoVMContractReturnTypeInteger(value)
 	case sdkcom.NEOVM_TYPE_STRING:
-		return ParseNeoVMSmartContractReturnTypeString(value)
+		return ParseNeoVMContractReturnTypeString(value)
 	case sdkcom.NEOVM_TYPE_BYTE_ARRAY:
-		return ParseNeoVMSmartContractReturnTypeByteArray(value)
+		return ParseNeoVMContractReturnTypeByteArray(value)
 	case sdkcom.NEOVM_TYPE_ARRAY:
 		return value, nil
 	}
 	return value, nil
 }
 
-//ParseNeoVMSmartContractReturnTypeBool return bool value of smart contract execute code.
-func ParseNeoVMSmartContractReturnTypeBool(val interface{}) (bool, error) {
+//ParseNeoVMContractReturnTypeBool return bool value of smart contract execute code.
+func ParseNeoVMContractReturnTypeBool(val interface{}) (bool, error) {
 	hexStr, ok := val.(string)
 	if !ok {
 		return false, fmt.Errorf("asset to string failed")
@@ -104,8 +83,8 @@ func ParseNeoVMSmartContractReturnTypeBool(val interface{}) (bool, error) {
 	return hexStr == "01", nil
 }
 
-//ParseNeoVMSmartContractReturnTypeInteger return integer value of smart contract execute code.
-func ParseNeoVMSmartContractReturnTypeInteger(val interface{}) (*big.Int, error) {
+//ParseNeoVMContractReturnTypeInteger return integer value of smart contract execute code.
+func ParseNeoVMContractReturnTypeInteger(val interface{}) (*big.Int, error) {
 	hexStr, ok := val.(string)
 	if !ok {
 		return nil, fmt.Errorf("asset to string failed")
@@ -114,11 +93,11 @@ func ParseNeoVMSmartContractReturnTypeInteger(val interface{}) (*big.Int, error)
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	return neotypes.ConvertBytesToBigInteger(data), nil
+	return common.BigIntFromNeoBytes(data), nil
 }
 
-//ParseNeoVMSmartContractReturnTypeByteArray return []byte value of smart contract execute code.
-func ParseNeoVMSmartContractReturnTypeByteArray(val interface{}) ([]byte, error) {
+//ParseNeoVMContractReturnTypeByteArray return []byte value of smart contract execute code.
+func ParseNeoVMContractReturnTypeByteArray(val interface{}) ([]byte, error) {
 	hexStr, ok := val.(string)
 	if !ok {
 		return nil, fmt.Errorf("asset to string failed")
@@ -130,23 +109,13 @@ func ParseNeoVMSmartContractReturnTypeByteArray(val interface{}) ([]byte, error)
 	return data, nil
 }
 
-//ParseNeoVMSmartContractReturnTypeString return string value of smart contract execute code.
-func ParseNeoVMSmartContractReturnTypeString(val interface{}) (string, error) {
-	data, err := ParseNeoVMSmartContractReturnTypeByteArray(val)
+//ParseNeoVMContractReturnTypeString return string value of smart contract execute code.
+func ParseNeoVMContractReturnTypeString(val interface{}) (string, error) {
+	data, err := ParseNeoVMContractReturnTypeByteArray(val)
 	if err != nil {
 		return "", err
 	}
 	return string(data), nil
-}
-
-//ConvertBigIntegerToBytes return []byte from golang big integer. The big integer of golang is differ with C#, C++ in sign.
-func ConvertBigIntegerToBytes(data *big.Int) []byte {
-	return neotypes.ConvertBigIntegerToBytes(data)
-}
-
-//ConvertBytesToBigInteger return golang big integer  from []byte. The big integer of golang is differ with C#, C++ in sign.
-func ConvertBytesToBigInteger(data []byte) *big.Int {
-	return neotypes.ConvertBytesToBigInteger(data)
 }
 
 //BytesReverse return the reverse of []byte

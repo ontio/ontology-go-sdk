@@ -19,17 +19,18 @@
 package rpc
 
 import (
+	"DNAhh/common/serialization"
+	"bytes"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
-	ontcom "github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
-	"github.com/ontio/ontology/smartcontract/types"
-	"math/big"
 	"os"
 	"testing"
 	"time"
@@ -126,7 +127,7 @@ func TestGetBlockHash(t *testing.T) {
 }
 
 func TestGetBalance(t *testing.T) {
-	address := "TA7KWDW7Bre2Lzpt98FckK9P5Susf1bNTS"
+	address := "AMG58qqCa4QNGfpc7jLB3SPetgDTVf3CXD"
 	balance, err := testRpc.GetBalanceWithBase58(address)
 	if err != nil {
 		t.Errorf("GetBalance error:%s", err)
@@ -136,17 +137,35 @@ func TestGetBalance(t *testing.T) {
 }
 
 func TestGetStorage(t *testing.T) {
-	value, err := testRpc.GetStorage(nvutils.OntContractAddress, ont.TOTAL_SUPPLY_NAME)
+	value, err := testRpc.GetStorage(nvutils.OntContractAddress, []byte(ont.TOTALSUPPLY_NAME))
 	if err != nil {
-		t.Errorf("GetStorage error:%s", err)
+		t.Errorf("TestGetStorage error:%s", err)
 		return
 	}
-	totalSupply := new(big.Int).SetBytes(value)
-	fmt.Printf("TestGetStorage %d\n", totalSupply.Int64())
+	if value == nil {
+		t.Errorf("TestGetStorage value is nil")
+		return
+	}
+	totalSupply, err := serialization.ReadUint64(bytes.NewReader(value))
+	if err != nil {
+		t.Errorf("TestGetStorage serialization.ReadUint64 error:%s", err)
+		return
+	}
+	if totalSupply != constants.ONT_TOTAL_SUPPLY {
+		t.Errorf("TestGetStorage totalSupply %d != %d", totalSupply, constants.ONT_TOTAL_SUPPLY)
+		return
+	}
+	fmt.Printf("TestGetStorage %d\n", totalSupply)
 }
 
 func TestGetSmartContractEvent(t *testing.T) {
-	scEvt, err := testRpc.GetSmartContractEventWithHexString("a0cdac22f3e0554ec41bd4e8a2d151b6a6e178fcb194b449cfb13f1f22dbe8e7")
+	events , err := testRpc.GetSmartContractEventByBlock(0)
+	if err != nil {
+		t.Errorf("GetSmartContractEventByBlock error:%s", err)
+		return
+	}
+
+	scEvt, err := testRpc.GetSmartContractEventWithHexString(events[0].TxHash)
 	if err != nil {
 		t.Errorf("GetSmartContractEvent error:%s", err)
 		return
@@ -209,20 +228,14 @@ func TestGetSmartContract(t *testing.T) {
 	ont := block.Transactions[0]
 	payload := ont.Payload.(*payload.DeployCode)
 
-	//native contract is different with other (neovm or wason)
-	//if neovm the address = payload.Code.AddressFromVmCode()
-	contractAddress, err := ontcom.AddressParseFromBytes(payload.Code.Code)
-	if err != nil {
-		t.Errorf("AddressParseFromBytes error:%s", err)
-		return
-	}
+	contractAddress := types.AddressFromVmCode(payload.Code)
 	contract, err := testRpc.GetSmartContract(contractAddress)
 	if err != nil {
 		t.Errorf("GetSmartContract error:%s", err)
 		return
 	}
 	fmt.Printf("TestGetSmartContract:\n Code:%x\n Author:%s\n Verson:%s\n NeedStorage:%v\n Email:%s\n Description:%s\n",
-		contract.Code.Code, contract.Author, contract.Version, contract.NeedStorage, contract.Email, contract.Description)
+		contract.Code, contract.Author, contract.Version, contract.NeedStorage, contract.Email, contract.Description)
 }
 
 func TestGetGenerateBlockTime(t *testing.T) {
@@ -279,11 +292,10 @@ func TestDeployContract(t *testing.T) {
 	contractCode := "51c56b616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f05576f726c64615272680f4e656f" +
 		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
 		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
-	contractCodeAddress := utils.GetNeoVMContractAddress(contractCode)
+
 	txHash, err := testRpc.DeploySmartContract(
-		0, 0,
+		0, 50000,
 		signer,
-		types.NEOVM,
 		true,
 		contractCode,
 		"TestDeploySmartContract",
@@ -293,7 +305,6 @@ func TestDeployContract(t *testing.T) {
 		"",
 	)
 
-	fmt.Printf("TestDeployContract CodeAddress:%x\n", contractCodeAddress.ToBase58())
 	if err != nil {
 		t.Errorf("TestDeployContract DeploySmartContract error:%s\n", err)
 		return
@@ -312,16 +323,20 @@ func TestInvokeNeoVMContract(t *testing.T) {
 	contractCode := "51c56b616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f05576f726c64615272680f4e656f" +
 		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
 		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
-	contractCodeAddress := utils.GetNeoVMContractAddress(contractCode)
+	contractCodeAddress, err := utils.GetContractAddress(contractCode)
+	if err != nil {
+		t.Errorf("GetAssetAddress error:%s", err)
+		return
+	}
 	signer, err := testWallet.GetDefaultAccount(testPasswd)
 	if err != nil {
 		t.Errorf("TestInvokeNeoVMContract GetDefaultAccount error:%s", err)
 		return
 	}
 
-	txHash, err := testRpc.InvokeNeoVMSmartContract(0, 0, signer, 0, contractCodeAddress, []interface{}{})
+	txHash, err := testRpc.InvokeNeoVMContract(0, 0, signer, contractCodeAddress, []interface{}{})
 	if err != nil {
-		t.Errorf("TestInvokeNeoVMContract InvokeNeoVMSmartContract error:%s", err)
+		t.Errorf("TestInvokeNeoVMContract InvokeNeoVMContract error:%s", err)
 		return
 	}
 
