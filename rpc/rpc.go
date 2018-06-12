@@ -30,12 +30,9 @@ import (
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	httpcom "github.com/ontio/ontology/http/base/common"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
-	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
-	"github.com/ontio/ontology/smartcontract/service/wasmvm"
 	cstates "github.com/ontio/ontology/smartcontract/states"
-	vmtypes "github.com/ontio/ontology/smartcontract/types"
-	"github.com/ontio/ontology/vm/neovm"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -99,7 +96,7 @@ func (this *RpcClient) GetVersion() (string, error) {
 
 //GetBlockByHash return block with specified block hash
 func (this *RpcClient) GetBlockByHash(hash common.Uint256) (*types.Block, error) {
-	return this.GetBlockByHashWithHexString(hex.EncodeToString(hash.ToArray()))
+	return this.GetBlockByHashWithHexString(hash.ToHexString())
 }
 
 //GetBlockByHash return block with specified block hash in hex string code
@@ -175,7 +172,7 @@ func (this *RpcClient) GetCurrentBlockHash() (common.Uint256, error) {
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
-	hash, err := utils.ParseUint256FromHexString(hexHash)
+	hash, err := common.Uint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
@@ -193,7 +190,7 @@ func (this *RpcClient) GetBlockHash(height uint32) (common.Uint256, error) {
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
-	hash, err := utils.ParseUint256FromHexString(hexHash)
+	hash, err := common.Uint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
@@ -233,14 +230,8 @@ func (this *RpcClient) GetBalanceWithBase58(base58Addr string) (*sdkcom.Balance,
 //GetStorage return smart contract storage item.
 //addr is smart contact address
 //key is the key of value in smart contract
-func (this *RpcClient) GetStorage(smartContractAddress common.Address, key []byte) ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
-	err := smartContractAddress.Serialize(buf)
-	if err != nil {
-		return nil, fmt.Errorf("Address Serialize error:%s", err)
-	}
-	hexString := hex.EncodeToString(buf.Bytes())
-	data, err := this.sendRpcRequest(RPC_GET_STORAGE, []interface{}{hexString, hex.EncodeToString(key)})
+func (this *RpcClient) GetStorage(contractAddress common.Address, key []byte) ([]byte, error) {
+	data, err := this.sendRpcRequest(RPC_GET_STORAGE, []interface{}{contractAddress.ToHexString(), hex.EncodeToString(key)})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
@@ -258,7 +249,7 @@ func (this *RpcClient) GetStorage(smartContractAddress common.Address, key []byt
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction.
 func (this *RpcClient) GetSmartContractEvent(txHash common.Uint256) (*sdkcom.SmartContactEvent, error) {
-	return this.GetSmartContractEventWithHexString(hex.EncodeToString(txHash.ToArray()))
+	return this.GetSmartContractEventWithHexString(txHash.ToHexString())
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
@@ -275,9 +266,22 @@ func (this *RpcClient) GetSmartContractEventWithHexString(txHash string) (*sdkco
 	return event, nil
 }
 
+func (this *RpcClient) GetSmartContractEventByBlock(blockHeight uint32) ([]*sdkcom.SmartContactEvent, error) {
+	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT_EVENT, []interface{}{blockHeight})
+	if err != nil {
+		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
+	}
+	events := make([]*sdkcom.SmartContactEvent, 0)
+	err = json.Unmarshal(data, &events)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal SmartContactEvent:%s error:%s", data, err)
+	}
+	return events, nil
+}
+
 //GetRawTransaction return transaction by transaction hash
 func (this *RpcClient) GetRawTransaction(txHash common.Uint256) (*types.Transaction, error) {
-	return this.GetRawTransactionWithHexString(hex.EncodeToString(txHash.ToArray()))
+	return this.GetRawTransactionWithHexString(txHash.ToHexString())
 }
 
 //GetRawTransaction return transaction by transaction hash in hex string code
@@ -306,7 +310,7 @@ func (this *RpcClient) GetRawTransactionWithHexString(txHash string) (*types.Tra
 
 //GetSmartContract return smart contract deployed in ontology by specified smart contract address
 func (this *RpcClient) GetSmartContract(smartContractAddress common.Address) (*payload.DeployCode, error) {
-	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT, []interface{}{hex.EncodeToString(smartContractAddress[:])})
+	data, err := this.sendRpcRequest(RPC_GET_SMART_CONTRACT, []interface{}{smartContractAddress.ToHexString()})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
@@ -329,6 +333,39 @@ func (this *RpcClient) GetSmartContract(smartContractAddress common.Address) (*p
 		return nil, err
 	}
 	return deploy, nil
+}
+
+func (this *RpcClient) GetGenerateBlockTime() (int, error) {
+	data, err := this.sendRpcRequest(RPC_GET_GENERATE_BLOCK_TIME, []interface{}{})
+	if err != nil {
+		return 0, fmt.Errorf("sendRpcRequest error:%s", err)
+	}
+	genTime := 0
+	err = json.Unmarshal(data, &genTime)
+	if err != nil {
+		return 0, fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
+	}
+	return genTime, nil
+}
+
+//GetMerkleProof return the merkle proof whether tx is exist in ledger
+func (this *RpcClient) GetMerkleProof(txHash common.Uint256) (*sdkcom.MerkleProof, error) {
+	return this.GetMerkleProofWithHexString(txHash.ToHexString())
+}
+
+//GetMerkleProof return the merkle proof whether tx is exist in ledger. Param txHash is in hex string code
+func (this *RpcClient) GetMerkleProofWithHexString(txHash string) (*sdkcom.MerkleProof, error) {
+	data, err := this.sendRpcRequest(RPC_GET_MERKLE_PROOF, []interface{}{txHash})
+	if err != nil {
+		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
+	}
+	proof := &sdkcom.MerkleProof{}
+	err = json.Unmarshal(data, proof)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+
+	return proof, nil
 }
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
@@ -363,50 +400,56 @@ func (this *RpcClient) WaitForGenerateBlock(timeout time.Duration, blockCount ..
 //for ONT amount is the raw value
 //for ONG amount is the raw value * 10e9
 func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from *account.Account, to common.Address, amount uint64) (common.Uint256, error) {
-	var contractAddress common.Address
-	switch strings.ToUpper(asset) {
-	case "ONT":
-		contractAddress = nvutils.OntContractAddress
-	case "ONG":
-		contractAddress = nvutils.OngContractAddress
-	default:
-		return common.Uint256{}, fmt.Errorf("asset:%s not equal ont or ong", asset)
+	tx, err := this.NewTransferTransaction(gasPrice, gasLimit, asset, from.Address, to, amount)
+	if err != nil {
+		return common.UINT256_EMPTY, err
 	}
+	err = this.SignTransaction(tx, from)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.SendRawTransaction(tx)
+}
 
-	buf := bytes.NewBuffer(nil)
+func (this *RpcClient) NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
+	contractAddress, err := utils.GetAssetAddress(asset)
+	if err != nil {
+		return nil, err
+	}
 	var sts []*ont.State
 	sts = append(sts, &ont.State{
-		From:  from.Address,
+		From:  from,
 		To:    to,
 		Value: amount,
 	})
-	transfers := &ont.Transfers{
-		States: sts,
-	}
-	err := transfers.Serialize(buf)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("transfers.Serialize error %s", err)
-	}
-	return this.InvokeNativeContract(gasPrice, gasLimit, from, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, buf.Bytes())
+	return this.NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, []interface{}{sts})
 }
 
-func (this *RpcClient) DeploySmartContractTx(
-	gasPrice,
-	gasLimit uint64,
-	vmType vmtypes.VmType,
-	needStorage bool,
-	code,
-	cname,
-	cversion,
-	cauthor,
-	cemail,
-	cdesc string,
-) (*types.Transaction, error) {
-	c, err := hex.DecodeString(code)
+func (this *RpcClient) NewApproveTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
+	contractAddress, err := utils.GetAssetAddress(asset)
 	if err != nil {
-		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+		return nil, err
 	}
-	return sdkcom.NewDeployCodeTransaction(gasPrice, gasLimit, vmType, c, needStorage, cname, cversion, cauthor, cemail, cdesc), nil
+	st := &ont.State{
+		From:  from,
+		To:    to,
+		Value: amount,
+	}
+	return this.NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_APPROVE, []interface{}{st})
+}
+
+func (this *RpcClient) NewTransferFromTransaction(gasPrice, gasLimit uint64, asset string, sender, from, to common.Address, amount uint64) (*types.Transaction, error) {
+	contractAddress, err := utils.GetAssetAddress(asset)
+	if err != nil {
+		return nil, err
+	}
+	st := &ont.TransferFrom{
+		Sender: sender,
+		From:   from,
+		To:     to,
+		Value:  amount,
+	}
+	return this.NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_APPROVE, []interface{}{st})
 }
 
 //DeploySmartContract Deploy smart contract to ontology
@@ -414,7 +457,6 @@ func (this *RpcClient) DeploySmartContract(
 	gasPrice,
 	gasLimit uint64,
 	singer *account.Account,
-	vmType vmtypes.VmType,
 	needStorage bool,
 	code,
 	cname,
@@ -422,12 +464,13 @@ func (this *RpcClient) DeploySmartContract(
 	cauthor,
 	cemail,
 	cdesc string) (common.Uint256, error) {
-	tx, err := this.DeploySmartContractTx(gasPrice, gasLimit, vmType, needStorage, code, cname, cversion, cauthor, cemail, cdesc)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
 
-	err = sdkcom.SignTransaction(tx, singer)
+	invokeCode, err := hex.DecodeString(code)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
+	}
+	tx := this.NewDeployCodeTransaction(gasPrice, gasLimit, invokeCode, needStorage, cname, cversion, cauthor, cemail, cdesc)
+	err = this.SignTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err
 	}
@@ -435,19 +478,7 @@ func (this *RpcClient) DeploySmartContract(
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SendRawTransaction error:%s", err)
 	}
-
 	return txHash, nil
-}
-
-func (this *RpcClient) InvokeNativeContractTx(
-	gasPrice,
-	gasLimit uint64,
-	cversion byte,
-	contractAddress common.Address,
-	method string,
-	args []byte,
-) (*types.Transaction, error) {
-	return this.InvokeSmartContractTx(gasPrice, gasLimit, vmtypes.Native, cversion, contractAddress, method, args)
 }
 
 func (this *RpcClient) InvokeNativeContract(
@@ -457,133 +488,89 @@ func (this *RpcClient) InvokeNativeContract(
 	cversion byte,
 	contractAddress common.Address,
 	method string,
-	args []byte,
+	params []interface{},
 ) (common.Uint256, error) {
-	return this.InvokeSmartContract(gasPrice, gasLimit, singer, vmtypes.Native, cversion, contractAddress, method, args)
-}
-
-func (this *RpcClient) InvokeWasmVMSmartContractTx(gasPrice,
-	gasLimit uint64,
-	cversion byte, //version of contract
-	contractAddress common.Address,
-	method string,
-	paramType wasmvm.ParamType,
-	params []interface{}) (*types.Transaction, error) {
-	args, err := sdkcom.BuildWasmContractParam(params, paramType)
+	tx, err := this.NewNativeInvokeTransaction(gasPrice, gasLimit, cversion, contractAddress, method, params)
 	if err != nil {
-		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
+		return common.UINT256_EMPTY, err
 	}
-	return this.InvokeSmartContractTx(gasPrice, gasLimit, vmtypes.WASMVM, cversion, contractAddress, method, args)
+	err = this.SignTransaction(tx, singer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.SendRawTransaction(tx)
 }
 
-//Invoke wasm smart contract
-//methodName is wasm contract action name
-//paramType  is Json or Raw format
-//version should be greater than 0 (0 is reserved for test)
-func (this *RpcClient) InvokeWasmVMSmartContract(
+//Invoke neo vm smart contract.
+func (this *RpcClient) InvokeNeoVMContract(
 	gasPrice,
 	gasLimit uint64,
-	siger *account.Account,
-	cversion byte, //version of contract
+	signer *account.Account,
 	contractAddress common.Address,
-	method string,
-	paramType wasmvm.ParamType,
 	params []interface{}) (common.Uint256, error) {
 
-	args, err := sdkcom.BuildWasmContractParam(params, paramType)
+	tx, err := this.NewNeoVMSInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
 	}
-	return this.InvokeSmartContract(gasPrice, gasLimit, siger, vmtypes.WASMVM, cversion, contractAddress, method, args)
+	err = this.SignTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.SendRawTransaction(tx)
 }
 
-func (this *RpcClient) InvokeNeoVMSmartContractTx(
-	gasPrice,
+func (this *RpcClient) NewDeployCodeTransaction(
+	gasPrice, gasLimit uint64,
+	code []byte,
+	needStorage bool,
+	cname, cversion, cauthor, cemail, cdesc string) *types.Transaction {
+	return sdkcom.NewDeployCodeTransaction(gasPrice, gasLimit, code, needStorage, cname, cversion, cauthor, cemail, cdesc)
+}
+
+func (this *RpcClient) NewNativeInvokeTransaction(gasPrice,
 	gasLimit uint64,
 	cversion byte,
 	contractAddress common.Address,
-	params []interface{}) (*types.Transaction, error) {
-	builder := neovm.NewParamsBuilder(new(bytes.Buffer))
-	err := sdkcom.BuildNeoVMParamInter(builder, params)
+	method string,
+	params []interface{},
+) (*types.Transaction, error) {
+
+	invokeCode, err := httpcom.BuildNativeInvokeCode(contractAddress, cversion, method, params)
+	if err != nil {
+		return nil, fmt.Errorf("BuildNativeInvokeCode error:%s", err)
+	}
+	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
+}
+
+func (this *RpcClient) NewNeoVMSInvokeTransaction(
+	gasPrice, gasLimit uint64,
+	contractAddress common.Address,
+	params []interface{},
+) (*types.Transaction, error) {
+
+	invokeCode, err := httpcom.BuildNeoVMInvokeCode(contractAddress, params)
 	if err != nil {
 		return nil, err
 	}
-	args := builder.ToArray()
-	return this.InvokeSmartContractTx(gasPrice, gasLimit, vmtypes.NEOVM, cversion, contractAddress, "", args)
+	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
 
-//Invoke neo vm smart contract. if isPreExec is true, the invoke will not really execute
-func (this *RpcClient) InvokeNeoVMSmartContract(
-	gasPrice,
-	gasLimit uint64,
-	siger *account.Account,
-	cversion byte,
-	contractAddress common.Address,
-	params []interface{}) (common.Uint256, error) {
-
-	builder := neovm.NewParamsBuilder(new(bytes.Buffer))
-	err := sdkcom.BuildNeoVMParamInter(builder, params)
+func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(tx *types.Transaction, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
+	preResult, err := this.PrepareInvokeContract(tx)
 	if err != nil {
-		return common.UINT256_EMPTY, err
+		return nil, err
 	}
-	args := builder.ToArray()
-	return this.InvokeSmartContract(gasPrice, gasLimit, siger, vmtypes.NEOVM, cversion, contractAddress, "", args)
+	v, err := utils.ParseNeoVMContractReturnType(preResult.Result, returnType)
+	if err != nil {
+		return nil, fmt.Errorf("ParseNeoVMContractReturnType error:%s", err)
+	}
+	return v, nil
 }
 
-//InvokeSmartContract is low level method to invoke contact.
-func (this *RpcClient) InvokeSmartContract(
-	gasPrice,
-	gasLimit uint64,
-	singer *account.Account,
-	vmType vmtypes.VmType,
-	cversion byte,
-	contractAddress common.Address,
-	method string,
-	args []byte,
-) (common.Uint256, error) {
-	invokeTx, err := this.InvokeSmartContractTx(gasPrice, gasLimit, vmType, cversion, contractAddress, method, args)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = sdkcom.SignTransaction(invokeTx, singer)
-	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("SignTransaction error:%s", err)
-	}
-	txHash, err := this.SendRawTransaction(invokeTx)
-	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("SendTransaction error:%s", err)
-	}
-	return txHash, nil
-}
-
-func (this *RpcClient) InvokeSmartContractTx(
-	gasPrice,
-	gasLimit uint64,
-	vmType vmtypes.VmType,
-	cversion byte,
-	contractAddress common.Address,
-	method string,
-	args []byte,
-) (*types.Transaction, error) {
-	crt := &cstates.Contract{
-		Version: cversion,
-		Address: contractAddress,
-		Method:  method,
-		Args:    args,
-	}
-	buf := bytes.NewBuffer(nil)
-	err := crt.Serialize(buf)
-	if err != nil {
-		return nil, fmt.Errorf("Serialize contract error:%s", err)
-	}
-	invokCode := buf.Bytes()
-	if vmType == vmtypes.NEOVM {
-		invokCode = append([]byte{0x67}, invokCode[:]...)
-	}
-	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, vmType, invokCode), nil
-}
-
-func (this *RpcClient) PrepareInvokeSmartContract(tx *types.Transaction) (*cstates.PreExecResult, error) {
+//PrepareInvokeContract return the vm execute result of smart contract but not commit into ledger.
+//It's useful for debugging smart contract.
+func (this *RpcClient) PrepareInvokeContract(tx *types.Transaction) (*cstates.PreExecResult, error) {
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
@@ -602,48 +589,8 @@ func (this *RpcClient) PrepareInvokeSmartContract(tx *types.Transaction) (*cstat
 	return preResult, nil
 }
 
-func (this *RpcClient) PrepareInvokeNativeSmartContract(
-	cversion byte,
-	contractAddress common.Address,
-	method string,
-	args []byte,
-) (*cstates.PreExecResult, error) {
-	tx, err := this.InvokeNativeContractTx(0, 0, cversion, contractAddress, method, args)
-	if err != nil {
-		return nil, err
-	}
-	return this.PrepareInvokeSmartContract(tx)
-}
-
-//PrepareInvokeNeoVMSmartContract return the vm execute result of smart contract but not commit into ledger.
-//It's useful for debugging smart contract.
-func (this *RpcClient) PrepareInvokeNeoVMSmartContract(
-	cversion byte,
-	contractAddress common.Address,
-	params []interface{},
-) (*cstates.PreExecResult, error) {
-	tx, err := this.InvokeNeoVMSmartContractTx(0, 0, cversion, contractAddress, params)
-	if err != nil {
-		return nil, err
-	}
-	return this.PrepareInvokeSmartContract(tx)
-}
-
-func (this *RpcClient) PrepareInvokeNeoVMSmartContractWithRes(
-	cversion byte,
-	contractAddress common.Address,
-	params []interface{},
-	returnType sdkcom.NeoVMReturnType,
-) (interface{}, error) {
-	preResult, err := this.PrepareInvokeNeoVMSmartContract(cversion, contractAddress, params)
-	if err != nil {
-		return nil, err
-	}
-	v, err := utils.ParseNeoVMSmartContractReturnType(preResult.Result, returnType)
-	if err != nil {
-		return nil, fmt.Errorf("ParseNeoVMSmartContractReturnType error:%s", err)
-	}
-	return v, nil
+func (this *RpcClient) SignTransaction(tx *types.Transaction, signer *account.Account) error {
+	return sdkcom.SignToTransaction(tx, signer)
 }
 
 //SendRawTransaction send a transaction to ontology network, and return hash of the transaction
@@ -663,44 +610,11 @@ func (this *RpcClient) SendRawTransaction(tx *types.Transaction) (common.Uint256
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
-	hash, err := utils.ParseUint256FromHexString(hexHash)
+	hash, err := common.Uint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
 	return hash, nil
-}
-
-func (this *RpcClient) GetGenerateBlockTime() (int, error) {
-	data, err := this.sendRpcRequest(RPC_GET_GENERATE_BLOCK_TIME, []interface{}{})
-	if err != nil {
-		return 0, fmt.Errorf("sendRpcRequest error:%s", err)
-	}
-	genTime := 0
-	err = json.Unmarshal(data, &genTime)
-	if err != nil {
-		return 0, fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
-	}
-	return genTime, nil
-}
-
-//GetMerkleProof return the merkle proof whether tx is exist in ledger
-func (this *RpcClient) GetMerkleProof(txHash common.Uint256) (*sdkcom.MerkleProof, error) {
-	return this.GetMerkleProofWithHexString(hex.EncodeToString(txHash.ToArray()))
-}
-
-//GetMerkleProof return the merkle proof whether tx is exist in ledger. Param txHash is in hex string code
-func (this *RpcClient) GetMerkleProofWithHexString(txHash string) (*sdkcom.MerkleProof, error) {
-	data, err := this.sendRpcRequest(RPC_GET_MERKLE_PROOF, []interface{}{txHash})
-	if err != nil {
-		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
-	}
-	proof := &sdkcom.MerkleProof{}
-	err = json.Unmarshal(data, proof)
-	if err != nil {
-		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
-	}
-
-	return proof, nil
 }
 
 func (this *RpcClient) getQid() string {
