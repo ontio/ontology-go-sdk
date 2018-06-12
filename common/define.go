@@ -29,6 +29,7 @@ const (
 )
 const (
 	NATIVE_TRANSFER = "transfer"
+	NATIVE_APPROVE  = "approve"
 )
 
 //NeoVM invoke smart contract return type
@@ -44,8 +45,8 @@ const (
 
 //Balance object for account
 type Balance struct {
-	Ont       uint64
-	Ong       uint64
+	Ont uint64
+	Ong uint64
 }
 
 //SmartContactEvent object for event of transaction
