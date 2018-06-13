@@ -342,3 +342,12 @@ func TestInvokeNeoVMContract(t *testing.T) {
 
 	fmt.Printf("TestInvokeNeoVMContract TxHash:%x\n", txHash)
 }
+
+func TestPrepareInvokeNativeContract(t *testing.T){
+	result, err := testRpc.PrepareInvokeNativeContract(nvutils.OntContractAddress, 0, "name", nil)
+	if err != nil {
+		t.Errorf("PrepareInvokeNativeContract error:%s", err)
+		return
+	}
+	fmt.Printf("%s\n", result.Result)
+}

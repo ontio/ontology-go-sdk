@@ -609,7 +609,13 @@ func (this *RpcClient) NewNativeInvokeTransaction(gasPrice,
 	method string,
 	params []interface{},
 ) (*types.Transaction, error) {
-
+	if params == nil {
+		params = make([]interface{}, 0, 1)
+	}
+	//Params cannot empty, if params is empty, fulfil with empty string
+	if len(params) == 0 {
+		params = append(params, "")
+	}
 	invokeCode, err := httpcom.BuildNativeInvokeCode(contractAddress, cversion, method, params)
 	if err != nil {
 		return nil, fmt.Errorf("BuildNativeInvokeCode error:%s", err)
