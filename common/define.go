@@ -18,11 +18,6 @@
 //Some common define of ontology-go-sdk
 package common
 
-//import ontcom "github.com/ontio/ontology/common"
-
-//Default crypt scheme
-const CRYPTO_SCHEME_DEFAULT = "SHA256withECDSA"
-
 const (
 	VERSION_TRANSACTION  = 0
 	VERSION_CONTRACT_ONT = 0
@@ -43,7 +38,6 @@ const (
 	NEOVM_TYPE_INTEGER    NeoVMReturnType = 2
 	NEOVM_TYPE_BYTE_ARRAY NeoVMReturnType = 3
 	NEOVM_TYPE_STRING     NeoVMReturnType = 4
-	NEOVM_TYPE_ARRAY      NeoVMReturnType = 5
 )
 
 //Balance object for account

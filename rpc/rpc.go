@@ -636,12 +636,14 @@ func (this *RpcClient) NewNeoVMSInvokeTransaction(
 	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
 
-func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(contractAddress common.Address, params []interface{}, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
+//PrepareInvokeNeoVMContractWithRes Prepare invoke neovm contract, and return the value of result.
+//Param returnType must be one of NeoVMReturnType, or array of NeoVMReturnType
+func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(contractAddress common.Address, params []interface{}, returnType interface{}) (interface{}, error) {
 	preResult, err := this.PrepareInvokeNeoVMContract(contractAddress, params)
 	if err != nil {
 		return nil, err
 	}
-	v, err := utils.ParseNeoVMContractReturnType(preResult.Result, returnType)
+	v, err := utils.ParsePreExecResult(preResult.Result, returnType)
 	if err != nil {
 		return nil, fmt.Errorf("ParseNeoVMContractReturnType error:%s", err)
 	}
@@ -665,6 +667,20 @@ func (this *RpcClient) PrepareInvokeNativeContract(contractAddress common.Addres
 		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
 	}
 	return this.PrepareInvokeContract(tx)
+}
+
+//PrepareInvokeNativeContractWithRes Prepare invoke native contract, and return the value of result.
+//Param returnType must be one of NeoVMReturnType, or array of NeoVMReturnType
+func (this *RpcClient) PrepareInvokeNativeContractWithRes(contractAddress common.Address, version byte, method string, params, returnType []interface{}) (interface{}, error) {
+	preResult, err := this.PrepareInvokeNativeContract(contractAddress, version, method, params)
+	if err != nil {
+		return nil, err
+	}
+	v, err := utils.ParsePreExecResult(preResult.Result, returnType)
+	if err != nil {
+		return nil, fmt.Errorf("ParseNeoVMContractReturnType error:%s", err)
+	}
+	return v, nil
 }
 
 //PrepareInvokeContract return the vm execute result of smart contract but not commit into ledger.

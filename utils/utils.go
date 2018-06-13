@@ -57,6 +57,36 @@ func IsFileExist(file string) bool {
 	return err == nil || os.IsExist(err)
 }
 
+//Param returnType must be one of NeoVMReturnType, or array of NeoVMReturnType
+func ParsePreExecResult(returnValue interface{}, returnType interface{}) (interface{}, error) {
+	var res interface{}
+	var err error
+	switch t := returnType.(type) {
+	case sdkcom.NeoVMReturnType:
+		res, err = ParseNeoVMContractReturnType(returnValue, t)
+		if err != nil {
+			return nil, fmt.Errorf("parse value:%v type:%v error:%s", returnValue, returnType, err)
+		}
+	case []interface{}:
+		values, ok := returnValue.([]interface{})
+		if !ok || len(values) != len(t) {
+			return nil, fmt.Errorf("return type unmatch")
+		}
+		rValues := make([]interface{}, 0, len(values))
+		for i, it := range t {
+			v, err := ParsePreExecResult(values[i], it)
+			if err != nil {
+				return nil, fmt.Errorf("parse value:%v type:%v error:%s", values[i], it, err)
+			}
+			rValues = append(rValues, v)
+		}
+		res = rValues
+	default:
+		return nil, fmt.Errorf("invalue return type")
+	}
+	return res, nil
+}
+
 //ParseNeoVMContractReturnType return value for result of smart contract execute code.
 func ParseNeoVMContractReturnType(value interface{}, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
 	switch returnType {
@@ -68,8 +98,8 @@ func ParseNeoVMContractReturnType(value interface{}, returnType sdkcom.NeoVMRetu
 		return ParseNeoVMContractReturnTypeString(value)
 	case sdkcom.NEOVM_TYPE_BYTE_ARRAY:
 		return ParseNeoVMContractReturnTypeByteArray(value)
-	case sdkcom.NEOVM_TYPE_ARRAY:
-		return value, nil
+	default:
+		return nil, fmt.Errorf("unkown return type:%v", returnType)
 	}
 	return value, nil
 }
