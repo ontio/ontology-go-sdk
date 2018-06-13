@@ -19,7 +19,6 @@
 package rpc
 
 import (
-	"DNAhh/common/serialization"
 	"bytes"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
@@ -27,6 +26,7 @@ import (
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/common/constants"
+	"github.com/ontio/ontology/common/serialization"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
@@ -159,7 +159,7 @@ func TestGetStorage(t *testing.T) {
 }
 
 func TestGetSmartContractEvent(t *testing.T) {
-	events , err := testRpc.GetSmartContractEventByBlock(0)
+	events, err := testRpc.GetSmartContractEventByBlock(0)
 	if err != nil {
 		t.Errorf("GetSmartContractEventByBlock error:%s", err)
 		return

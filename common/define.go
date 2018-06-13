@@ -26,10 +26,13 @@ const CRYPTO_SCHEME_DEFAULT = "SHA256withECDSA"
 const (
 	VERSION_TRANSACTION  = 0
 	VERSION_CONTRACT_ONT = 0
+	VERSION_CONTRACT_ONG = 0
 )
 const (
-	NATIVE_TRANSFER = "transfer"
-	NATIVE_APPROVE  = "approve"
+	NATIVE_TRANSFER      = "transfer"
+	NATIVE_TRANSFER_FROM = "transferFrom"
+	NATIVE_APPROVE       = "approve"
+	NATIVE_ALLOWANCE     = "allowance"
 )
 
 //NeoVM invoke smart contract return type

@@ -27,8 +27,8 @@ import (
 
 //WebSocketOptions provide some options for web socket client
 type WebSocketOptions struct {
-	HeartbeatInterval time.Duration		//The interval of sending heartbeat
-	HeartbeatPkg      []byte 		//HeartbeatPkg is data package of heartbeat
+	HeartbeatInterval time.Duration //The interval of sending heartbeat
+	HeartbeatPkg      []byte        //HeartbeatPkg is data package of heartbeat
 }
 
 //WebSocketClient use for client to operation web socket
@@ -79,7 +79,7 @@ func (this *WebSocketClient) Connect() (err error) {
 	this.status = true
 	go this.doRecv()
 	go this.heartbeat()
-	return  nil
+	return nil
 }
 
 func (this *WebSocketClient) updateHeartbeatTime() {

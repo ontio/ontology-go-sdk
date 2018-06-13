@@ -32,6 +32,7 @@ import (
 	"github.com/ontio/ontology/core/types"
 	httpcom "github.com/ontio/ontology/http/base/common"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
+	nutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	cstates "github.com/ontio/ontology/smartcontract/states"
 	"io/ioutil"
 	"math/big"
@@ -404,11 +405,84 @@ func (this *RpcClient) Transfer(gasPrice, gasLimit uint64, asset string, from *a
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.SignTransaction(tx, from)
+	err = this.SignToTransaction(tx, from)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
 	return this.SendRawTransaction(tx)
+}
+
+func (this *RpcClient) Allowance(asset string, from, to common.Address) (uint64, error) {
+	type allowanceStruct struct {
+		From common.Address
+		To   common.Address
+	}
+	contractAddress, err := utils.GetAssetAddress(asset)
+	if err != nil {
+		return 0, err
+	}
+	result, err := this.PrepareInvokeNativeContract(contractAddress, sdkcom.VERSION_CONTRACT_ONT, sdkcom.NATIVE_ALLOWANCE, []interface{}{
+		&allowanceStruct{
+			From: from,
+			To:   to,
+		}})
+	if err != nil {
+		return 0, fmt.Errorf("PrepareInvokeNativeContract error:%s", err)
+	}
+	if result.State == 0 {
+		return 0, fmt.Errorf("prepare inoke failed")
+	}
+	data, err := hex.DecodeString(result.Result.(string))
+	if err != nil {
+		return 0, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
+	return new(big.Int).SetBytes(data).Uint64(), nil
+}
+
+func (this *RpcClient) Approve(gasPrice, gasLimit uint64, asset string, from *account.Account, to common.Address, amount uint64) (common.Uint256, error) {
+	tx, err := this.NewApproveTransaction(gasPrice, gasLimit, asset, from.Address, to, amount)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	err = this.SignToTransaction(tx, from)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.SendRawTransaction(tx)
+}
+
+func (this *RpcClient) TransferFrom(gasPrice, gasLimit uint64, asset string, sender *account.Account, from, to common.Address, amount uint64) (common.Uint256, error) {
+	tx, err := this.NewTransferFromTransaction(gasPrice, gasLimit, asset, sender.Address, from, to, amount)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	err = this.SignToTransaction(tx, sender)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.SendRawTransaction(tx)
+}
+
+func (this *RpcClient) UnboundONG(user common.Address) (uint64, error) {
+	return this.Allowance("ong", nutils.OngContractAddress, user)
+}
+
+func (this *RpcClient) WithdrawONG(gasPrice, gasLimit uint64, user *account.Account, withdrawAmount ...uint64) (common.Uint256, error) {
+	var amount uint64
+	var err error
+	if len(withdrawAmount) > 0 {
+		amount = withdrawAmount[0]
+	}
+	if amount == 0 {
+		amount, err = this.UnboundONG(user.Address)
+		if err != nil {
+			return common.UINT256_EMPTY, fmt.Errorf("Get UnboundONG error:%s", err)
+		}
+	}
+	if amount == 0 {
+		return common.UINT256_EMPTY, nil
+	}
+	return this.TransferFrom(gasPrice, gasLimit, "ong", user, nutils.OngContractAddress, user.Address, amount)
 }
 
 func (this *RpcClient) NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
@@ -449,7 +523,7 @@ func (this *RpcClient) NewTransferFromTransaction(gasPrice, gasLimit uint64, ass
 		To:     to,
 		Value:  amount,
 	}
-	return this.NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_APPROVE, []interface{}{st})
+	return this.NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER_FROM, []interface{}{st})
 }
 
 //DeploySmartContract Deploy smart contract to ontology
@@ -470,7 +544,7 @@ func (this *RpcClient) DeploySmartContract(
 		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
 	}
 	tx := this.NewDeployCodeTransaction(gasPrice, gasLimit, invokeCode, needStorage, cname, cversion, cauthor, cemail, cdesc)
-	err = this.SignTransaction(tx, singer)
+	err = this.SignToTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err
 	}
@@ -494,7 +568,7 @@ func (this *RpcClient) InvokeNativeContract(
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.SignTransaction(tx, singer)
+	err = this.SignToTransaction(tx, singer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -513,7 +587,7 @@ func (this *RpcClient) InvokeNeoVMContract(
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
 	}
-	err = this.SignTransaction(tx, signer)
+	err = this.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -556,8 +630,8 @@ func (this *RpcClient) NewNeoVMSInvokeTransaction(
 	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
 
-func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(tx *types.Transaction, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
-	preResult, err := this.PrepareInvokeContract(tx)
+func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(contractAddress common.Address, params []interface{}, returnType sdkcom.NeoVMReturnType) (interface{}, error) {
+	preResult, err := this.PrepareInvokeNeoVMContract(contractAddress, params)
 	if err != nil {
 		return nil, err
 	}
@@ -566,6 +640,25 @@ func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(tx *types.Transaction, 
 		return nil, fmt.Errorf("ParseNeoVMContractReturnType error:%s", err)
 	}
 	return v, nil
+}
+
+func (this *RpcClient) PrepareInvokeNeoVMContract(contractAddress common.Address,
+	params []interface{}) (*cstates.PreExecResult, error) {
+	this.NewNeoVMSInvokeTransaction(0, 0, contractAddress, params)
+
+	tx, err := this.NewNeoVMSInvokeTransaction(0, 0, contractAddress, params)
+	if err != nil {
+		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+	}
+	return this.PrepareInvokeContract(tx)
+}
+
+func (this *RpcClient) PrepareInvokeNativeContract(contractAddress common.Address, version byte, method string, params []interface{}) (*cstates.PreExecResult, error) {
+	tx, err := this.NewNativeInvokeTransaction(0, 0, version, contractAddress, method, params)
+	if err != nil {
+		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+	}
+	return this.PrepareInvokeContract(tx)
 }
 
 //PrepareInvokeContract return the vm execute result of smart contract but not commit into ledger.
@@ -589,7 +682,7 @@ func (this *RpcClient) PrepareInvokeContract(tx *types.Transaction) (*cstates.Pr
 	return preResult, nil
 }
 
-func (this *RpcClient) SignTransaction(tx *types.Transaction, signer *account.Account) error {
+func (this *RpcClient) SignToTransaction(tx *types.Transaction, signer *account.Account) error {
 	return sdkcom.SignToTransaction(tx, signer)
 }
 
@@ -655,16 +748,17 @@ func (this *RpcClient) sendRpcRequest(method string, params []interface{}) ([]by
 }
 
 //SendEmergencyGovReq return error
-func (this *RpcClient) SendEmergencyGovReq(block []byte) (error) {
+func (this *RpcClient) SendEmergencyGovReq(block []byte) error {
 	blockString := hex.EncodeToString(block)
 	_, err := this.sendRpcRequest(SEND_EMERGENCY_GOV_REQ, []interface{}{blockString})
 	if err != nil {
-		return  fmt.Errorf("sendRpcRequest error:%s", err)
+		return fmt.Errorf("sendRpcRequest error:%s", err)
 	}
 	return nil
 }
+
 //GetGetBlockRoot return common.Uint256
-func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.Uint256,error) {
+func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.Uint256, error) {
 
 	hashString := hex.EncodeToString(txRoot.ToArray())
 	data, err := this.sendRpcRequest(GET_BLOCK_ROOT_WITH_NEW_TX_ROOT, []interface{}{hashString})
@@ -676,7 +770,8 @@ func (this *RpcClient) GetBlockRootWithNewTxRoot(txRoot common.Uint256) (common.
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("json.Unmarshal hash:%s error:%s", data, err)
 	}
-	hash, err := utils.ParseUint256FromHexString(hexHash)
+
+	hash, err := common.Uint256FromHexString(hexHash)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("ParseUint256FromHexString:%s error:%s", data, err)
 	}
