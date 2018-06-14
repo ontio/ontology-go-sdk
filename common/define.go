@@ -18,11 +18,12 @@
 //Some common define of ontology-go-sdk
 package common
 
-const (
-	VERSION_TRANSACTION  = 0
-	VERSION_CONTRACT_ONT = 0
-	VERSION_CONTRACT_ONG = 0
+var (
+	VERSION_TRANSACTION  = byte(0)
+	VERSION_CONTRACT_ONT = byte(0)
+	VERSION_CONTRACT_ONG = byte(0)
 )
+
 const (
 	NATIVE_TRANSFER      = "transfer"
 	NATIVE_TRANSFER_FROM = "transferFrom"
