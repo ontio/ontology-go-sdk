@@ -1,1 +1,3 @@
 cscope*
+vendor/*
+glide.lock
