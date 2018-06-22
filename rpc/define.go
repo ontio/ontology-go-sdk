@@ -58,10 +58,3 @@ type JsonRpcResponse struct {
 	Desc   string          `json:"desc"`
 	Result json.RawMessage `json:"result"`
 }
-
-//BalanceRsp response object for balance request
-type BalanceRsp struct {
-	Ont       string `json:"ont"`
-	Ong       string `json:"ong"`
-	OngAppove string `json:"ong_appove"`
-}
