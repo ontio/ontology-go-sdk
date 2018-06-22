@@ -99,9 +99,9 @@ func ParseNeoVMContractReturnType(value interface{}, returnType sdkcom.NeoVMRetu
 	case sdkcom.NEOVM_TYPE_BYTE_ARRAY:
 		return ParseNeoVMContractReturnTypeByteArray(value)
 	default:
-		return nil, fmt.Errorf("unkown return type:%v", returnType)
+		return nil, fmt.Errorf("unknown return type:%v", returnType)
 	}
-	return value, nil
+	return nil, nil
 }
 
 //ParseNeoVMContractReturnTypeBool return bool value of smart contract execute code.
@@ -146,12 +146,4 @@ func ParseNeoVMContractReturnTypeString(val interface{}) (string, error) {
 		return "", err
 	}
 	return string(data), nil
-}
-
-//BytesReverse return the reverse of []byte
-func BytesReverse(u []byte) []byte {
-	for i, j := 0, len(u)-1; i < j; i, j = i+1, j-1 {
-		u[i], u[j] = u[j], u[i]
-	}
-	return u
 }
