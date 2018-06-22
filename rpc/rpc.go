@@ -464,7 +464,7 @@ func (this *RpcClient) TransferFrom(gasPrice, gasLimit uint64, asset string, sen
 }
 
 func (this *RpcClient) UnboundONG(user common.Address) (uint64, error) {
-	return this.Allowance("ong", nutils.OngContractAddress, user)
+	return this.Allowance("ong", nutils.OntContractAddress, user)
 }
 
 func (this *RpcClient) WithdrawONG(gasPrice, gasLimit uint64, user *account.Account, withdrawAmount ...uint64) (common.Uint256, error) {
@@ -482,7 +482,7 @@ func (this *RpcClient) WithdrawONG(gasPrice, gasLimit uint64, user *account.Acco
 	if amount == 0 {
 		return common.UINT256_EMPTY, nil
 	}
-	return this.TransferFrom(gasPrice, gasLimit, "ong", user, nutils.OngContractAddress, user.Address, amount)
+	return this.TransferFrom(gasPrice, gasLimit, "ong", user, nutils.OntContractAddress, user.Address, amount)
 }
 
 func (this *RpcClient) NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
