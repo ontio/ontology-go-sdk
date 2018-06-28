@@ -74,14 +74,6 @@ func GetUint256(data []byte) (common.Uint256, error) {
 	return hash, nil
 }
 
-func GetUint64FromPreExecuteResult(result interface{})(uint64, error){
-	data, err := hex.DecodeString(result.(string))
-	if err != nil {
-		return 0, fmt.Errorf("hex.DecodeString error:%s", err)
-	}
-	return new(big.Int).SetBytes(data).Uint64(), nil
-}
-
 func GetTransaction(data []byte) (*types.Transaction, error) {
 	hexStr := ""
 	err := json.Unmarshal(data, &hexStr)
