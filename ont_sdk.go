@@ -21,6 +21,7 @@ package ontology_go_sdk
 
 import (
 	"fmt"
+	"github.com/ontio/ontology-go-sdk/rest"
 	"github.com/ontio/ontology-go-sdk/rpc"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
@@ -30,12 +31,15 @@ import (
 type OntologySdk struct {
 	//Rpc client used the rpc api of ontology
 	Rpc *rpc.RpcClient
+	//Rest client used the rest api of ontology
+	Rest *rest.RestClient
 }
 
 //NewOntologySdk return OntologySdk.
 func NewOntologySdk() *OntologySdk {
 	return &OntologySdk{
-		Rpc: rpc.NewRpcClient(),
+		Rpc:  rpc.NewRpcClient(),
+		Rest: rest.NewRestClient(),
 	}
 }
 
