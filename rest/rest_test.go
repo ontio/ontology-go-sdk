@@ -1,22 +1,4 @@
-/*
- * Copyright (C) 2018 The ontology Authors
- * This file is part of The ontology library.
- *
- * The ontology is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The ontology is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-package rpc
+package rest
 
 import (
 	"bytes"
@@ -38,15 +20,15 @@ import (
 
 //RpcClient instance of test only
 var (
-	testRpc    *RpcClient
+	testRest   *RestClient
 	testWallet account.Client
 	testPasswd = []byte("wangbing")
 )
 
 func TestMain(t *testing.M) {
 	var err error
-	testRpc = NewRpcClient()
-	testRpc.SetAddress("http://localhost:20336")
+	testRest = NewRestClient()
+	testRest.SetAddress("http://localhost:20334")
 	walletFile := "./wallet.dat"
 	testWallet, err = account.Open(walletFile)
 	if err != nil {
@@ -67,21 +49,21 @@ func TestMain(t *testing.M) {
 }
 
 func TestGetVersion(t *testing.T) {
-	v, err := testRpc.GetVersion()
+	version, err := testRest.GetVersion()
 	if err != nil {
-		t.Errorf("GetVersion error:%s", err)
+		t.Errorf("TestGetVersion GetVersion error:%s", err)
 		return
 	}
-	fmt.Printf("TestGetVersion Version:%v\n", v)
+	fmt.Printf("Version:%s\n", version)
 }
 
 func TestGetBlockByHash(t *testing.T) {
-	blockHash, err := testRpc.GetBlockHash(0)
+	blockHash, err := testRest.GetBlockHash(0)
 	if err != nil {
 		t.Errorf("GetBlockHash error:%s", err)
 		return
 	}
-	block, err := testRpc.GetBlockByHash(blockHash)
+	block, err := testRest.GetBlockByHash(blockHash)
 	if err != nil {
 		t.Errorf("GetBlockByHash error:%s", err)
 		return
@@ -90,7 +72,7 @@ func TestGetBlockByHash(t *testing.T) {
 }
 
 func TestGetBlockByHeight(t *testing.T) {
-	block, err := testRpc.GetBlockByHeight(0)
+	block, err := testRest.GetBlockByHeight(0)
 	if err != nil {
 		t.Errorf("GetBlockByHash error:%s", err)
 		return
@@ -98,26 +80,28 @@ func TestGetBlockByHeight(t *testing.T) {
 	fmt.Printf("TestGetBlockByHeight BlockHeight:%d BlockHash:%x\n", block.Header.Height, block.Hash())
 }
 
-func TestGetBlockCount(t *testing.T) {
-	count, err := testRpc.GetBlockCount()
+func TestGetCurrentBlockHeight(t *testing.T) {
+	count, err := testRest.GetCurrentBlockHeight()
 	if err != nil {
-		t.Errorf("GetBlockCount error:%s", err)
+		t.Errorf("GetCurrentBlockHeight error:%s", err)
 		return
 	}
-	fmt.Printf("TestGetBlockCount BlockCount:%d\n", count)
+	fmt.Printf("TestGetCurrentBlockHeight CurrentBlockHeight:%d\n", count)
 }
 
-func TestGetCurrentBlockHash(t *testing.T) {
-	blockHash, err := testRpc.GetCurrentBlockHash()
+func TestGetBalance(t *testing.T) {
+	defAcc, _ := testWallet.GetDefaultAccount(testPasswd)
+	balance, err := testRest.GetBalance(defAcc.Address)
 	if err != nil {
-		t.Errorf("GetCurrentBlockHash error:%s", err)
+		t.Errorf("GetBalance error:%s", err)
 		return
 	}
-	fmt.Printf("GetCurrentBlockHash %x\n", blockHash)
+	fmt.Printf("Balance ONT:%d\n", balance.Ont)
+	fmt.Printf("Balance ONG:%d\n", balance.Ong)
 }
 
 func TestGetBlockHash(t *testing.T) {
-	blockHash, err := testRpc.GetBlockHash(0)
+	blockHash, err := testRest.GetBlockHash(0)
 	if err != nil {
 		t.Errorf("GetBlockHash error:%s", err)
 		return
@@ -125,22 +109,8 @@ func TestGetBlockHash(t *testing.T) {
 	fmt.Printf("TestGetBlockHash %x\n", blockHash)
 }
 
-func TestGetBalance(t *testing.T) {
-	defAcc, err := testWallet.GetDefaultAccount(testPasswd)
-	if err != nil {
-		t.Errorf("GetDefaultAccount error:%s", err)
-		return
-	}
-	balance, err := testRpc.GetBalance(defAcc.Address)
-	if err != nil {
-		t.Errorf("GetBalance error:%s", err)
-		return
-	}
-	fmt.Printf("TestGetBalance ONT:%d ONG:%d\n", balance.Ont, balance.Ong)
-}
-
 func TestGetStorage(t *testing.T) {
-	value, err := testRpc.GetStorage(nvutils.OntContractAddress, []byte(ont.TOTALSUPPLY_NAME))
+	value, err := testRest.GetStorage(nvutils.OntContractAddress, []byte(ont.TOTALSUPPLY_NAME))
 	if err != nil {
 		t.Errorf("TestGetStorage error:%s", err)
 		return
@@ -162,13 +132,13 @@ func TestGetStorage(t *testing.T) {
 }
 
 func TestGetSmartContractEvent(t *testing.T) {
-	events, err := testRpc.GetSmartContractEventByBlock(0)
+	events, err := testRest.GetSmartContractEventByBlock(0)
 	if err != nil {
 		t.Errorf("GetSmartContractEventByBlock error:%s", err)
 		return
 	}
 
-	scEvt, err := testRpc.GetSmartContractEventWithHexString(events[0].TxHash)
+	scEvt, err := testRest.GetSmartContractEventWithHexString(events[0].TxHash)
 	if err != nil {
 		t.Errorf("GetSmartContractEvent error:%s", err)
 		return
@@ -206,14 +176,14 @@ func TestGetSmartContractEvent(t *testing.T) {
 }
 
 func TestGetRawTransaction(t *testing.T) {
-	block, err := testRpc.GetBlockByHeight(0)
+	block, err := testRest.GetBlockByHeight(0)
 	if err != nil {
 		t.Errorf("GetBlockByHeight error:%s", err)
 		return
 	}
 	//The first transaction is ont deploy transaction
 	ont := block.Transactions[0]
-	tx, err := testRpc.GetRawTransaction(ont.Hash())
+	tx, err := testRest.GetRawTransaction(ont.Hash())
 	if err != nil {
 		t.Errorf("GetRawTransaction error:%s", err)
 		return
@@ -222,7 +192,7 @@ func TestGetRawTransaction(t *testing.T) {
 }
 
 func TestGetSmartContract(t *testing.T) {
-	block, err := testRpc.GetBlockByHeight(0)
+	block, err := testRest.GetBlockByHeight(0)
 	if err != nil {
 		t.Errorf("GetBlockByHeight error:%s", err)
 		return
@@ -232,7 +202,7 @@ func TestGetSmartContract(t *testing.T) {
 	payload := ont.Payload.(*payload.DeployCode)
 
 	contractAddress := types.AddressFromVmCode(payload.Code)
-	contract, err := testRpc.GetSmartContract(contractAddress)
+	contract, err := testRest.GetSmartContract(contractAddress)
 	if err != nil {
 		t.Errorf("GetSmartContract error:%s", err)
 		return
@@ -242,7 +212,7 @@ func TestGetSmartContract(t *testing.T) {
 }
 
 func TestGetGenerateBlockTime(t *testing.T) {
-	genTime, err := testRpc.GetGenerateBlockTime()
+	genTime, err := testRest.GetGenerateBlockTime()
 	if err != nil {
 		t.Errorf("GetGenerateBlockTime error:%s", err)
 		return
@@ -251,14 +221,14 @@ func TestGetGenerateBlockTime(t *testing.T) {
 }
 
 func TestMerkleProof(t *testing.T) {
-	block, err := testRpc.GetBlockByHeight(0)
+	block, err := testRest.GetBlockByHeight(0)
 	if err != nil {
 		t.Errorf("GetBlockByHeight error:%s", err)
 		return
 	}
 	txHash := block.Transactions[0].Hash()
 
-	proof, err := testRpc.GetMerkleProof(txHash)
+	proof, err := testRest.GetMerkleProof(txHash)
 	if err != nil {
 		t.Errorf("GetMerkleProof error:%s", err)
 		return
@@ -296,7 +266,7 @@ func TestDeployContract(t *testing.T) {
 		"2e53746f726167652e507574616168164e656f2e53746f726167652e476574436f6e746578740548656c6c6f617c680f4e656f2e53746f" +
 		"726167652e4765746c766b00527ac46203006c766b00c3616c7566"
 
-	txHash, err := testRpc.DeploySmartContract(
+	txHash, err := testRest.DeploySmartContract(
 		0, 50000,
 		signer,
 		true,
@@ -313,7 +283,7 @@ func TestDeployContract(t *testing.T) {
 		return
 	}
 	//WaitForGenerateBlock, ensure contract was be deploy in block
-	_, err = testRpc.WaitForGenerateBlock(30*time.Second, 1)
+	_, err = testRest.WaitForGenerateBlock(30*time.Second, 1)
 	if err != nil {
 		t.Errorf("TestDeploySmartContract WaitForGenerateBlock error:%s", err)
 		return
@@ -337,7 +307,7 @@ func TestInvokeNeoVMContract(t *testing.T) {
 		return
 	}
 
-	txHash, err := testRpc.InvokeNeoVMContract(0, 0, signer, contractCodeAddress, []interface{}{})
+	txHash, err := testRest.InvokeNeoVMContract(0, 0, signer, contractCodeAddress, []interface{}{})
 	if err != nil {
 		t.Errorf("TestInvokeNeoVMContract InvokeNeoVMContract error:%s", err)
 		return
@@ -347,7 +317,7 @@ func TestInvokeNeoVMContract(t *testing.T) {
 }
 
 func TestPrepareInvokeNativeContract(t *testing.T) {
-	result, err := testRpc.PrepareInvokeNativeContract(nvutils.OntContractAddress, 0, "name", nil)
+	result, err := testRest.PrepareInvokeNativeContract(nvutils.OntContractAddress, 0, "name", nil)
 	if err != nil {
 		t.Errorf("PrepareInvokeNativeContract error:%s", err)
 		return

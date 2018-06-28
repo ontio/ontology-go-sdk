@@ -47,6 +47,12 @@ type Balance struct {
 	Ong uint64
 }
 
+//BalanceRsp response object for balance request
+type BalanceRsp struct {
+	Ont string `json:"ont"`
+	Ong string `json:"ong"`
+}
+
 //SmartContactEvent object for event of transaction
 type SmartContactEvent struct {
 	TxHash      string
