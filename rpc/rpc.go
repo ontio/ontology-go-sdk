@@ -24,6 +24,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"math/rand"
+	"net/http"
+	"sync/atomic"
+	"time"
+
+	"github.com/ontio/ontology-crypto/keypair"
+
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
@@ -33,12 +42,6 @@ import (
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	nutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	cstates "github.com/ontio/ontology/smartcontract/states"
-	"io/ioutil"
-	"math/big"
-	"math/rand"
-	"net/http"
-	"sync/atomic"
-	"time"
 )
 
 func init() {
@@ -280,6 +283,35 @@ func (this *RpcClient) Transfer(gasPrice,
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
+	return this.SendRawTransaction(tx)
+}
+
+func (this *RpcClient) MultiSigTransfer(gasPrice, gasLimit uint64, asset string, m uint16, froms []*account.Account, to common.Address, amount uint64) (common.Uint256, error) {
+	if len(froms) > 16 {
+		return common.Uint256{}, fmt.Errorf("multi signer should less than 16")
+	}
+	pks := make([]keypair.PublicKey, 0)
+	for _, a := range froms {
+		pks = append(pks, a.PublicKey)
+	}
+	fromAddr, err := types.AddressFromMultiPubKeys(pks, int(m))
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	tx, err := this.NewTransferTransaction(gasPrice, gasLimit, asset, fromAddr, to, amount)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	for _, signer := range froms {
+		err = this.MultiSignToTransaction(tx, m, pks, signer)
+		if err != nil {
+			return common.UINT256_EMPTY, err
+		}
+	}
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
 	return this.SendRawTransaction(tx)
 }
 
@@ -558,6 +590,10 @@ func (this *RpcClient) PrepareInvokeContract(tx *types.Transaction) (*cstates.Pr
 
 func (this *RpcClient) SignToTransaction(tx *types.Transaction, signer *account.Account) error {
 	return sdkcom.SignToTransaction(tx, signer)
+}
+
+func (this *RpcClient) MultiSignToTransaction(tx *types.Transaction, m uint16, pks []keypair.PublicKey, signer *account.Account) error {
+	return sdkcom.MultiSignToTransaction(tx, m, pks, signer)
 }
 
 //SendRawTransaction send a transaction to ontology network, and return hash of the transaction
