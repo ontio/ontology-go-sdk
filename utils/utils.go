@@ -19,6 +19,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
@@ -29,6 +30,39 @@ import (
 	"os"
 	"strings"
 )
+
+func TransactionFromHexString(rawTx string) (*types.Transaction, error) {
+	txData, err := hex.DecodeString(rawTx)
+	if err != nil {
+		return nil, err
+	}
+	tx := &types.Transaction{}
+	err = tx.Deserialize(bytes.NewReader(txData))
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func AddressFromHexString(s string) (common.Address, error) {
+	return common.AddressFromHexString(s)
+}
+
+func AddressParseFromBytes(b []byte) (common.Address, error) {
+	return common.AddressParseFromBytes(b)
+}
+
+func AddressFromBase58(s string) (common.Address, error) {
+	return common.AddressFromBase58(s)
+}
+
+func Uint256ParseFromBytes(f []byte) (common.Uint256, error) {
+	return common.Uint256ParseFromBytes(f)
+}
+
+func Uint256FromHexString(s string) (common.Uint256, error) {
+	return common.Uint256FromHexString(s)
+}
 
 func GetContractAddress(contractCode string) (common.Address, error) {
 	code, err := hex.DecodeString(contractCode)
