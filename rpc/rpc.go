@@ -162,8 +162,6 @@ func (this *RpcClient) GetBalance(addr common.Address) (*sdkcom.Balance, error) 
 		Ont: ontBalance.(*big.Int).Uint64(),
 		Ong: ongBalance.(*big.Int).Uint64(),
 	}, nil
-
-	return this.GetBalanceWithBase58(addr.ToBase58())
 }
 
 //GetBalance return ont and ong balance of a ontology account in base58 code address
