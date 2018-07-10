@@ -149,7 +149,7 @@ func (this *RpcClient) GetBalance(addr common.Address) (*sdkcom.Balance, error) 
 	if err != nil {
 		return nil, fmt.Errorf("Get ONT balance of error:%s", err)
 	}
-	ongBlance, err := this.PrepareInvokeNativeContractWithRes(
+	ongBalance, err := this.PrepareInvokeNativeContractWithRes(
 		nutils.OngContractAddress,
 		sdkcom.VERSION_CONTRACT_ONG,
 		ont.BALANCEOF_NAME,
@@ -160,7 +160,7 @@ func (this *RpcClient) GetBalance(addr common.Address) (*sdkcom.Balance, error) 
 	}
 	return &sdkcom.Balance{
 		Ont: ontBalance.(*big.Int).Uint64(),
-		Ong: ongBlance.(*big.Int).Uint64(),
+		Ong: ongBalance.(*big.Int).Uint64(),
 	}, nil
 
 	return this.GetBalanceWithBase58(addr.ToBase58())
