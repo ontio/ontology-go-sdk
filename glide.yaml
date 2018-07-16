@@ -8,7 +8,7 @@ import:
   - keypair
   - signature
 - package: github.com/ontio/ontology
-  version: ^0.9.1
+  version: ^1.0.1
   subpackages:
   - account
   - common
