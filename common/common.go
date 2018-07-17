@@ -61,19 +61,22 @@ func NewInvokeTransaction(gasPrice, gasLimit uint64, code []byte) *types.Transac
 
 //Sign to a transaction
 func SignToTransaction(tx *types.Transaction, signer *account.Account) error {
-	tx.Payer = signer.Address
+	if tx.Payer == common.ADDRESS_EMPTY {
+		tx.Payer = signer.Address
+	}
 	txHash := tx.Hash()
 	sigData, err := SignToData(txHash.ToArray(), signer)
 	if err != nil {
 		return fmt.Errorf("SignToData error:%s", err)
 	}
-	sig := &types.Sig{
+	if tx.Sigs == nil {
+		tx.Sigs = make([]*types.Sig, 0)
+	}
+	tx.Sigs = append(tx.Sigs, &types.Sig{
 		PubKeys: []keypair.PublicKey{signer.PublicKey},
 		M:       1,
 		SigData: [][]byte{sigData},
-	}
-	tx.Sigs = []*types.Sig{sig}
-
+	})
 	return nil
 }
 
@@ -92,8 +95,7 @@ func MultiSignToTransaction(tx *types.Transaction, m uint16, pubKeys []keypair.P
 	if !validPubKey {
 		return fmt.Errorf("Invalid signer")
 	}
-	var emptyAddress = common.Address{}
-	if tx.Payer == emptyAddress {
+	if tx.Payer == common.ADDRESS_EMPTY {
 		payer, err := types.AddressFromMultiPubKeys(pubKeys, int(m))
 		if err != nil {
 			return fmt.Errorf("AddressFromMultiPubKeys error:%s", err)

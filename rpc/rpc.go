@@ -365,6 +365,10 @@ func (this *RpcClient) NewTransferTransaction(gasPrice, gasLimit uint64,
 	return utils.NewTransferTransaction(gasPrice, gasLimit, asset, from, to, amount)
 }
 
+func (this *RpcClient) NewMultiTransferTransfer(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
+	return utils.NewMultiTransferTransaction(gasPrice, gasLimit, asset, states)
+}
+
 func (this *RpcClient) NewApproveTransaction(gasPrice, gasLimit uint64,
 	asset string, from, to common.Address,
 	amount uint64) (*types.Transaction, error) {

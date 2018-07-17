@@ -210,17 +210,21 @@ func NewNeoVMSInvokeTransaction(
 }
 
 func NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
 	var sts []*ont.State
 	sts = append(sts, &ont.State{
 		From:  from,
 		To:    to,
 		Value: amount,
 	})
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, []interface{}{sts})
+	return NewMultiTransferTransaction(gasPrice, gasLimit, asset, sts)
+}
+
+func NewMultiTransferTransaction(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
+	contractAddress, err := GetAssetAddress(asset)
+	if err != nil {
+		return nil, err
+	}
+	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, []interface{}{states})
 }
 
 func NewApproveTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
