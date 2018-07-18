@@ -343,6 +343,10 @@ func (this *RestClient) NewTransferTransaction(gasPrice,
 	return utils.NewTransferTransaction(gasPrice, gasLimit, asset, from, to, amount)
 }
 
+func (this *RestClient) NewMultiTransferTransfer(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
+	return utils.NewMultiTransferTransaction(gasPrice, gasLimit, asset, states)
+}
+
 func (this *RestClient) NewApproveTransaction(gasPrice,
 	gasLimit uint64,
 	asset string,
@@ -419,9 +423,9 @@ func (this *RestClient) InvokeNeoVMContract(
 	contractAddress common.Address,
 	params []interface{}) (common.Uint256, error) {
 
-	tx, err := this.NewNeoVMSInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
+	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
 	err = this.SignToTransaction(tx, signer)
 	if err != nil {
@@ -457,11 +461,11 @@ func (this *RestClient) PrepareInvokeNeoVMContractWithRes(
 
 func (this *RestClient) PrepareInvokeNeoVMContract(contractAddress common.Address,
 	params []interface{}) (*cstates.PreExecResult, error) {
-	this.NewNeoVMSInvokeTransaction(0, 0, contractAddress, params)
+	this.NewNeoVMInvokeTransaction(0, 0, contractAddress, params)
 
-	tx, err := this.NewNeoVMSInvokeTransaction(0, 0, contractAddress, params)
+	tx, err := this.NewNeoVMInvokeTransaction(0, 0, contractAddress, params)
 	if err != nil {
-		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+		return nil, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
 	return this.PrepareInvokeContract(tx)
 }
@@ -473,7 +477,7 @@ func (this *RestClient) PrepareInvokeNativeContract(
 	params []interface{}) (*cstates.PreExecResult, error) {
 	tx, err := this.NewNativeInvokeTransaction(0, 0, version, contractAddress, method, params)
 	if err != nil {
-		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+		return nil, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
 	return this.PrepareInvokeContract(tx)
 }
@@ -506,12 +510,12 @@ func (this *RestClient) NewNativeInvokeTransaction(gasPrice,
 	return utils.NewNativeInvokeTransaction(gasPrice, gasLimit, cversion, contractAddress, method, params)
 }
 
-func (this *RestClient) NewNeoVMSInvokeTransaction(
+func (this *RestClient) NewNeoVMInvokeTransaction(
 	gasPrice, gasLimit uint64,
 	contractAddress common.Address,
 	params []interface{},
 ) (*types.Transaction, error) {
-	return utils.NewNeoVMSInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
+	return utils.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 }
 
 func (this *RestClient) SignToTransaction(tx *types.Transaction, signer *account.Account) error {

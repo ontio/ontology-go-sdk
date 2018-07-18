@@ -439,9 +439,9 @@ func (this *RpcClient) InvokeNeoVMContract(
 	contractAddress common.Address,
 	params []interface{}) (common.Uint256, error) {
 
-	tx, err := this.NewNeoVMSInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
+	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
 	err = this.SignToTransaction(tx, signer)
 	if err != nil {
@@ -468,12 +468,12 @@ func (this *RpcClient) NewNativeInvokeTransaction(gasPrice,
 	return utils.NewNativeInvokeTransaction(gasPrice, gasLimit, cversion, contractAddress, method, params)
 }
 
-func (this *RpcClient) NewNeoVMSInvokeTransaction(
+func (this *RpcClient) NewNeoVMInvokeTransaction(
 	gasPrice, gasLimit uint64,
 	contractAddress common.Address,
 	params []interface{},
 ) (*types.Transaction, error) {
-	return utils.NewNeoVMSInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
+	return utils.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 }
 
 //PrepareInvokeNeoVMContractWithRes Prepare invoke neovm contract, and return the value of result.
@@ -497,11 +497,11 @@ func (this *RpcClient) PrepareInvokeNeoVMContractWithRes(contractAddress common.
 
 func (this *RpcClient) PrepareInvokeNeoVMContract(contractAddress common.Address,
 	params []interface{}) (*cstates.PreExecResult, error) {
-	this.NewNeoVMSInvokeTransaction(0, 0, contractAddress, params)
+	this.NewNeoVMInvokeTransaction(0, 0, contractAddress, params)
 
-	tx, err := this.NewNeoVMSInvokeTransaction(0, 0, contractAddress, params)
+	tx, err := this.NewNeoVMInvokeTransaction(0, 0, contractAddress, params)
 	if err != nil {
-		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+		return nil, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
 	return this.PrepareInvokeContract(tx)
 }
@@ -512,7 +512,7 @@ func (this *RpcClient) PrepareInvokeNativeContract(contractAddress common.Addres
 	params []interface{}) (*cstates.PreExecResult, error) {
 	tx, err := this.NewNativeInvokeTransaction(0, 0, version, contractAddress, method, params)
 	if err != nil {
-		return nil, fmt.Errorf("NewNeoVMSInvokeTransaction error:%s", err)
+		return nil, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
 	return this.PrepareInvokeContract(tx)
 }

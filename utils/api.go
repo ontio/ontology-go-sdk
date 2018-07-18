@@ -196,7 +196,7 @@ func NewNativeInvokeTransaction(gasPrice,
 	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
 
-func NewNeoVMSInvokeTransaction(
+func NewNeoVMInvokeTransaction(
 	gasPrice, gasLimit uint64,
 	contractAddress common.Address,
 	params []interface{},
