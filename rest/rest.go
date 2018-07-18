@@ -343,6 +343,10 @@ func (this *RestClient) NewTransferTransaction(gasPrice,
 	return utils.NewTransferTransaction(gasPrice, gasLimit, asset, from, to, amount)
 }
 
+func (this *RestClient) NewMultiTransferTransfer(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
+	return utils.NewMultiTransferTransaction(gasPrice, gasLimit, asset, states)
+}
+
 func (this *RestClient) NewApproveTransaction(gasPrice,
 	gasLimit uint64,
 	asset string,
