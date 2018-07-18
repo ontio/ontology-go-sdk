@@ -1,6 +1,6 @@
 
 <h1 align="center">Go SDK For Ontology  </h1>
-<h4 align="center">Version 0.6.0 </h4>
+<h4 align="center">Version 1.0.0 </h4>
 
 ## Overview
 This is a comprehensive Go library for the Ontology blockchain. Currently, it supports local wallet management, digital asset management,  deployment and invoke for Smart Contract , and communication with Ontology Blockchain. The future will also support more rich functions and applications .
