@@ -22,76 +22,43 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"sync"
-	"time"
 )
-
-//WebSocketOptions provide some options for web socket client
-type WebSocketOptions struct {
-	HeartbeatInterval time.Duration //The interval of sending heartbeat
-	HeartbeatPkg      []byte        //HeartbeatPkg is data package of heartbeat
-}
 
 //WebSocketClient use for client to operation web socket
 type WebSocketClient struct {
-	addr              string
-	opts              *WebSocketOptions
-	conn              *websocket.Conn
-	existCh           chan interface{}
-	OnConnect         func()
-	OnClose           func()
-	OnError           func(error)
-	OnMessage         func([]byte)
-	lastHeartbeatTime time.Time
-	lock              sync.RWMutex
-	status            bool
+	addr      string
+	conn      *websocket.Conn
+	existCh   chan interface{}
+	OnConnect func(address string)
+	OnClose   func(address string)
+	OnError   func(address string, err error)
+	OnMessage func([]byte)
+	lock      sync.RWMutex
+	status    bool
 }
 
 //Create WebSocketClient instance
-func NewWebSocketClient(addr string, opts ...*WebSocketOptions) *WebSocketClient {
-	var options *WebSocketOptions
-	if len(opts) == 0 {
-		options = &WebSocketOptions{
-			HeartbeatInterval: 30 * time.Second,
-			HeartbeatPkg:      []byte(`{"Action":"heartbeat"}`),
-		}
-	} else {
-		options = opts[0]
-	}
+func NewWebSocketClient() *WebSocketClient {
 	return &WebSocketClient{
-		addr:              addr,
-		opts:              options,
-		OnConnect:         func() {},
-		OnClose:           func() {},
-		OnError:           func(error) {},
-		OnMessage:         func([]byte) {},
-		existCh:           make(chan interface{}, 0),
-		lastHeartbeatTime: time.Now(),
+		OnConnect: func(address string) {},
+		OnClose:   func(address string) {},
+		OnError:   func(address string, err error) {},
+		OnMessage: func([]byte) {},
+		existCh:   make(chan interface{}, 0),
 	}
 }
 
 //Connect to server
-func (this *WebSocketClient) Connect() (err error) {
+func (this *WebSocketClient) Connect(addr string) (err error) {
+	this.addr = addr
 	this.conn, _, err = websocket.DefaultDialer.Dial(this.addr, nil)
 	if err != nil {
 		return err
 	}
-	this.OnConnect()
+	this.OnConnect(this.addr)
 	this.status = true
 	go this.doRecv()
-	go this.heartbeat()
 	return nil
-}
-
-func (this *WebSocketClient) updateHeartbeatTime() {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.lastHeartbeatTime = time.Now()
-}
-
-func (this *WebSocketClient) getHeartbeatTime() time.Time {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	return this.lastHeartbeatTime
 }
 
 //Send data to server
@@ -105,34 +72,17 @@ func (this *WebSocketClient) Send(data []byte) error {
 }
 
 func (this *WebSocketClient) doRecv() {
+	defer this.Close()
 	for {
 		_, data, err := this.conn.ReadMessage()
 		if err != nil {
 			if this.Status() {
-				this.OnError(fmt.Errorf("WebSocketClient host:%s ReadMessage error:%s", this.addr, err))
+				this.OnError(this.addr, fmt.Errorf("ReadMessage error:%s", err))
 			}
 			return
 		}
 
-		this.updateHeartbeatTime()
 		this.OnMessage(data)
-	}
-}
-
-func (this *WebSocketClient) heartbeat() {
-	timer := time.NewTimer(this.opts.HeartbeatInterval)
-	defer timer.Stop()
-	for {
-		select {
-		case <-this.existCh:
-			return
-		case <-timer.C:
-			err := this.Send(this.opts.HeartbeatPkg)
-			if err != nil {
-				this.OnError(fmt.Errorf("WebSocketClient send heartbeat error:%s", err))
-			}
-			timer.Reset(this.opts.HeartbeatInterval)
-		}
 	}
 }
 
@@ -153,6 +103,6 @@ func (this *WebSocketClient) Close() error {
 	}
 	this.status = false
 	close(this.existCh)
-	this.OnClose()
+	this.OnClose(this.addr)
 	return this.conn.Close()
 }

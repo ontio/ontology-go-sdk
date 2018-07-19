@@ -52,6 +52,15 @@ func GetUint32(data []byte) (uint32, error) {
 	return count, nil
 }
 
+func GetUint64(data []byte) (uint64, error) {
+	count := uint64(0)
+	err := json.Unmarshal(data, &count)
+	if err != nil {
+		return 0, fmt.Errorf("json.Unmarshal:%s error:%s", data, err)
+	}
+	return count, nil
+}
+
 func GetInt(data []byte) (int, error) {
 	integer := 0
 	err := json.Unmarshal(data, &integer)
@@ -173,6 +182,56 @@ func GetMerkleProof(data []byte) (*sdkcom.MerkleProof, error) {
 		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
 	}
 	return proof, nil
+}
+
+func GetBlockTxHashes(data []byte) (*sdkcom.BlockTxHashes, error) {
+	blockTxHashesStr := &sdkcom.BlockTxHashesStr{}
+	err := json.Unmarshal(data, &blockTxHashesStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal")
+	}
+	blockTxHashes := &sdkcom.BlockTxHashes{}
+
+	blockHash, err := common.Uint256FromHexString(blockTxHashesStr.Hash)
+	if err != nil {
+		return nil, err
+	}
+	txHashes := make([]common.Uint256, 0, len(blockTxHashesStr.Transactions))
+	for _, txHashStr := range blockTxHashesStr.Transactions {
+		txHash, err := common.Uint256FromHexString(txHashStr)
+		if err != nil {
+			return nil, err
+		}
+		txHashes = append(txHashes, txHash)
+	}
+	blockTxHashes.Hash = blockHash
+	blockTxHashes.Height = blockTxHashesStr.Height
+	blockTxHashes.Transactions = txHashes
+	return blockTxHashes, nil
+}
+
+func GetMemPoolTxState(data []byte) (*sdkcom.MemPoolTxState, error) {
+	txState := &sdkcom.MemPoolTxState{}
+	err := json.Unmarshal(data, txState)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	return txState, nil
+}
+
+func GetMemPoolTxCount(data []byte) (*sdkcom.MemPoolTxCount, error) {
+	count := make([]uint32, 0, 2)
+	err := json.Unmarshal(data, &count)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	if len(count) != 2 {
+		return nil, fmt.Errorf("count len != 2")
+	}
+	return &sdkcom.MemPoolTxCount{
+		Verified: count[0],
+		Verifing: count[1],
+	}, nil
 }
 
 func NewNativeInvokeTransaction(gasPrice,
