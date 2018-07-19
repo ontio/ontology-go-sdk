@@ -18,6 +18,8 @@
 //Some common define of ontology-go-sdk
 package common
 
+import "github.com/ontio/ontology/common"
+
 var (
 	VERSION_TRANSACTION  = byte(0)
 	VERSION_CONTRACT_ONT = byte(0)
@@ -74,4 +76,31 @@ type MerkleProof struct {
 	CurBlockRoot     string
 	CurBlockHeight   uint32
 	TargetHashes     []string
+}
+
+type BlockTxHashes struct {
+	Hash         common.Uint256
+	Height       uint32
+	Transactions []common.Uint256
+}
+
+type BlockTxHashesStr struct {
+	Hash         string
+	Height       uint32
+	Transactions []string
+}
+
+type MemPoolTxState struct {
+	State []*MemPoolTxStateItem
+}
+
+type MemPoolTxStateItem struct {
+	Height  uint32
+	Type    int
+	ErrCode int
+}
+
+type MemPoolTxCount struct {
+	Verified uint32
+	Verifing uint32
 }
