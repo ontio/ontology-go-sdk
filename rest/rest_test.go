@@ -57,6 +57,15 @@ func TestGetVersion(t *testing.T) {
 	fmt.Printf("Version:%s\n", version)
 }
 
+func TestGetNetworkId(t *testing.T) {
+	networkId, err := testRest.GetNetworkId()
+	if err != nil {
+		t.Errorf("GetNetworkId error:%s", err)
+		return
+	}
+	fmt.Printf("NetworkId:%d\n", networkId)
+}
+
 func TestGetBlockByHash(t *testing.T) {
 	blockHash, err := testRest.GetBlockHash(0)
 	if err != nil {
@@ -129,6 +138,74 @@ func TestGetStorage(t *testing.T) {
 		return
 	}
 	fmt.Printf("TestGetStorage %d\n", totalSupply)
+}
+
+func TestGetMemPoolTxCount(t *testing.T) {
+	count, err := testRest.GetMemPoolTxCount()
+	if err != nil {
+		t.Errorf("GetMemPoolTxCount error:%s", err)
+		return
+	}
+	fmt.Printf("MemPoolTxCount:%+v\n", count)
+}
+
+func TestGetMemPoolTxState(t *testing.T) {
+	defAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	if err != nil {
+		t.Errorf("GetDefaultAccount error:%s", err)
+		return
+	}
+	txHash, err := testRest.Transfer(0, 20000, "ont", defAcc, defAcc.Address, 10)
+	if err != nil {
+		t.Errorf("Transfer error:%s", err)
+		return
+	}
+	state, err := testRest.GetMemPoolTxState(txHash)
+	if err != nil {
+		t.Errorf("GetMemPoolTxState error:%s", err)
+		return
+	}
+	for _, stateItem := range state.State {
+		fmt.Printf("State:%+v\n", stateItem)
+	}
+}
+
+func TestGetBlockHeightByTxHash(t *testing.T) {
+	defAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	if err != nil {
+		t.Errorf("GetDefaultAccount error:%s", err)
+		return
+	}
+	txHash, err := testRest.Transfer(0, 20000, "ont", defAcc, defAcc.Address, 10)
+	if err != nil {
+		t.Errorf("Transfer error:%s", err)
+		return
+	}
+	testRest.WaitForGenerateBlock(30*time.Second, 1)
+	height, err := testRest.GetBlockHeightByTxHash(txHash)
+	if err != nil {
+		t.Errorf("GetBlockHeightByTxHash error:%s", err)
+		return
+	}
+	fmt.Printf("TxHash:%s BlockHeight:%d\n", txHash.ToHexString(), height)
+}
+
+func TestGetBlockTxHashesByHeight(t *testing.T) {
+	height, err := testRest.GetCurrentBlockHeight()
+	if err != nil {
+		t.Errorf("GetBlockCount error:%s", err)
+		return
+	}
+	blockTxHashes, err := testRest.GetBlockTxHashesByHeight(height)
+	if err != nil {
+		t.Errorf("GetBlockTxHashesByHeight error:%s", err)
+		return
+	}
+	fmt.Printf("BlockHeight:%d\n", blockTxHashes.Height)
+	fmt.Printf("TxHashes:%d\n", len(blockTxHashes.Transactions))
+	for _, tx := range blockTxHashes.Transactions {
+		fmt.Printf("Tx:%s\n", tx.ToHexString())
+	}
 }
 
 func TestGetSmartContractEvent(t *testing.T) {

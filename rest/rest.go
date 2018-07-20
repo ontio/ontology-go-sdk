@@ -72,6 +72,15 @@ func (this *RestClient) GetVersion() (string, error) {
 	return utils.GetVersion(data)
 }
 
+func (this *RestClient) GetNetworkId() (uint32, error) {
+	reqPath := GET_NETWORK_ID
+	data, err := this.sendRestGetRequest(reqPath)
+	if err != nil {
+		return 0, err
+	}
+	return utils.GetUint32(data)
+}
+
 func (this *RestClient) GetBlockByHash(hash common.Uint256) (*types.Block, error) {
 	return this.GetBlockByHashWithHexString(hash.ToHexString())
 }
@@ -105,6 +114,14 @@ func (this *RestClient) GetCurrentBlockHeight() (uint32, error) {
 		return 0, err
 	}
 	return utils.GetUint32(data)
+}
+
+func (this *RestClient) GetCurrentBlockHash() (common.Uint256, error) {
+	currentBlockHeight, err := this.GetCurrentBlockHeight()
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.GetBlockHash(currentBlockHeight)
 }
 
 func (this *RestClient) GetBlockHash(height uint32) (common.Uint256, error) {
@@ -221,6 +238,50 @@ func (this RestClient) GetMerkleProofWithHexString(txHash string) (*sdkcom.Merkl
 		return nil, err
 	}
 	return utils.GetMerkleProof(data)
+}
+
+func (this *RestClient) GetMemPoolTxState(txHash common.Uint256) (*sdkcom.MemPoolTxState, error) {
+	return this.GetMemPoolTxStateWithHexString(txHash.ToHexString())
+}
+
+func (this *RestClient) GetMemPoolTxStateWithHexString(txHash string) (*sdkcom.MemPoolTxState, error) {
+	reqPath := GET_MEMPOOL_TXSTATE + txHash
+	data, err := this.sendRestGetRequest(reqPath)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetMemPoolTxState(data)
+}
+
+func (this *RestClient) GetMemPoolTxCount() (*sdkcom.MemPoolTxCount, error) {
+	reqPath := GET_MEMPOOL_TXCOUNT
+	data, err := this.sendRestGetRequest(reqPath)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetMemPoolTxCount(data)
+}
+
+func (this *RestClient) GetBlockHeightByTxHash(txHash common.Uint256) (uint32, error) {
+	return this.GetBlockHeightByTxHashWithHexString(txHash.ToHexString())
+}
+
+func (this *RestClient) GetBlockHeightByTxHashWithHexString(txHash string) (uint32, error) {
+	reqPath := GET_BLK_HGT_BY_TXHASH + txHash
+	data, err := this.sendRestGetRequest(reqPath)
+	if err != nil {
+		return 0, err
+	}
+	return utils.GetUint32(data)
+}
+
+func (this *RestClient) GetBlockTxHashesByHeight(height uint32) (*sdkcom.BlockTxHashes, error) {
+	reqPath := fmt.Sprintf("%s%d", GET_BLK_TXS_BY_HEIGHT, height)
+	data, err := this.sendRestGetRequest(reqPath)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetBlockTxHashes(data)
 }
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
