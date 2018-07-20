@@ -166,6 +166,15 @@ func TestGetVersion(t *testing.T) {
 	fmt.Printf("Version:%s\n", version)
 }
 
+func TestGetNetworkId(t *testing.T) {
+	networkId, err := testWSClient.GetNetworkId()
+	if err != nil {
+		t.Errorf("GetNetworkId error:%s", err)
+		return
+	}
+	fmt.Printf("NetworkId:%d\n", networkId)
+}
+
 func TestGetMemPoolTxCount(t *testing.T) {
 	count, err := testWSClient.GetMemPoolTxCount()
 	if err != nil {
@@ -216,6 +225,26 @@ func TestGetMemPoolTxState(t *testing.T) {
 	for _, stateItem := range state.State {
 		fmt.Printf("State:%+v\n", stateItem)
 	}
+}
+
+func TestGetBlockHeightByTxHash(t *testing.T) {
+	defAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	if err != nil {
+		t.Errorf("GetDefaultAccount error:%s", err)
+		return
+	}
+	txHash, err := testWSClient.Transfer(0, 20000, "ont", defAcc, defAcc.Address, 10)
+	if err != nil {
+		t.Errorf("Transfer error:%s", err)
+		return
+	}
+	testWSClient.WaitForGenerateBlock(30*time.Second, 1)
+	height, err := testWSClient.GetBlockHeightByTxHash(txHash)
+	if err != nil {
+		t.Errorf("GetBlockHeightByTxHash error:%s", err)
+		return
+	}
+	fmt.Printf("TxHash:%s BlockHeight:%d\n", txHash.ToHexString(), height)
 }
 
 func TestGetBlockByHash(t *testing.T) {
