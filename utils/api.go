@@ -144,6 +144,15 @@ func GetSmartContractEvent(data []byte) (*sdkcom.SmartContactEvent, error) {
 	return event, nil
 }
 
+func GetSmartContractEventLog(data []byte) (*sdkcom.SmartContractEventLog, error) {
+	log := &sdkcom.SmartContractEventLog{}
+	err := json.Unmarshal(data, &log)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal SmartContractEventLog:%s error:%s", data, err)
+	}
+	return log, nil
+}
+
 func GetSmartContactEvents(data []byte) ([]*sdkcom.SmartContactEvent, error) {
 	events := make([]*sdkcom.SmartContactEvent, 0)
 	err := json.Unmarshal(data, &events)
