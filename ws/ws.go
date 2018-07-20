@@ -131,8 +131,12 @@ func (this *WSClient) onAction(resp *WSResponse) {
 			this.onRawBlockAction(resp)
 		case WS_SUB_ACTION_BLOCK_TX_HASH:
 			this.onBlockTxHashesAction(resp)
-		default:
+		case WS_SUB_ACTION_NOTIFY:
 			this.onSmartcontractEventAction(resp)
+		case WS_SUB_ACTION_LOG:
+			this.onSmartcontractEventLogAction(resp)
+		default:
+			this.ws.OnError(this.addr, fmt.Errorf("unknown subscribe action:%s", resp.Action))
 		}
 		return
 	}
@@ -175,8 +179,20 @@ func (this *WSClient) onSmartcontractEventAction(resp *WSResponse) {
 		return
 	}
 	this.actionCh <- &WSAction{
-		Action: WS_SUBSCRIBE_ACTION_EVENT,
+		Action: WS_SUBSCRIBE_ACTION_EVENT_NOTIFY,
 		Result: event,
+	}
+}
+
+func (this *WSClient) onSmartcontractEventLogAction(resp *WSResponse) {
+	log, err := utils.GetSmartContractEventLog(resp.Result)
+	if err != nil {
+		this.ws.OnError(this.addr, fmt.Errorf("onSmartcontractEventLogAction error:%s", err))
+		return
+	}
+	this.actionCh <- &WSAction{
+		Action: WS_SUBSCRIBE_ACTION_EVENT_LOG,
+		Result: log,
 	}
 }
 

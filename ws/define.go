@@ -44,11 +44,14 @@ const (
 	WS_SUB_ACTION_RAW_BLOCK     = "sendrawblock"
 	WS_SUB_ACTION_JSON_BLOCK    = "sendjsonblock"
 	WS_SUB_ACTION_BLOCK_TX_HASH = "sendblocktxhashs"
+	WS_SUB_ACTION_NOTIFY        = "Notify"
+	WS_SUB_ACTION_LOG           = "Log"
 )
 
 const (
 	WS_SUBSCRIBE_ACTION_BLOCK         = "Block"
-	WS_SUBSCRIBE_ACTION_EVENT         = "Event"
+	WS_SUBSCRIBE_ACTION_EVENT_NOTIFY  = "Notify"
+	WS_SUBSCRIBE_ACTION_EVENT_LOG     = "Log"
 	WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH = "BlockTxHash"
 )
 

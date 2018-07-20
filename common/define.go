@@ -68,6 +68,12 @@ type NotifyEventInfo struct {
 	States          interface{}
 }
 
+type SmartContractEventLog struct {
+	TxHash          string
+	ContractAddress string
+	Message         string
+}
+
 //MerkleProof return struct
 type MerkleProof struct {
 	Type             string

@@ -121,11 +121,11 @@ func TestSubEvent(t *testing.T) {
 		return
 	}
 
-	err = testWSClient.AddContractFilterWithHexString("0100000000000000000000000000000000000000")
-	if err != nil {
-		t.Errorf("AddContractFilterWithHexString error:%s", err)
-		return
-	}
+	//err = testWSClient.AddContractFilterWithHexString("0100000000000000000000000000000000000000")
+	//if err != nil {
+	//	t.Errorf("AddContractFilterWithHexString error:%s", err)
+	//	return
+	//}
 	defer func() {
 		err = testWSClient.UnsubscribeEvent()
 		if err != nil {
@@ -140,9 +140,15 @@ func TestSubEvent(t *testing.T) {
 			case <-exitCh:
 				return
 			case act := <-testWSClient.GetActionCh():
-				if act.Action == WS_SUBSCRIBE_ACTION_EVENT {
-					notify := act.Result.(*sdkcom.SmartContactEvent)
-					fmt.Printf("Event TxHash:%s Notify:%+v\n", notify.TxHash, notify.Notify[0])
+				switch act.Action {
+				case WS_SUBSCRIBE_ACTION_EVENT_NOTIFY:
+					evt := act.Result.(*sdkcom.SmartContactEvent)
+					fmt.Printf("Event TxHash:%s State:%d GasConsumed:%d\n", evt.TxHash, evt.State, evt.GasConsumed)
+					for i, notify := range evt.Notify {
+						fmt.Printf("Notify:%d %+v\n", i, notify)
+					}
+				case WS_SUBSCRIBE_ACTION_EVENT_LOG:
+					fmt.Printf("%+v\n", act.Result)
 				}
 			}
 		}
@@ -490,4 +496,27 @@ func TestPrepareInvokeNativeContract(t *testing.T) {
 		return
 	}
 	fmt.Printf("%s\n", result.Result)
+}
+
+func TestWaitForGenerateBlock(t *testing.T) {
+	blockHeight, err := testWSClient.GetCurrentBlockHeight()
+	if err != nil {
+		t.Errorf("GetCurrentBlockHeight error:%s", err)
+		return
+	}
+	_, err = testWSClient.WaitForGenerateBlock(30*time.Second, 1)
+	if err != nil {
+		t.Errorf("WaitForGenerateBlock error:%s", err)
+		return
+	}
+	blockHeightAfter, err := testWSClient.GetCurrentBlockHeight()
+	if err != nil {
+		t.Errorf("GetCurrentBlockHeight error:%s", err)
+		return
+	}
+	if blockHeightAfter <= blockHeight {
+		t.Errorf("TestWaitForGenerateBlock failed block height:%d <= %d", blockHeightAfter, blockHeight)
+		return
+	}
+	fmt.Printf("Block Height before:%d after:%d\n", blockHeight, blockHeightAfter)
 }

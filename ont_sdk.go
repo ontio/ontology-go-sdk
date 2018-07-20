@@ -34,7 +34,7 @@ type OntologySdk struct {
 	Rpc *rpc.RpcClient
 	//Rest client used the rest api of ontology
 	Rest *rest.RestClient
-	//Web socket client
+	//Web socket client used the web socket api of ontology
 	Ws *ws.WSClient
 }
 
