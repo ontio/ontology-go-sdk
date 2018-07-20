@@ -36,6 +36,11 @@ const (
 	RPC_GET_SMART_CONTRACT          = "getcontractstate"
 	RPC_GET_GENERATE_BLOCK_TIME     = "getgenerateblocktime"
 	RPC_GET_MERKLE_PROOF            = "getmerkleproof"
+	RPC_GET_NETWORK_ID              = "getnetworkid"
+	RPC_GET_MEM_POOL_TX_COUNT       = "getmempooltxcount"
+	RPC_GET_MEM_POOL_TX_STATE       = "getmempooltxstate"
+	RPC_GET_BLOCK_TX_HASH_BY_HEIGHT = "getblocktxsbyheight"
+	RPC_GET_BLOCK_HEIGHT_BY_TX_HASH = "getblockheightbytxhash"
 	SEND_EMERGENCY_GOV_REQ          = "sendemergencygovreq"
 	GET_BLOCK_ROOT_WITH_NEW_TX_ROOT = "getblockrootwithnewtxroot"
 )

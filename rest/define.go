@@ -26,6 +26,7 @@ const (
 	GET_MEMPOOL_TXCOUNT   = "/api/v1/mempool/txcount"
 	GET_MEMPOOL_TXSTATE   = "/api/v1/mempool/txstate/"
 	GET_VERSION           = "/api/v1/version"
+	GET_NETWORK_ID        = "/api/v1/networkid"
 	POST_RAW_TX           = "/api/v1/transaction"
 )
 

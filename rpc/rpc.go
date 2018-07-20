@@ -88,6 +88,14 @@ func (this *RpcClient) GetVersion() (string, error) {
 	return utils.GetVersion(data)
 }
 
+func (this *RpcClient) GetNetworkId() (uint32, error) {
+	data, err := this.sendRpcRequest(RPC_GET_NETWORK_ID, []interface{}{})
+	if err != nil {
+		return 0, fmt.Errorf("sendRpcRequest error:%s", err)
+	}
+	return utils.GetUint32(data)
+}
+
 //GetBlockByHash return block with specified block hash
 func (this *RpcClient) GetBlockByHash(hash common.Uint256) (*types.Block, error) {
 	return this.GetBlockByHashWithHexString(hash.ToHexString())
@@ -127,6 +135,14 @@ func (this *RpcClient) GetCurrentBlockHash() (common.Uint256, error) {
 		return common.Uint256{}, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
 	return utils.GetUint256(data)
+}
+
+func (this *RpcClient) GetCurrentBlockHeight() (uint32, error) {
+	count, err := this.GetBlockCount()
+	if err != nil {
+		return 0, err
+	}
+	return count - 1, nil
 }
 
 //GetBlockHash return block hash by block height
@@ -253,6 +269,46 @@ func (this *RpcClient) GetMerkleProofWithHexString(txHash string) (*sdkcom.Merkl
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
 	}
 	return utils.GetMerkleProof(data)
+}
+
+func (this *RpcClient) GetMemPoolTxState(txHash common.Uint256) (*sdkcom.MemPoolTxState, error) {
+	return this.GetMemPoolTxStateWithHexString(txHash.ToHexString())
+}
+
+func (this *RpcClient) GetMemPoolTxStateWithHexString(txHash string) (*sdkcom.MemPoolTxState, error) {
+	data, err := this.sendRpcRequest(RPC_GET_MEM_POOL_TX_STATE, []interface{}{txHash})
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetMemPoolTxState(data)
+}
+
+func (this *RpcClient) GetMemPoolTxCount() (*sdkcom.MemPoolTxCount, error) {
+	data, err := this.sendRpcRequest(RPC_GET_MEM_POOL_TX_COUNT, []interface{}{})
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetMemPoolTxCount(data)
+}
+
+func (this *RpcClient) GetBlockHeightByTxHash(txHash common.Uint256) (uint32, error) {
+	return this.GetBlockHeightByTxHashWithHexString(txHash.ToHexString())
+}
+
+func (this *RpcClient) GetBlockHeightByTxHashWithHexString(txHash string) (uint32, error) {
+	data, err := this.sendRpcRequest(RPC_GET_BLOCK_HEIGHT_BY_TX_HASH, []interface{}{txHash})
+	if err != nil {
+		return 0, err
+	}
+	return utils.GetUint32(data)
+}
+
+func (this *RpcClient) GetBlockTxHashesByHeight(height uint32) (*sdkcom.BlockTxHashes, error) {
+	data, err := this.sendRpcRequest(RPC_GET_BLOCK_TX_HASH_BY_HEIGHT, []interface{}{height})
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetBlockTxHashes(data)
 }
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
