@@ -27,7 +27,7 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	httpcom "github.com/ontio/ontology/http/base/common"
-	"github.com/ontio/ontology/smartcontract/service/native/ont"
+	//"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"math/big"
 	"time"
 )
@@ -293,51 +293,51 @@ func NewNeoVMInvokeTransaction(
 	}
 	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
-
-func NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	var sts []*ont.State
-	sts = append(sts, &ont.State{
-		From:  from,
-		To:    to,
-		Value: amount,
-	})
-	return NewMultiTransferTransaction(gasPrice, gasLimit, asset, sts)
-}
-
-func NewMultiTransferTransaction(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, []interface{}{states})
-}
-
-func NewApproveTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
-	st := &ont.State{
-		From:  from,
-		To:    to,
-		Value: amount,
-	}
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_APPROVE, []interface{}{st})
-}
-
-func NewTransferFromTransaction(gasPrice, gasLimit uint64, asset string, sender, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
-	st := &ont.TransferFrom{
-		Sender: sender,
-		From:   from,
-		To:     to,
-		Value:  amount,
-	}
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER_FROM, []interface{}{st})
-}
+//
+//func NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
+//	var sts []*ont.State
+//	sts = append(sts, &ont.State{
+//		From:  from,
+//		To:    to,
+//		Value: amount,
+//	})
+//	return NewMultiTransferTransaction(gasPrice, gasLimit, asset, sts)
+//}
+//
+//func NewMultiTransferTransaction(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
+//	contractAddress, err := GetAssetAddress(asset)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, []interface{}{states})
+//}
+//
+//func NewApproveTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
+//	contractAddress, err := GetAssetAddress(asset)
+//	if err != nil {
+//		return nil, err
+//	}
+//	st := &ont.State{
+//		From:  from,
+//		To:    to,
+//		Value: amount,
+//	}
+//	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_APPROVE, []interface{}{st})
+//}
+//
+//func NewTransferFromTransaction(gasPrice, gasLimit uint64, asset string, sender, from, to common.Address, amount uint64) (*types.Transaction, error) {
+//	contractAddress, err := GetAssetAddress(asset)
+//	if err != nil {
+//		return nil, err
+//	}
+//	st := &ont.TransferFrom{
+//		Sender: sender,
+//		From:   from,
+//		To:     to,
+//		Value:  amount,
+//	}
+//	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER_FROM, []interface{}{st})
+//}
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
 //return timeout error when there is no block generate in some time.
