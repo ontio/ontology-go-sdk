@@ -19,10 +19,7 @@ package ws
 
 import (
 	"encoding/json"
-)
-
-const (
-	WS_HEARTBEAT_INTERVAL = 60 //s
+	"time"
 )
 
 const (
@@ -32,8 +29,9 @@ const (
 )
 
 var (
-	WS_RECV_CHAN_SIZE   = 1024
-	DEFAULT_REQ_TIMEOUT = 10 //s
+	WS_RECV_CHAN_SIZE             = 1024
+	DEFAULT_REQ_TIMEOUT           = 10 * time.Second
+	DEFAULT_WS_HEARTBEAT_INTERVAL = 60 //s
 )
 
 const (
@@ -52,6 +50,7 @@ const (
 	WS_ACTION_GET_SMARTCONTRACT_BY_HASH   = "getsmartcodeeventbyhash"
 	WS_ACTION_GET_BLOCK_HEIGHT_BY_TX_HASH = "getblockheightbytxhash"
 	WS_ACTION_GET_MERKLE_PROOF            = "getmerkleproof"
+	WS_ACTION_GET_GENERATE_BLOCK_TIME     = "getgenerateblocktime"
 	WS_ACTION_GET_GAS_PRICE               = "getgasprice"
 	WS_ACTION_GET_MEM_POOL_TX_STATE       = "getmempooltxstate"
 	WS_ACTION_GET_MEM_POOL_TX_COUNT       = "getmempooltxcount"

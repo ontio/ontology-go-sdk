@@ -18,7 +18,15 @@
 //Some common define of ontology-go-sdk
 package common
 
-import "github.com/ontio/ontology/common"
+import (
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/types"
+	"math/big"
+)
 
 var (
 	VERSION_TRANSACTION  = byte(0)
@@ -26,22 +34,44 @@ var (
 	VERSION_CONTRACT_ONG = byte(0)
 )
 
-const (
-	NATIVE_TRANSFER      = "transfer"
-	NATIVE_TRANSFER_FROM = "transferFrom"
-	NATIVE_APPROVE       = "approve"
-	NATIVE_ALLOWANCE     = "allowance"
-)
+type OntologyClient interface {
+	GetCurrentBlockHeight(qid string) ([]byte, error)
+	GetCurrentBlockHash(qid string) ([]byte, error)
+	GetVersion(qid string) ([]byte, error)
+	GetNetworkId(qid string) ([]byte, error)
+	GetBlockByHash(qid, hash string) ([]byte, error)
+	GetBlockByHeight(qid string, height uint32) ([]byte, error)
+	GetBlockHash(qid string, height uint32) ([]byte, error)
+	GetBlockHeightByTxHash(qid, txHash string) ([]byte, error)
+	GetBlockTxHashesByHeight(qid string, height uint32) ([]byte, error)
+	GetRawTransaction(qid, txHash string) ([]byte, error)
+	GetSmartContract(qid, contractAddress string) ([]byte, error)
+	GetSmartContractEvent(qid, txHash string) ([]byte, error)
+	GetSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error)
+	GetStorage(qid, contractAddress string, key []byte) ([]byte, error)
+	GetGenerateBlockTime(qid string) ([]byte, error)
+	GetMerkleProof(qid, txHash string) ([]byte, error)
+	GetMemPoolTxState(qid, txHash string) ([]byte, error)
+	GetMemPoolTxCount(qid string) ([]byte, error)
+	SendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error)
+}
 
-//NeoVM invoke smart contract return type
-type NeoVMReturnType byte
-
-const (
-	NEOVM_TYPE_BOOL       NeoVMReturnType = 1
-	NEOVM_TYPE_INTEGER    NeoVMReturnType = 2
-	NEOVM_TYPE_BYTE_ARRAY NeoVMReturnType = 3
-	NEOVM_TYPE_STRING     NeoVMReturnType = 4
-)
+//const (
+//	NATIVE_TRANSFER      = "transfer"
+//	NATIVE_TRANSFER_FROM = "transferFrom"
+//	NATIVE_APPROVE       = "approve"
+//	NATIVE_ALLOWANCE     = "allowance"
+//)
+//
+////NeoVM invoke smart contract return type
+//type NeoVMReturnType byte
+//
+//const (
+//	NEOVM_TYPE_BOOL       NeoVMReturnType = 1
+//	NEOVM_TYPE_INTEGER    NeoVMReturnType = 2
+//	NEOVM_TYPE_BYTE_ARRAY NeoVMReturnType = 3
+//	NEOVM_TYPE_STRING     NeoVMReturnType = 4
+//)
 
 //Balance object for account
 type Balance struct {
@@ -53,6 +83,121 @@ type Balance struct {
 type BalanceRsp struct {
 	Ont string `json:"ont"`
 	Ong string `json:"ong"`
+}
+
+type SmartContract payload.DeployCode
+
+type PreExecResult struct {
+	State  byte
+	Gas    uint64
+	Result *ResultItem
+}
+
+func (this *PreExecResult) UnmarshalJSON(data []byte) (err error) {
+	var state byte
+	var gas uint64
+	var resultItem *ResultItem
+	defer func() {
+		if err == nil {
+			this.State = state
+			this.Gas = gas
+			this.Result = resultItem
+		}
+	}()
+
+	objects := make(map[string]interface{})
+	err = json.Unmarshal(data, &objects)
+	if err != nil {
+		return err
+	}
+	stateField, ok := objects["State"].(float64)
+	if !ok {
+		err = fmt.Errorf("Parse State field failed, type error")
+		return
+	}
+	state = byte(stateField)
+
+	gasField, ok := objects["Gas"].(float64)
+	if !ok {
+		err = fmt.Errorf("Parse Gas field failed, type error")
+		return
+	}
+	gas = uint64(gasField)
+	resultField, ok := objects["Result"]
+	if !ok {
+		return nil
+	}
+	resultItem = &ResultItem{}
+	value, ok := resultField.(string)
+	if ok {
+		resultItem.value = value
+		return nil
+	}
+	values, ok := resultField.([]interface{})
+	if !ok {
+		err = fmt.Errorf("Parse Result field, type error")
+		return
+	}
+	resultItem.values = values
+	return nil
+}
+
+type ResultItem struct {
+	value  string
+	values []interface{}
+}
+
+func (this *ResultItem) ToArray() ([]*ResultItem, error) {
+	if this.values == nil {
+		return nil, fmt.Errorf("type error")
+	}
+	items := make([]*ResultItem, 0)
+	for _, res := range this.values {
+		item := &ResultItem{}
+		value, ok := res.(string)
+		if ok {
+			item.value = value
+			items = append(items, item)
+			continue
+		}
+		values, ok := res.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("parse items:%v failed, type error", res)
+		}
+		item.values = values
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (this ResultItem) ToBool() (bool, error) {
+	if this.values != nil {
+		return false, fmt.Errorf("type error")
+	}
+	return this.value == "01", nil
+}
+
+func (this ResultItem) ToInteger() (*big.Int, error) {
+	data, err := this.ToByteArray()
+	if err != nil {
+		return nil, err
+	}
+	return common.BigIntFromNeoBytes(data), nil
+}
+
+func (this ResultItem) ToByteArray() ([]byte, error) {
+	if this.values != nil {
+		return nil, fmt.Errorf("type error")
+	}
+	return hex.DecodeString(this.value)
+}
+
+func (this ResultItem) ToString() (string, error) {
+	data, err := this.ToByteArray()
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 //SmartContactEvent object for event of transaction
