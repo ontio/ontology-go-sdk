@@ -24,54 +24,19 @@ import (
 	"fmt"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
-	"github.com/ontio/ontology/core/types"
 	"math/big"
 )
 
 var (
-	VERSION_TRANSACTION  = byte(0)
-	VERSION_CONTRACT_ONT = byte(0)
-	VERSION_CONTRACT_ONG = byte(0)
+	VERSION_TRANSACTION = byte(0)
 )
 
-type OntologyClient interface {
-	GetCurrentBlockHeight(qid string) ([]byte, error)
-	GetCurrentBlockHash(qid string) ([]byte, error)
-	GetVersion(qid string) ([]byte, error)
-	GetNetworkId(qid string) ([]byte, error)
-	GetBlockByHash(qid, hash string) ([]byte, error)
-	GetBlockByHeight(qid string, height uint32) ([]byte, error)
-	GetBlockHash(qid string, height uint32) ([]byte, error)
-	GetBlockHeightByTxHash(qid, txHash string) ([]byte, error)
-	GetBlockTxHashesByHeight(qid string, height uint32) ([]byte, error)
-	GetRawTransaction(qid, txHash string) ([]byte, error)
-	GetSmartContract(qid, contractAddress string) ([]byte, error)
-	GetSmartContractEvent(qid, txHash string) ([]byte, error)
-	GetSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error)
-	GetStorage(qid, contractAddress string, key []byte) ([]byte, error)
-	GetGenerateBlockTime(qid string) ([]byte, error)
-	GetMerkleProof(qid, txHash string) ([]byte, error)
-	GetMemPoolTxState(qid, txHash string) ([]byte, error)
-	GetMemPoolTxCount(qid string) ([]byte, error)
-	SendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error)
-}
-
-//const (
-//	NATIVE_TRANSFER      = "transfer"
-//	NATIVE_TRANSFER_FROM = "transferFrom"
-//	NATIVE_APPROVE       = "approve"
-//	NATIVE_ALLOWANCE     = "allowance"
-//)
-//
-////NeoVM invoke smart contract return type
-//type NeoVMReturnType byte
-//
-//const (
-//	NEOVM_TYPE_BOOL       NeoVMReturnType = 1
-//	NEOVM_TYPE_INTEGER    NeoVMReturnType = 2
-//	NEOVM_TYPE_BYTE_ARRAY NeoVMReturnType = 3
-//	NEOVM_TYPE_STRING     NeoVMReturnType = 4
-//)
+const (
+	WS_SUBSCRIBE_ACTION_BLOCK         = "Block"
+	WS_SUBSCRIBE_ACTION_EVENT_NOTIFY  = "Notify"
+	WS_SUBSCRIBE_ACTION_EVENT_LOG     = "Log"
+	WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH = "BlockTxHash"
+)
 
 //Balance object for account
 type Balance struct {

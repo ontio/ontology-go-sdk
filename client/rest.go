@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
-package rest
+package client
 
 import (
 	"bytes"
@@ -65,37 +65,37 @@ func (this *RestClient) SetHttpClient(httpClient *http.Client) *RestClient {
 	return this
 }
 
-func (this *RestClient) GetVersion(qid string) ([]byte, error) {
+func (this *RestClient) getVersion(qid string) ([]byte, error) {
 	reqPath := GET_VERSION
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetNetworkId(qid string) ([]byte, error) {
+func (this *RestClient) getNetworkId(qid string) ([]byte, error) {
 	reqPath := GET_NETWORK_ID
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetBlockByHash(qid, hash string) ([]byte, error) {
+func (this *RestClient) getBlockByHash(qid, hash string) ([]byte, error) {
 	reqPath := GET_BLK_BY_HASH + hash
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
 	return this.sendRestGetRequest(reqPath, reqValues)
 }
 
-func (this *RestClient) GetBlockByHeight(qid string, height uint32) ([]byte, error) {
+func (this *RestClient) getBlockByHeight(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_BY_HEIGHT, height)
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
 	return this.sendRestGetRequest(reqPath, reqValues)
 }
 
-func (this *RestClient) GetCurrentBlockHeight(qid string) ([]byte, error) {
+func (this *RestClient) getCurrentBlockHeight(qid string) ([]byte, error) {
 	reqPath := GET_BLK_HEIGHT
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetCurrentBlockHash(qid string) ([]byte, error) {
-	data, err := this.GetCurrentBlockHeight(qid)
+func (this *RestClient) getCurrentBlockHash(qid string) ([]byte, error) {
+	data, err := this.getCurrentBlockHeight(qid)
 	if err != nil {
 		return nil, err
 	}
@@ -103,76 +103,76 @@ func (this *RestClient) GetCurrentBlockHash(qid string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return this.GetBlockHash(qid, height)
+	return this.getBlockHash(qid, height)
 }
 
-func (this *RestClient) GetBlockHash(qid string, height uint32) ([]byte, error) {
+func (this *RestClient) getBlockHash(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_HASH, height)
 	return this.sendRestGetRequest(reqPath)
 }
 
 //GetRawTransaction return transaction by transaction hash in hex string code
-func (this *RestClient) GetRawTransaction(qid, txHash string) ([]byte, error) {
+func (this *RestClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 	reqPath := GET_TX + txHash
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
 	return this.sendRestGetRequest(reqPath, reqValues)
 }
 
-func (this *RestClient) GetStorage(qid, contractAddress string, key []byte) ([]byte, error) {
+func (this *RestClient) getStorage(qid, contractAddress string, key []byte) ([]byte, error) {
 	reqPath := GET_STORAGE + contractAddress + "/" + hex.EncodeToString(key)
 	return this.sendRestGetRequest(reqPath)
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
-func (this *RestClient) GetSmartContractEvent(qid, txHash string) ([]byte, error) {
+func (this *RestClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	reqPath := GET_SMTCOCE_EVTS + txHash
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
+func (this *RestClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_SMTCOCE_EVT_TXS, blockHeight)
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetSmartContract(qid, contractAddress string) ([]byte, error) {
+func (this *RestClient) getSmartContract(qid, contractAddress string) ([]byte, error) {
 	reqPath := GET_CONTRACT_STATE + contractAddress
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
 	return this.sendRestGetRequest(reqPath, reqValues)
 }
 
-func (this RestClient) GetMerkleProof(qid, txHash string) ([]byte, error) {
+func (this RestClient) getMerkleProof(qid, txHash string) ([]byte, error) {
 	reqPath := GET_MERKLE_PROOF + txHash
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetMemPoolTxState(qid, txHash string) ([]byte, error) {
+func (this *RestClient) getMemPoolTxState(qid, txHash string) ([]byte, error) {
 	reqPath := GET_MEMPOOL_TXSTATE + txHash
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetMemPoolTxCount(qid string) ([]byte, error) {
+func (this *RestClient) getMemPoolTxCount(qid string) ([]byte, error) {
 	reqPath := GET_MEMPOOL_TXCOUNT
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
+func (this *RestClient) getBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
 	reqPath := GET_BLK_HGT_BY_TXHASH + txHash
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
+func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_TXS_BY_HEIGHT, height)
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) GetGenerateBlockTime(qid string) ([]byte, error) {
+func (this *RestClient) getGenerateBlockTime(qid string) ([]byte, error) {
 	reqPath := GET_GEN_BLK_TIME
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) SendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
+func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)

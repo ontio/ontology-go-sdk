@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2018 The ontology Authors
- * This file is part of The ontology library.
- *
- * The ontology is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The ontology is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
- */
 package common
 
 import (
@@ -32,38 +15,10 @@ import (
 	"time"
 )
 
-//NewDeployCodeTransaction return a smart contract deploy transaction instance
-func NewDeployCodeTransaction(
-	gasPrice, gasLimit uint64,
-	code []byte,
-	needStorage bool,
-	cname, cversion, cauthor, cemail, cdesc string) *types.Transaction {
-
-	deployPayload := &payload.DeployCode{
-		Code:        code,
-		NeedStorage: needStorage,
-		Name:        cname,
-		Version:     cversion,
-		Author:      cauthor,
-		Email:       cemail,
-		Description: cdesc,
-	}
-	tx := &types.Transaction{
-		Version:  VERSION_TRANSACTION,
-		TxType:   types.Deploy,
-		Nonce:    uint32(time.Now().Unix()),
-		Payload:  deployPayload,
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-		Sigs:     make([]*types.Sig, 0, 0),
-	}
-	return tx
-}
-
 //NewInvokeTransaction return smart contract invoke transaction
-func NewInvokeTransaction(gasPrice, gasLimit uint64, code []byte) *types.Transaction {
+func NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.Transaction {
 	invokePayload := &payload.InvokeCode{
-		Code: code,
+		Code: invokeCode,
 	}
 	tx := &types.Transaction{
 		GasPrice: gasPrice,
