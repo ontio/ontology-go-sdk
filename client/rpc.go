@@ -17,7 +17,7 @@
  */
 
 //RPC client for ontology
-package rpc
+package client
 
 import (
 	"bytes"
@@ -65,31 +65,31 @@ func (this *RpcClient) SetHttpClient(httpClient *http.Client) *RpcClient {
 }
 
 //GetVersion return the version of ontology
-func (this *RpcClient) GetVersion(qid string) ([]byte, error) {
+func (this *RpcClient) getVersion(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_VERSION, []interface{}{})
 }
 
-func (this *RpcClient) GetNetworkId(qid string) ([]byte, error) {
+func (this *RpcClient) getNetworkId(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_NETWORK_ID, []interface{}{})
 }
 
 //GetBlockByHash return block with specified block hash in hex string code
-func (this *RpcClient) GetBlockByHash(qid, hash string) ([]byte, error) {
+func (this *RpcClient) getBlockByHash(qid, hash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK, []interface{}{hash})
 }
 
 //GetBlockByHeight return block by specified block height
-func (this *RpcClient) GetBlockByHeight(qid string, height uint32) ([]byte, error) {
+func (this *RpcClient) getBlockByHeight(qid string, height uint32) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK, []interface{}{height})
 }
 
 //GetBlockCount return the total block count of ontology
-func (this *RpcClient) GetBlockCount(qid string) ([]byte, error) {
+func (this *RpcClient) getBlockCount(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK_COUNT, []interface{}{})
 }
 
-func (this *RpcClient) GetCurrentBlockHeight(qid string) ([]byte, error) {
-	data, err := this.GetBlockCount(qid)
+func (this *RpcClient) getCurrentBlockHeight(qid string) ([]byte, error) {
+	data, err := this.getBlockCount(qid)
 	if err != nil {
 		return nil, err
 	}
@@ -101,67 +101,67 @@ func (this *RpcClient) GetCurrentBlockHeight(qid string) ([]byte, error) {
 }
 
 //GetCurrentBlockHash return the current block hash of ontology
-func (this *RpcClient) GetCurrentBlockHash(qid string) ([]byte, error) {
+func (this *RpcClient) getCurrentBlockHash(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_CURRENT_BLOCK_HASH, []interface{}{})
 }
 
 //GetBlockHash return block hash by block height
-func (this *RpcClient) GetBlockHash(qid string, height uint32) ([]byte, error) {
+func (this *RpcClient) getBlockHash(qid string, height uint32) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK_HASH, []interface{}{height})
 }
 
 //GetStorage return smart contract storage item.
 //addr is smart contact address
 //key is the key of value in smart contract
-func (this *RpcClient) GetStorage(qid, contractAddress string, key []byte) ([]byte, error) {
+func (this *RpcClient) getStorage(qid, contractAddress string, key []byte) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_STORAGE, []interface{}{contractAddress, hex.EncodeToString(key)})
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
-func (this *RpcClient) GetSmartContractEvent(qid, txHash string) ([]byte, error) {
+func (this *RpcClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT_EVENT, []interface{}{txHash})
 }
 
-func (this *RpcClient) GetSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
+func (this *RpcClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT_EVENT, []interface{}{blockHeight})
 }
 
 //GetRawTransaction return transaction by transaction hash
-func (this *RpcClient) GetRawTransaction(qid, txHash string) ([]byte, error) {
+func (this *RpcClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_TRANSACTION, []interface{}{txHash})
 }
 
 //GetSmartContract return smart contract deployed in ontology by specified smart contract address
-func (this *RpcClient) GetSmartContract(qid, contractAddress string) ([]byte, error) {
+func (this *RpcClient) getSmartContract(qid, contractAddress string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT, []interface{}{contractAddress})
 }
 
-func (this *RpcClient) GetGenerateBlockTime(qid string) ([]byte, error) {
+func (this *RpcClient) getGenerateBlockTime(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_GENERATE_BLOCK_TIME, []interface{}{})
 }
 
 //GetMerkleProof return the merkle proof whether tx is exist in ledger. Param txHash is in hex string code
-func (this *RpcClient) GetMerkleProof(qid, txHash string) ([]byte, error) {
+func (this *RpcClient) getMerkleProof(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_MERKLE_PROOF, []interface{}{txHash})
 }
 
-func (this *RpcClient) GetMemPoolTxState(qid, txHash string) ([]byte, error) {
+func (this *RpcClient) getMemPoolTxState(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_MEM_POOL_TX_STATE, []interface{}{txHash})
 }
 
-func (this *RpcClient) GetMemPoolTxCount(qid string) ([]byte, error) {
+func (this *RpcClient) getMemPoolTxCount(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_MEM_POOL_TX_COUNT, []interface{}{})
 }
 
-func (this *RpcClient) GetBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
+func (this *RpcClient) getBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK_HEIGHT_BY_TX_HASH, []interface{}{txHash})
 }
 
-func (this *RpcClient) GetBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
+func (this *RpcClient) getBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK_TX_HASH_BY_HEIGHT, []interface{}{height})
 }
 
-func (this *RpcClient) SendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
+func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {

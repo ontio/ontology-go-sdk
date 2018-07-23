@@ -15,18 +15,69 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ws
+package client
 
 import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/core/types"
 	"sync"
 	"time"
 )
+
+type WSSubscribeStatus struct {
+	ConstractsFilter      []string
+	SubscribeEvent        bool
+	SubscribeJsonBlock    bool
+	SubscribeRawBlock     bool
+	SubscribeBlockTxHashs bool
+}
+
+func (this *WSSubscribeStatus) GetContractFilter() []string {
+	contracts := make([]string, len(this.ConstractsFilter))
+	copy(contracts, this.ConstractsFilter)
+	return contracts
+}
+
+func (this *WSSubscribeStatus) HasContractFilter(contractAddress string) bool {
+	for _, address := range this.ConstractsFilter {
+		if address == contractAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (this *WSSubscribeStatus) AddContractFilter(contractAddress string) {
+	if this.ConstractsFilter == nil {
+		this.ConstractsFilter = make([]string, 0)
+	}
+	if this.HasContractFilter(contractAddress) {
+		return
+	}
+	this.ConstractsFilter = append(this.ConstractsFilter, contractAddress)
+}
+
+func (this *WSSubscribeStatus) DelContractFilter(contractAddress string) {
+	size := len(this.ConstractsFilter)
+	if size == 0 {
+		return
+	}
+	for index, address := range this.ConstractsFilter {
+		if address == contractAddress {
+			if index == size-1 {
+				this.ConstractsFilter = this.ConstractsFilter[:index]
+			} else {
+				this.ConstractsFilter = append(this.ConstractsFilter[:index], this.ConstractsFilter[index+1:]...)
+			}
+			break
+		}
+	}
+}
 
 type WSClient struct {
 	addr              string
@@ -175,7 +226,7 @@ func (this *WSClient) onRawBlockAction(resp *WSResponse) {
 		return
 	}
 	this.actionCh <- &WSAction{
-		Action: WS_SUBSCRIBE_ACTION_BLOCK,
+		Action: sdkcom.WS_SUBSCRIBE_ACTION_BLOCK,
 		Result: block,
 	}
 }
@@ -187,7 +238,7 @@ func (this *WSClient) onBlockTxHashesAction(resp *WSResponse) {
 		return
 	}
 	this.actionCh <- &WSAction{
-		Action: WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH,
+		Action: sdkcom.WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH,
 		Result: blockTxHashes,
 	}
 }
@@ -199,7 +250,7 @@ func (this *WSClient) onSmartContractEventAction(resp *WSResponse) {
 		return
 	}
 	this.actionCh <- &WSAction{
-		Action: WS_SUBSCRIBE_ACTION_EVENT_NOTIFY,
+		Action: sdkcom.WS_SUBSCRIBE_ACTION_EVENT_NOTIFY,
 		Result: event,
 	}
 }
@@ -211,7 +262,7 @@ func (this *WSClient) onSmartContractEventLogAction(resp *WSResponse) {
 		return
 	}
 	this.actionCh <- &WSAction{
-		Action: WS_SUBSCRIBE_ACTION_EVENT_LOG,
+		Action: sdkcom.WS_SUBSCRIBE_ACTION_EVENT_LOG,
 		Result: log,
 	}
 }
@@ -362,31 +413,31 @@ func (this *WSClient) UnsubscribeTxHash(qid string) error {
 	return nil
 }
 
-func (this *WSClient) GetVersion(qid string) ([]byte, error) {
+func (this *WSClient) getVersion(qid string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_VERSION, nil)
 }
 
-func (this *WSClient) GetNetworkId(qid string) ([]byte, error) {
+func (this *WSClient) getNetworkId(qid string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_NETWORK_ID, nil)
 }
 
-func (this *WSClient) GetBlockByHash(qid, hash string) ([]byte, error) {
+func (this *WSClient) getBlockByHash(qid, hash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_BY_HASH, map[string]interface{}{"Raw": "1", "Hash": hash})
 }
 
-func (this *WSClient) GetBlockByHeight(qid string, height uint32) ([]byte, error) {
+func (this *WSClient) getBlockByHeight(qid string, height uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_BY_HEIGHT, map[string]interface{}{"Raw": "1", "Height": height})
 }
 
-func (this *WSClient) GetBlockHash(qid string, height uint32) ([]byte, error) {
+func (this *WSClient) getBlockHash(qid string, height uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_HASH, map[string]interface{}{"Height": height})
 }
 
-func (this *WSClient) GetRawTransaction(qid, txHash string) ([]byte, error) {
+func (this *WSClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_TRANSACTION, map[string]interface{}{"Raw": "1", "Hash": txHash})
 }
 
-func (this *WSClient) SendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
+func (this *WSClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
@@ -398,20 +449,20 @@ func (this *WSClient) SendRawTransaction(qid string, tx *types.Transaction, isPr
 	return this.sendSyncWSRequest(qid, WS_ACTION_SEND_TRANSACTION, params)
 }
 
-func (this *WSClient) GetMemPoolTxState(qid, txHash string) ([]byte, error) {
+func (this *WSClient) getMemPoolTxState(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_MEM_POOL_TX_STATE, map[string]interface{}{"Hash": txHash})
 }
 
-func (this *WSClient) GetMemPoolTxCount(qid string) ([]byte, error) {
+func (this *WSClient) getMemPoolTxCount(qid string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_MEM_POOL_TX_COUNT, nil)
 }
 
-func (this *WSClient) GetCurrentBlockHeight(qid string) ([]byte, error) {
+func (this *WSClient) getCurrentBlockHeight(qid string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_HEIGHT, nil)
 }
 
-func (this *WSClient) GetCurrentBlockHash(qid string) ([]byte, error) {
-	data, err := this.GetCurrentBlockHeight(qid)
+func (this *WSClient) getCurrentBlockHash(qid string) ([]byte, error) {
+	data, err := this.getCurrentBlockHeight(qid)
 	if err != nil {
 		return nil, err
 	}
@@ -419,46 +470,46 @@ func (this *WSClient) GetCurrentBlockHash(qid string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return this.GetBlockHash(qid, height)
+	return this.getBlockHash(qid, height)
 }
 
-func (this *WSClient) GetBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
+func (this *WSClient) getBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_HEIGHT_BY_TX_HASH, map[string]interface{}{"Hash": txHash})
 }
 
-func (this *WSClient) GetBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
+func (this *WSClient) getBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_TX_HASH_BY_HEIGHT, map[string]interface{}{"Height": height})
 }
 
-func (this *WSClient) GetStorage(qid, contractAddress string, key []byte) ([]byte, error) {
+func (this *WSClient) getStorage(qid, contractAddress string, key []byte) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_STORAGE, map[string]interface{}{"Hash": contractAddress, "Key": hex.EncodeToString(key)})
 }
 
-func (this *WSClient) GetSmartContract(qid, contractAddress string) ([]byte, error) {
+func (this *WSClient) getSmartContract(qid, contractAddress string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_CONTRACT, map[string]interface{}{"Hash": contractAddress, "Raw": "1"})
 }
 
-func (this *WSClient) GetMerkleProof(qid, txHash string) ([]byte, error) {
+func (this *WSClient) getMerkleProof(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_MERKLE_PROOF, map[string]interface{}{"Hash": txHash})
 }
 
-func (this *WSClient) GetSmartContractEvent(qid, txHash string) ([]byte, error) {
+func (this *WSClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HASH, map[string]interface{}{"Hash": txHash})
 }
 
-func (this *WSClient) GetSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
+func (this *WSClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HEIGHT, map[string]interface{}{"Height": blockHeight})
 }
 
-func (this *WSClient) GetGenerateBlockTime(qid string) ([]byte, error) {
+func (this *WSClient) getGenerateBlockTime(qid string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_GENERATE_BLOCK_TIME, nil)
 }
 
-func (this *WSClient) GetActionCh() chan *WSAction {
+func (this *WSClient) getActionCh() chan *WSAction {
 	return this.actionCh
 }
 
-func (this *WSClient) AsyncSendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) (*WSRequest, error) {
+func (this *WSClient) sendAsyncRawTransaction(qid string, tx *types.Transaction, isPreExec bool) (*WSRequest, error) {
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
