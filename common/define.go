@@ -38,18 +38,6 @@ const (
 	WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH = "BlockTxHash"
 )
 
-//Balance object for account
-type Balance struct {
-	Ont uint64
-	Ong uint64
-}
-
-//BalanceRsp response object for balance request
-type BalanceRsp struct {
-	Ont string `json:"ont"`
-	Ong string `json:"ong"`
-}
-
 type SmartContract payload.DeployCode
 
 type PreExecResult struct {
@@ -219,4 +207,15 @@ type MemPoolTxStateItem struct {
 type MemPoolTxCount struct {
 	Verified uint32
 	Verifing uint32
+}
+
+type IdentityAttribute struct {
+	Key   []byte
+	Type  []byte
+	Value []byte
+}
+
+type GlobalParam struct {
+	Key   string
+	Value string
 }
