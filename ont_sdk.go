@@ -21,50 +21,139 @@ package ontology_go_sdk
 
 import (
 	"fmt"
-	"github.com/ontio/ontology-go-sdk/rest"
-	"github.com/ontio/ontology-go-sdk/rpc"
+	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/ontio/ontology-go-sdk/client"
 	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology-go-sdk/ws"
-	"github.com/ontio/ontology/account"
+	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/common/constants"
+	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/types"
+	"time"
 )
 
 //OntologySdk is the main struct for user
 type OntologySdk struct {
-	//Rpc client used the rpc api of ontology
-	Rpc *rpc.RpcClient
-	//Rest client used the rest api of ontology
-	Rest *rest.RestClient
-	//Web socket client used the web socket api of ontology
-	Ws *ws.WSClient
+	client.ClientMgr
+	Native *NativeContract
+	NeoVM  *NeoVMContract
 }
 
 //NewOntologySdk return OntologySdk.
 func NewOntologySdk() *OntologySdk {
-	return &OntologySdk{
-		Rpc:  rpc.NewRpcClient(),
-		Rest: rest.NewRestClient(),
-		Ws:   ws.NewWSClient(),
-	}
-}
-
-//OpenOrCreateWallet return a wllet instance.If the wallet is exist, just open it. if not, then create and open.
-func (this *OntologySdk) OpenOrCreateWallet(walletFile string) (account.Client, error) {
-	if utils.IsFileExist(walletFile) {
-		return this.OpenWallet(walletFile)
-	} else {
-		return this.CreateWallet(walletFile)
-	}
+	ontSdk := &OntologySdk{}
+	native := newNativeContract(ontSdk)
+	ontSdk.Native = native
+	neoVM := newNeoVMContract(ontSdk)
+	ontSdk.NeoVM = neoVM
+	return ontSdk
 }
 
 //CreateWallet return a new wallet
-func (this *OntologySdk) CreateWallet(walletFile string) (account.Client, error) {
+func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 	if utils.IsFileExist(walletFile) {
 		return nil, fmt.Errorf("wallet:%s has already exist", walletFile)
 	}
-	return account.Open(walletFile)
+	return OpenWallet(walletFile)
 }
 
 //OpenWallet return a wallet instance
-func (this *OntologySdk) OpenWallet(walletFile string) (account.Client, error) {
-	return account.Open(walletFile)
+func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
+	return OpenWallet(walletFile)
+}
+
+//NewInvokeTransaction return smart contract invoke transaction
+func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.Transaction {
+	invokePayload := &payload.InvokeCode{
+		Code: invokeCode,
+	}
+	tx := &types.Transaction{
+		GasPrice: gasPrice,
+		GasLimit: gasLimit,
+		TxType:   types.Invoke,
+		Nonce:    uint32(time.Now().Unix()),
+		Payload:  invokePayload,
+		Sigs:     make([]*types.Sig, 0, 0),
+	}
+	return tx
+}
+
+func (this *OntologySdk) SignToTransaction(tx *types.Transaction, signer Signer) error {
+	if tx.Payer == common.ADDRESS_EMPTY {
+		account, ok := signer.(*Account)
+		if ok {
+			tx.Payer = account.Address
+		}
+	}
+	for _, sigs := range tx.Sigs {
+		if utils.PubKeysEqual([]keypair.PublicKey{signer.GetPublicKey()}, sigs.PubKeys) {
+			//have already signed
+			return nil
+		}
+	}
+	txHash := tx.Hash()
+	sigData, err := signer.Sign(txHash.ToArray())
+	if err != nil {
+		return fmt.Errorf("sign error:%s", err)
+	}
+	if tx.Sigs == nil {
+		tx.Sigs = make([]*types.Sig, 0)
+	}
+	tx.Sigs = append(tx.Sigs, &types.Sig{
+		PubKeys: []keypair.PublicKey{signer.GetPublicKey()},
+		M:       1,
+		SigData: [][]byte{sigData},
+	})
+	return nil
+}
+
+func (this *OntologySdk) MultiSignToTransaction(tx *types.Transaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
+	pkSize := len(pubKeys)
+	if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
+		return fmt.Errorf("both m and number of pub key must larger than 0, and small than %d, and m must smaller than pub key number", constants.MULTI_SIG_MAX_PUBKEY_SIZE)
+	}
+	validPubKey := false
+	for _, pk := range pubKeys {
+		if keypair.ComparePublicKey(pk, signer.GetPublicKey()) {
+			validPubKey = true
+			break
+		}
+	}
+	if !validPubKey {
+		return fmt.Errorf("Invalid signer")
+	}
+	if tx.Payer == common.ADDRESS_EMPTY {
+		payer, err := types.AddressFromMultiPubKeys(pubKeys, int(m))
+		if err != nil {
+			return fmt.Errorf("AddressFromMultiPubKeys error:%s", err)
+		}
+		tx.Payer = payer
+	}
+	txHash := tx.Hash()
+	if len(tx.Sigs) == 0 {
+		tx.Sigs = make([]*types.Sig, 0)
+	}
+	sigData, err := signer.Sign(txHash.ToArray())
+	if err != nil {
+		return fmt.Errorf("sign error:%s", err)
+	}
+	hasMutilSig := false
+	for i, sigs := range tx.Sigs {
+		if utils.PubKeysEqual(sigs.PubKeys, pubKeys) {
+			hasMutilSig = true
+			if utils.HasAlreadySig(txHash.ToArray(), signer.GetPublicKey(), sigs.SigData) {
+				break
+			}
+			sigs.SigData = append(sigs.SigData, sigData)
+			tx.Sigs[i] = sigs
+			break
+		}
+	}
+	if !hasMutilSig {
+		tx.Sigs = append(tx.Sigs, &types.Sig{
+			PubKeys: pubKeys,
+			M:       m,
+			SigData: [][]byte{sigData},
+		})
+	}
+	return nil
 }
