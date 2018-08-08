@@ -22,10 +22,13 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/signature"
 	"github.com/ontio/ontology/core/types"
 	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -87,4 +90,40 @@ func GetAssetAddress(asset string) (common.Address, error) {
 func IsFileExist(file string) bool {
 	_, err := os.Stat(file)
 	return err == nil || os.IsExist(err)
+}
+
+func HasAlreadySig(data []byte, pk keypair.PublicKey, sigDatas [][]byte) bool {
+	for _, sigData := range sigDatas {
+		err := signature.Verify(pk, data, sigData)
+		if err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func PubKeysEqual(pks1, pks2 []keypair.PublicKey) bool {
+	if len(pks1) != len(pks2) {
+		return false
+	}
+	size := len(pks1)
+	if size == 0 {
+		return true
+	}
+	pkstr1 := make([]string, 0, size)
+	for _, pk := range pks1 {
+		pkstr1 = append(pkstr1, hex.EncodeToString(keypair.SerializePublicKey(pk)))
+	}
+	pkstr2 := make([]string, 0, size)
+	for _, pk := range pks2 {
+		pkstr2 = append(pkstr2, hex.EncodeToString(keypair.SerializePublicKey(pk)))
+	}
+	sort.Strings(pkstr1)
+	sort.Strings(pkstr2)
+	for i := 0; i < size; i++ {
+		if pkstr1[i] != pkstr2[i] {
+			return false
+		}
+	}
+	return true
 }

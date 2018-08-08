@@ -209,13 +209,8 @@ type MemPoolTxCount struct {
 	Verifing uint32
 }
 
-type IdentityAttribute struct {
-	Key   []byte
-	Type  []byte
-	Value []byte
-}
-
 type GlobalParam struct {
 	Key   string
 	Value string
 }
+
