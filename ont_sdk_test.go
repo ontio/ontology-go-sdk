@@ -2,22 +2,26 @@ package ontology_go_sdk
 
 import (
 	"fmt"
-	"github.com/ontio/ontology/account"
 	"strconv"
 	"testing"
 	"time"
 )
 
 var (
-	testOntSdk *OntologySdk
-	testWallet account.Client
-	testPasswd = []byte("wangbing")
-	testDefAcc *account.Account
+	testOntSdk   *OntologySdk
+	testWallet   *Wallet
+	testPasswd   = []byte("wangbing")
+	testDefAcc   *Account
+	testGasPrice = uint64(0)
+	testGasLimit = uint64(20000)
 )
 
 func TestMain(m *testing.M) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
+
 	var err error
-	testWallet, err = account.Open("./wallet.dat")
+	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
 	if err != nil {
 		fmt.Printf("account.Open error:%s\n", err)
 		return
@@ -27,13 +31,11 @@ func TestMain(m *testing.M) {
 		fmt.Printf("GetDefaultAccount error:%s\n", err)
 		return
 	}
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
 	m.Run()
 }
 
-func TestTransfer(t *testing.T) {
-	txHash, err := testOntSdk.Native.Ont.Transfer(500, 20000, testDefAcc, testDefAcc.Address, 1)
+func TestOnt_Transfer(t *testing.T) {
+	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
 		return
@@ -53,14 +55,14 @@ func TestTransfer(t *testing.T) {
 	}
 }
 
-func TestWithDrawONG(t *testing.T) {
+func TestOng_WithDrawONG(t *testing.T) {
 	unboundONG, err := testOntSdk.Native.Ong.UnboundONG(testDefAcc.Address)
 	if err != nil {
 		t.Errorf("UnboundONG error:%s", err)
 		return
 	}
 	fmt.Printf("Address:%s UnboundONG:%d\n", testDefAcc.Address.ToBase58(), unboundONG)
-	_, err = testOntSdk.Native.Ong.WithDrawONG(0, 20000, testDefAcc, unboundONG)
+	_, err = testOntSdk.Native.Ong.WithdrawONG(0, 20000, testDefAcc, unboundONG)
 	if err != nil {
 		t.Errorf("WithDrawONG error:%s", err)
 		return
@@ -68,7 +70,7 @@ func TestWithDrawONG(t *testing.T) {
 	fmt.Printf("Address:%s WithDrawONG amount:%d success\n", testDefAcc.Address.ToBase58(), unboundONG)
 }
 
-func TestGetGlobalParams(t *testing.T) {
+func TestGlobalParam_GetGlobalParams(t *testing.T) {
 	gasPrice := "gasPrice"
 	params := []string{gasPrice}
 	results, err := testOntSdk.Native.GlobalParams.GetGlobalParams(params)
@@ -79,7 +81,7 @@ func TestGetGlobalParams(t *testing.T) {
 	fmt.Printf("Params:%s Value:%v\n", gasPrice, results[gasPrice])
 }
 
-func TestSetGlobalParams(t *testing.T) {
+func TestGlobalParam_SetGlobalParams(t *testing.T) {
 	gasPrice := "gasPrice"
 	globalParams, err := testOntSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
 	if err != nil {
@@ -91,7 +93,7 @@ func TestSetGlobalParams(t *testing.T) {
 		t.Errorf("Get prama value error:%s", err)
 		return
 	}
-	_, err = testOntSdk.Native.GlobalParams.SetGlobalParams(500, 20000, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
+	_, err = testOntSdk.Native.GlobalParams.SetGlobalParams(testGasPrice, testGasLimit, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
 	if err != nil {
 		t.Errorf("SetGlobalParams error:%s", err)
 		return

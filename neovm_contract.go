@@ -5,7 +5,6 @@ import (
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	httpcom "github.com/ontio/ontology/http/base/common"
-	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
@@ -48,7 +47,7 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
-	singer *account.Account,
+	singer *Account,
 	needStorage bool,
 	code,
 	name,
@@ -91,13 +90,13 @@ func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 	if err != nil {
 		return nil, err
 	}
-	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
+	return this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
 
 func (this *NeoVMContract) InvokeNeoVMContract(
 	gasPrice,
 	gasLimit uint64,
-	signer *account.Account,
+	signer *Account,
 	contractAddress common.Address,
 	params []interface{}) (common.Uint256, error) {
 	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
