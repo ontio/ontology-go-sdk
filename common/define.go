@@ -19,6 +19,7 @@
 package common
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -166,6 +167,60 @@ type NotifyEventInfo struct {
 	States          interface{}
 }
 
+func (this *NotifyEventInfo) UnmarshalJSON(data []byte) error {
+	type evtInfo struct {
+		ContractAddress string
+		States          json.RawMessage
+	}
+	info := &evtInfo{}
+	err := json.Unmarshal(data, info)
+	if err != nil {
+		return err
+	}
+	this.ContractAddress = info.ContractAddress
+
+	dec := json.NewDecoder(bytes.NewReader(info.States))
+	token, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := token.(json.Delim); !ok || delim.String() != "[" {
+		return this.originUnmarshal(info.States)
+	}
+	notifyMethod, err := dec.Token()
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	if notifyMethod != "transfer" {
+		return this.originUnmarshal(info.States)
+	}
+	transferFrom, err := dec.Token()
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	transferTo, err := dec.Token()
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	//using uint64 to decode, avoid precision lost decode by float64
+	transferAmount := uint64(0)
+	err = dec.Decode(&transferAmount)
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	this.States = []interface{}{
+		notifyMethod,
+		transferFrom,
+		transferTo,
+		transferAmount,
+	}
+	return nil
+}
+
+func (this *NotifyEventInfo) originUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &this.States)
+}
+
 type SmartContractEventLog struct {
 	TxHash          string
 	ContractAddress string
@@ -213,4 +268,3 @@ type GlobalParam struct {
 	Key   string
 	Value string
 }
-
