@@ -26,10 +26,6 @@ import (
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
-	httpcom "github.com/ontio/ontology/http/base/common"
-	"github.com/ontio/ontology/smartcontract/service/native/ont"
-	"math/big"
-	"time"
 )
 
 func GetVersion(data []byte) (string, error) {
@@ -117,26 +113,6 @@ func GetTransaction(data []byte) (*types.Transaction, error) {
 		return nil, err
 	}
 	return tx, nil
-}
-
-func GetBalance(data []byte) (*sdkcom.Balance, error) {
-	balanceRsp := &sdkcom.BalanceRsp{}
-	err := json.Unmarshal(data, &balanceRsp)
-	if err != nil {
-		return nil, fmt.Errorf("json.Unmarshal BalanceRsp:%s error:%s", data, err)
-	}
-	ont, ok := new(big.Int).SetString(balanceRsp.Ont, 10)
-	if !ok {
-		return nil, fmt.Errorf("big.Int.SetString ont %s failed", balanceRsp.Ont)
-	}
-	ong, ok := new(big.Int).SetString(balanceRsp.Ong, 10)
-	if !ok {
-		return nil, fmt.Errorf("big.Int.SetString ong %s failed", balanceRsp.Ong)
-	}
-	return &sdkcom.Balance{
-		Ont: ont.Uint64(),
-		Ong: ong.Uint64(),
-	}, nil
 }
 
 func GetStorage(data []byte) ([]byte, error) {
@@ -258,111 +234,4 @@ func GetMemPoolTxCount(data []byte) (*sdkcom.MemPoolTxCount, error) {
 		Verified: count[0],
 		Verifing: count[1],
 	}, nil
-}
-
-func NewNativeInvokeTransaction(gasPrice,
-	gasLimit uint64,
-	cversion byte,
-	contractAddress common.Address,
-	method string,
-	params []interface{},
-) (*types.Transaction, error) {
-	if params == nil {
-		params = make([]interface{}, 0, 1)
-	}
-	//Params cannot empty, if params is empty, fulfil with empty string
-	if len(params) == 0 {
-		params = append(params, "")
-	}
-	invokeCode, err := httpcom.BuildNativeInvokeCode(contractAddress, cversion, method, params)
-	if err != nil {
-		return nil, fmt.Errorf("BuildNativeInvokeCode error:%s", err)
-	}
-	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
-}
-
-func NewNeoVMInvokeTransaction(
-	gasPrice, gasLimit uint64,
-	contractAddress common.Address,
-	params []interface{},
-) (*types.Transaction, error) {
-
-	invokeCode, err := httpcom.BuildNeoVMInvokeCode(contractAddress, params)
-	if err != nil {
-		return nil, err
-	}
-	return sdkcom.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
-}
-
-func NewTransferTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	var sts []*ont.State
-	sts = append(sts, &ont.State{
-		From:  from,
-		To:    to,
-		Value: amount,
-	})
-	return NewMultiTransferTransaction(gasPrice, gasLimit, asset, sts)
-}
-
-func NewMultiTransferTransaction(gasPrice, gasLimit uint64, asset string, states []*ont.State) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER, []interface{}{states})
-}
-
-func NewApproveTransaction(gasPrice, gasLimit uint64, asset string, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
-	st := &ont.State{
-		From:  from,
-		To:    to,
-		Value: amount,
-	}
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_APPROVE, []interface{}{st})
-}
-
-func NewTransferFromTransaction(gasPrice, gasLimit uint64, asset string, sender, from, to common.Address, amount uint64) (*types.Transaction, error) {
-	contractAddress, err := GetAssetAddress(asset)
-	if err != nil {
-		return nil, err
-	}
-	st := &ont.TransferFrom{
-		Sender: sender,
-		From:   from,
-		To:     to,
-		Value:  amount,
-	}
-	return NewNativeInvokeTransaction(gasPrice, gasLimit, sdkcom.VERSION_CONTRACT_ONT, contractAddress, sdkcom.NATIVE_TRANSFER_FROM, []interface{}{st})
-}
-
-//WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
-//return timeout error when there is no block generate in some time.
-func WaitForGenerateBlock(getBlockHeight func() (uint32, error), timeout time.Duration, blockCount ...uint32) (bool, error) {
-	count := uint32(2)
-	if len(blockCount) > 0 && blockCount[0] > 0 {
-		count = blockCount[0]
-	}
-	blockHeight, err := getBlockHeight()
-	if err != nil {
-		return false, fmt.Errorf("GetBlockHeight error:%s", err)
-	}
-	secs := int(timeout / time.Second)
-	if secs <= 0 {
-		secs = 1
-	}
-	for i := 0; i < secs; i++ {
-		time.Sleep(time.Second)
-		curBlockHeigh, err := getBlockHeight()
-		if err != nil {
-			continue
-		}
-		if curBlockHeigh-blockHeight >= count {
-			return true, nil
-		}
-	}
-	return false, fmt.Errorf("timeout after %d (s)", secs)
 }

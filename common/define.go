@@ -18,41 +18,140 @@
 //Some common define of ontology-go-sdk
 package common
 
-import "github.com/ontio/ontology/common"
+import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/payload"
+	"math/big"
+)
 
 var (
-	VERSION_TRANSACTION  = byte(0)
-	VERSION_CONTRACT_ONT = byte(0)
-	VERSION_CONTRACT_ONG = byte(0)
+	VERSION_TRANSACTION = byte(0)
 )
 
 const (
-	NATIVE_TRANSFER      = "transfer"
-	NATIVE_TRANSFER_FROM = "transferFrom"
-	NATIVE_APPROVE       = "approve"
-	NATIVE_ALLOWANCE     = "allowance"
+	WS_SUBSCRIBE_ACTION_BLOCK         = "Block"
+	WS_SUBSCRIBE_ACTION_EVENT_NOTIFY  = "Notify"
+	WS_SUBSCRIBE_ACTION_EVENT_LOG     = "Log"
+	WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH = "BlockTxHash"
 )
 
-//NeoVM invoke smart contract return type
-type NeoVMReturnType byte
+type SmartContract payload.DeployCode
 
-const (
-	NEOVM_TYPE_BOOL       NeoVMReturnType = 1
-	NEOVM_TYPE_INTEGER    NeoVMReturnType = 2
-	NEOVM_TYPE_BYTE_ARRAY NeoVMReturnType = 3
-	NEOVM_TYPE_STRING     NeoVMReturnType = 4
-)
-
-//Balance object for account
-type Balance struct {
-	Ont uint64
-	Ong uint64
+type PreExecResult struct {
+	State  byte
+	Gas    uint64
+	Result *ResultItem
 }
 
-//BalanceRsp response object for balance request
-type BalanceRsp struct {
-	Ont string `json:"ont"`
-	Ong string `json:"ong"`
+func (this *PreExecResult) UnmarshalJSON(data []byte) (err error) {
+	var state byte
+	var gas uint64
+	var resultItem *ResultItem
+	defer func() {
+		if err == nil {
+			this.State = state
+			this.Gas = gas
+			this.Result = resultItem
+		}
+	}()
+
+	objects := make(map[string]interface{})
+	err = json.Unmarshal(data, &objects)
+	if err != nil {
+		return err
+	}
+	stateField, ok := objects["State"].(float64)
+	if !ok {
+		err = fmt.Errorf("Parse State field failed, type error")
+		return
+	}
+	state = byte(stateField)
+
+	gasField, ok := objects["Gas"].(float64)
+	if !ok {
+		err = fmt.Errorf("Parse Gas field failed, type error")
+		return
+	}
+	gas = uint64(gasField)
+	resultField, ok := objects["Result"]
+	if !ok {
+		return nil
+	}
+	resultItem = &ResultItem{}
+	value, ok := resultField.(string)
+	if ok {
+		resultItem.value = value
+		return nil
+	}
+	values, ok := resultField.([]interface{})
+	if !ok {
+		err = fmt.Errorf("Parse Result field, type error")
+		return
+	}
+	resultItem.values = values
+	return nil
+}
+
+type ResultItem struct {
+	value  string
+	values []interface{}
+}
+
+func (this *ResultItem) ToArray() ([]*ResultItem, error) {
+	if this.values == nil {
+		return nil, fmt.Errorf("type error")
+	}
+	items := make([]*ResultItem, 0)
+	for _, res := range this.values {
+		item := &ResultItem{}
+		value, ok := res.(string)
+		if ok {
+			item.value = value
+			items = append(items, item)
+			continue
+		}
+		values, ok := res.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("parse items:%v failed, type error", res)
+		}
+		item.values = values
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (this ResultItem) ToBool() (bool, error) {
+	if this.values != nil {
+		return false, fmt.Errorf("type error")
+	}
+	return this.value == "01", nil
+}
+
+func (this ResultItem) ToInteger() (*big.Int, error) {
+	data, err := this.ToByteArray()
+	if err != nil {
+		return nil, err
+	}
+	return common.BigIntFromNeoBytes(data), nil
+}
+
+func (this ResultItem) ToByteArray() ([]byte, error) {
+	if this.values != nil {
+		return nil, fmt.Errorf("type error")
+	}
+	return hex.DecodeString(this.value)
+}
+
+func (this ResultItem) ToString() (string, error) {
+	data, err := this.ToByteArray()
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 //SmartContactEvent object for event of transaction
@@ -66,6 +165,60 @@ type SmartContactEvent struct {
 type NotifyEventInfo struct {
 	ContractAddress string
 	States          interface{}
+}
+
+func (this *NotifyEventInfo) UnmarshalJSON(data []byte) error {
+	type evtInfo struct {
+		ContractAddress string
+		States          json.RawMessage
+	}
+	info := &evtInfo{}
+	err := json.Unmarshal(data, info)
+	if err != nil {
+		return err
+	}
+	this.ContractAddress = info.ContractAddress
+
+	dec := json.NewDecoder(bytes.NewReader(info.States))
+	token, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := token.(json.Delim); !ok || delim.String() != "[" {
+		return this.originUnmarshal(info.States)
+	}
+	notifyMethod, err := dec.Token()
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	if notifyMethod != "transfer" {
+		return this.originUnmarshal(info.States)
+	}
+	transferFrom, err := dec.Token()
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	transferTo, err := dec.Token()
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	//using uint64 to decode, avoid precision lost decode by float64
+	transferAmount := uint64(0)
+	err = dec.Decode(&transferAmount)
+	if err != nil {
+		return this.originUnmarshal(info.States)
+	}
+	this.States = []interface{}{
+		notifyMethod,
+		transferFrom,
+		transferTo,
+		transferAmount,
+	}
+	return nil
+}
+
+func (this *NotifyEventInfo) originUnmarshal(data []byte) error {
+	return json.Unmarshal(data, &this.States)
 }
 
 type SmartContractEventLog struct {
@@ -109,4 +262,9 @@ type MemPoolTxStateItem struct {
 type MemPoolTxCount struct {
 	Verified uint32
 	Verifing uint32
+}
+
+type GlobalParam struct {
+	Key   string
+	Value string
 }
