@@ -159,7 +159,7 @@ const (
 )
 
 const (
-	WS_SUB_CONTRACT_FILTER = "ConstractsFilter"
+	WS_SUB_CONTRACT_FILTER = "ContractsFilter"
 	WS_SUB_EVENT           = "SubscribeEvent"
 	WS_SUB_JSON_BLOCK      = "SubscribeJsonBlock"
 	WS_SUB_RAW_BLOCK       = "SubscribeRawBlock"

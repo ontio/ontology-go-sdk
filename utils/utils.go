@@ -19,7 +19,6 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
@@ -37,12 +36,7 @@ func TransactionFromHexString(rawTx string) (*types.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	tx := &types.Transaction{}
-	err = tx.Deserialize(bytes.NewReader(txData))
-	if err != nil {
-		return nil, err
-	}
-	return tx, nil
+	return types.TransactionFromRawBytes(txData)
 }
 
 func AddressFromHexString(s string) (common.Address, error) {
