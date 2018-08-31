@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	httpcom "github.com/ontio/ontology/http/base/common"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	httpcom "github.com/ontio/ontology/http/base/common"
 	"time"
 )
 

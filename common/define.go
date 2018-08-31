@@ -254,14 +254,14 @@ type MemPoolTxState struct {
 }
 
 type MemPoolTxStateItem struct {
-	Height  uint32
-	Type    int
-	ErrCode int
+	Height  uint32 // The height in which tx was verified
+	Type    int    // The validator flag: stateless/stateful
+	ErrCode int    // Verified result
 }
 
 type MemPoolTxCount struct {
-	Verified uint32
-	Verifing uint32
+	Verified uint32 //Tx count of verified
+	Verifing uint32 //Tx count of verifing
 }
 
 type GlobalParam struct {

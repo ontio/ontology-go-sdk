@@ -200,18 +200,6 @@ func (this *ClientMgr) GetSmartContractEventByBlock(height uint32) ([]*sdkcom.Sm
 	return utils.GetSmartContactEvents(data)
 }
 
-func (this *ClientMgr) GetGenerateBlockTime() (uint32, error) {
-	client := this.getClient()
-	if client == nil {
-		return 0, fmt.Errorf("don't have available client of ontology")
-	}
-	data, err := client.getGenerateBlockTime(this.getNextQid())
-	if err != nil {
-		return 0, err
-	}
-	return utils.GetUint32(data)
-}
-
 func (this *ClientMgr) GetMerkleProof(txHash string) (*sdkcom.MerkleProof, error) {
 	client := this.getClient()
 	if client == nil {

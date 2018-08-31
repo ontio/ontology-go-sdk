@@ -167,11 +167,6 @@ func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]b
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) getGenerateBlockTime(qid string) ([]byte, error) {
-	reqPath := GET_GEN_BLK_TIME
-	return this.sendRestGetRequest(reqPath)
-}
-
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
 	var buffer bytes.Buffer
