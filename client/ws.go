@@ -30,21 +30,21 @@ import (
 )
 
 type WSSubscribeStatus struct {
-	ConstractsFilter      []string
+	ContractsFilter       []string
 	SubscribeEvent        bool
 	SubscribeJsonBlock    bool
 	SubscribeRawBlock     bool
-	SubscribeBlockTxHashs bool
+	SubscribeBlockTxHashes bool
 }
 
 func (this *WSSubscribeStatus) GetContractFilter() []string {
-	contracts := make([]string, len(this.ConstractsFilter))
-	copy(contracts, this.ConstractsFilter)
+	contracts := make([]string, len(this.ContractsFilter))
+	copy(contracts, this.ContractsFilter)
 	return contracts
 }
 
 func (this *WSSubscribeStatus) HasContractFilter(contractAddress string) bool {
-	for _, address := range this.ConstractsFilter {
+	for _, address := range this.ContractsFilter {
 		if address == contractAddress {
 			return true
 		}
@@ -53,26 +53,26 @@ func (this *WSSubscribeStatus) HasContractFilter(contractAddress string) bool {
 }
 
 func (this *WSSubscribeStatus) AddContractFilter(contractAddress string) {
-	if this.ConstractsFilter == nil {
-		this.ConstractsFilter = make([]string, 0)
+	if this.ContractsFilter == nil {
+		this.ContractsFilter = make([]string, 0)
 	}
 	if this.HasContractFilter(contractAddress) {
 		return
 	}
-	this.ConstractsFilter = append(this.ConstractsFilter, contractAddress)
+	this.ContractsFilter = append(this.ContractsFilter, contractAddress)
 }
 
 func (this *WSSubscribeStatus) DelContractFilter(contractAddress string) {
-	size := len(this.ConstractsFilter)
+	size := len(this.ContractsFilter)
 	if size == 0 {
 		return
 	}
-	for index, address := range this.ConstractsFilter {
+	for index, address := range this.ContractsFilter {
 		if address == contractAddress {
 			if index == size-1 {
-				this.ConstractsFilter = this.ConstractsFilter[:index]
+				this.ContractsFilter = this.ContractsFilter[:index]
 			} else {
-				this.ConstractsFilter = append(this.ConstractsFilter[:index], this.ConstractsFilter[index+1:]...)
+				this.ContractsFilter = append(this.ContractsFilter[:index], this.ContractsFilter[index+1:]...)
 			}
 			break
 		}
@@ -277,7 +277,7 @@ func (this *WSClient) AddContractFilter(qid string, contractAddress string) erro
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
 		WS_SUB_RAW_BLOCK:       this.subStatus.SubscribeRawBlock,
-		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashs,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
 	})
 	if err != nil {
 		this.subStatus.DelContractFilter(contractAddress)
@@ -296,7 +296,7 @@ func (this *WSClient) DelContractFilter(qid string, contractAddress string) erro
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
 		WS_SUB_RAW_BLOCK:       this.subStatus.SubscribeRawBlock,
-		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashs,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
 	})
 	if err != nil {
 		this.subStatus.AddContractFilter(contractAddress)
@@ -314,7 +314,7 @@ func (this *WSClient) SubscribeBlock(qid string) error {
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
 		WS_SUB_RAW_BLOCK:       true,
-		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashs,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
 	})
 	if err != nil {
 		return err
@@ -332,7 +332,7 @@ func (this *WSClient) UnsubscribeBlock(qid string) error {
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
 		WS_SUB_RAW_BLOCK:       false,
-		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashs,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
 	})
 	if err != nil {
 		return err
@@ -350,7 +350,7 @@ func (this *WSClient) SubscribeEvent(qid string) error {
 		WS_SUB_EVENT:           true,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
 		WS_SUB_RAW_BLOCK:       this.subStatus.SubscribeRawBlock,
-		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashs,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
 	})
 	if err != nil {
 		return err
@@ -368,7 +368,7 @@ func (this *WSClient) UnsubscribeEvent(qid string) error {
 		WS_SUB_EVENT:           false,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
 		WS_SUB_RAW_BLOCK:       this.subStatus.SubscribeRawBlock,
-		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashs,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
 	})
 	if err != nil {
 		return err
@@ -378,7 +378,7 @@ func (this *WSClient) UnsubscribeEvent(qid string) error {
 }
 
 func (this *WSClient) SubscribeTxHash(qid string) error {
-	if this.subStatus.SubscribeBlockTxHashs {
+	if this.subStatus.SubscribeBlockTxHashes {
 		return nil
 	}
 	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
@@ -391,12 +391,12 @@ func (this *WSClient) SubscribeTxHash(qid string) error {
 	if err != nil {
 		return err
 	}
-	this.subStatus.SubscribeBlockTxHashs = true
+	this.subStatus.SubscribeBlockTxHashes = true
 	return nil
 }
 
 func (this *WSClient) UnsubscribeTxHash(qid string) error {
-	if !this.subStatus.SubscribeBlockTxHashs {
+	if !this.subStatus.SubscribeBlockTxHashes {
 		return nil
 	}
 	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
@@ -409,7 +409,7 @@ func (this *WSClient) UnsubscribeTxHash(qid string) error {
 	if err != nil {
 		return err
 	}
-	this.subStatus.SubscribeBlockTxHashs = false
+	this.subStatus.SubscribeBlockTxHashes = false
 	return nil
 }
 
@@ -441,7 +441,7 @@ func (this *WSClient) sendRawTransaction(qid string, tx *types.Transaction, isPr
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
-		return nil, fmt.Errorf("Serialize error:%s", err)
+		return nil, fmt.Errorf("serialize error:%s", err)
 	}
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := map[string]interface{}{"Data": txData}
@@ -513,7 +513,7 @@ func (this *WSClient) sendAsyncRawTransaction(qid string, tx *types.Transaction,
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
-		return nil, fmt.Errorf("Serialize error:%s", err)
+		return nil, fmt.Errorf("serialize error:%s", err)
 	}
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := map[string]interface{}{"Data": txData}

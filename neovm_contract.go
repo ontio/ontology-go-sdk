@@ -21,7 +21,7 @@ func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
 	}
 }
 
-func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.Transaction {
+func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
 		Code:        contract.Code,
 		NeedStorage: contract.NeedStorage,
@@ -31,14 +31,14 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 		Email:       contract.Email,
 		Description: contract.Description,
 	}
-	tx := &types.Transaction{
+	tx := &types.MutableTransaction{
 		Version:  sdkcom.VERSION_TRANSACTION,
 		TxType:   types.Deploy,
 		Nonce:    uint32(time.Now().Unix()),
 		Payload:  deployPayload,
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		Sigs:     make([]*types.Sig, 0, 0),
+		Sigs:     make([]types.Sig, 0, 0),
 	}
 	return tx
 }
@@ -85,7 +85,7 @@ func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 	gasLimit uint64,
 	contractAddress common.Address,
 	params []interface{},
-) (*types.Transaction, error) {
+) (*types.MutableTransaction, error) {
 	invokeCode, err := httpcom.BuildNeoVMInvokeCode(contractAddress, params)
 	if err != nil {
 		return nil, err

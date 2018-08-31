@@ -47,13 +47,7 @@ func GetBlock(data []byte) (*types.Block, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	block := &types.Block{}
-	buf := bytes.NewBuffer(blockData)
-	err = block.Deserialize(buf)
-	if err != nil {
-		return nil, err
-	}
-	return block, nil
+	return types.BlockFromRawBytes(blockData)
 }
 
 func GetUint32(data []byte) (uint32, error) {
@@ -106,13 +100,7 @@ func GetTransaction(data []byte) (*types.Transaction, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	buf := bytes.NewBuffer(txData)
-	tx := &types.Transaction{}
-	err = tx.Deserialize(buf)
-	if err != nil {
-		return nil, err
-	}
-	return tx, nil
+	return types.TransactionFromRawBytes(txData)
 }
 
 func GetStorage(data []byte) ([]byte, error) {

@@ -272,10 +272,14 @@ func (this *ClientMgr) GetNetworkId() (uint32, error) {
 	return utils.GetUint32(data)
 }
 
-func (this *ClientMgr) SendTransaction(tx *types.Transaction) (common.Uint256, error) {
+func (this *ClientMgr) SendTransaction(mutTx *types.MutableTransaction) (common.Uint256, error) {
 	client := this.getClient()
 	if client == nil {
 		return common.UINT256_EMPTY, fmt.Errorf("don't have available client of ontology")
+	}
+	tx, err := mutTx.IntoImmutable()
+	if err != nil {
+		return common.UINT256_EMPTY, err
 	}
 	data, err := client.sendRawTransaction(this.getNextQid(), tx, false)
 	if err != nil {
@@ -284,10 +288,14 @@ func (this *ClientMgr) SendTransaction(tx *types.Transaction) (common.Uint256, e
 	return utils.GetUint256(data)
 }
 
-func (this *ClientMgr) PreExecTransaction(tx *types.Transaction) (*sdkcom.PreExecResult, error) {
+func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResult, error) {
 	client := this.getClient()
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	tx, err := mutTx.IntoImmutable()
+	if err != nil {
+		return nil, err
 	}
 	data, err := client.sendRawTransaction(this.getNextQid(), tx, true)
 	if err != nil {

@@ -165,7 +165,7 @@ func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isP
 	var buffer bytes.Buffer
 	err := tx.Serialize(&buffer)
 	if err != nil {
-		return nil, fmt.Errorf("Serialize error:%s", err)
+		return nil, fmt.Errorf("serialize error:%s", err)
 	}
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := []interface{}{txData}

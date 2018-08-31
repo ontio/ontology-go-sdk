@@ -62,22 +62,22 @@ func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 }
 
 //NewInvokeTransaction return smart contract invoke transaction
-func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.Transaction {
+func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
-	tx := &types.Transaction{
+	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
 		TxType:   types.Invoke,
 		Nonce:    uint32(time.Now().Unix()),
 		Payload:  invokePayload,
-		Sigs:     make([]*types.Sig, 0, 0),
+		Sigs:     make([]types.Sig, 0, 0),
 	}
 	return tx
 }
 
-func (this *OntologySdk) SignToTransaction(tx *types.Transaction, signer Signer) error {
+func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
 	if tx.Payer == common.ADDRESS_EMPTY {
 		account, ok := signer.(*Account)
 		if ok {
@@ -96,9 +96,9 @@ func (this *OntologySdk) SignToTransaction(tx *types.Transaction, signer Signer)
 		return fmt.Errorf("sign error:%s", err)
 	}
 	if tx.Sigs == nil {
-		tx.Sigs = make([]*types.Sig, 0)
+		tx.Sigs = make([]types.Sig, 0)
 	}
-	tx.Sigs = append(tx.Sigs, &types.Sig{
+	tx.Sigs = append(tx.Sigs, types.Sig{
 		PubKeys: []keypair.PublicKey{signer.GetPublicKey()},
 		M:       1,
 		SigData: [][]byte{sigData},
@@ -106,7 +106,7 @@ func (this *OntologySdk) SignToTransaction(tx *types.Transaction, signer Signer)
 	return nil
 }
 
-func (this *OntologySdk) MultiSignToTransaction(tx *types.Transaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
+func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
 	pkSize := len(pubKeys)
 	if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
 		return fmt.Errorf("both m and number of pub key must larger than 0, and small than %d, and m must smaller than pub key number", constants.MULTI_SIG_MAX_PUBKEY_SIZE)
@@ -119,7 +119,7 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.Transaction, m uint16,
 		}
 	}
 	if !validPubKey {
-		return fmt.Errorf("Invalid signer")
+		return fmt.Errorf("invalid signer")
 	}
 	if tx.Payer == common.ADDRESS_EMPTY {
 		payer, err := types.AddressFromMultiPubKeys(pubKeys, int(m))
@@ -130,7 +130,7 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.Transaction, m uint16,
 	}
 	txHash := tx.Hash()
 	if len(tx.Sigs) == 0 {
-		tx.Sigs = make([]*types.Sig, 0)
+		tx.Sigs = make([]types.Sig, 0)
 	}
 	sigData, err := signer.Sign(txHash.ToArray())
 	if err != nil {
@@ -149,7 +149,7 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.Transaction, m uint16,
 		}
 	}
 	if !hasMutilSig {
-		tx.Sigs = append(tx.Sigs, &types.Sig{
+		tx.Sigs = append(tx.Sigs, types.Sig{
 			PubKeys: pubKeys,
 			M:       m,
 			SigData: [][]byte{sigData},
