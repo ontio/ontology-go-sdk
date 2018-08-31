@@ -21,7 +21,6 @@ type OntologyClient interface {
 	getSmartContractEvent(qid, txHash string) ([]byte, error)
 	getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error)
 	getStorage(qid, contractAddress string, key []byte) ([]byte, error)
-	getGenerateBlockTime(qid string) ([]byte, error)
 	getMerkleProof(qid, txHash string) ([]byte, error)
 	getMemPoolTxState(qid, txHash string) ([]byte, error)
 	getMemPoolTxCount(qid string) ([]byte, error)

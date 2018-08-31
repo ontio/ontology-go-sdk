@@ -30,10 +30,10 @@ import (
 )
 
 type WSSubscribeStatus struct {
-	ContractsFilter       []string
-	SubscribeEvent        bool
-	SubscribeJsonBlock    bool
-	SubscribeRawBlock     bool
+	ContractsFilter        []string
+	SubscribeEvent         bool
+	SubscribeJsonBlock     bool
+	SubscribeRawBlock      bool
 	SubscribeBlockTxHashes bool
 }
 
@@ -499,10 +499,6 @@ func (this *WSClient) getSmartContractEvent(qid, txHash string) ([]byte, error) 
 
 func (this *WSClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HEIGHT, map[string]interface{}{"Height": blockHeight})
-}
-
-func (this *WSClient) getGenerateBlockTime(qid string) ([]byte, error) {
-	return this.sendSyncWSRequest(qid, WS_ACTION_GET_GENERATE_BLOCK_TIME, nil)
 }
 
 func (this *WSClient) getActionCh() chan *WSAction {

@@ -10,7 +10,7 @@ import (
 var (
 	testOntSdk   *OntologySdk
 	testWallet   *Wallet
-	testPasswd   = []byte("wangbing")
+	testPasswd   = []byte("123456")
 	testDefAcc   *Account
 	testGasPrice = uint64(0)
 	testGasLimit = uint64(20000)
