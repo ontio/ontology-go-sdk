@@ -142,7 +142,7 @@ ontSdk.PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResul
 wa, err := OpenWallet(path string) (*Wallet, error)
 ```
 
-If wallet file of path exist, open waller, or create new wallet.
+If wallet file of path exist, open wallet, or create new wallet.
 
 #### 2.2.2 Save Wallet
 
