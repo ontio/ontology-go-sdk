@@ -24,6 +24,47 @@ type Account struct {
 	SigScheme  s.SignatureScheme
 }
 
+func NewAccount(sigscheme ...s.SignatureScheme) *Account {
+	var scheme s.SignatureScheme
+	if len(sigscheme) == 0 {
+		scheme = s.SHA256withECDSA
+	} else {
+		scheme = sigscheme[0]
+	}
+	var pkAlgorithm keypair.KeyType
+	var params interface{}
+	switch scheme {
+	case s.SHA224withECDSA, s.SHA3_224withECDSA:
+		pkAlgorithm = keypair.PK_ECDSA
+		params = keypair.P224
+	case s.SHA256withECDSA, s.SHA3_256withECDSA, s.RIPEMD160withECDSA:
+		pkAlgorithm = keypair.PK_ECDSA
+		params = keypair.P256
+	case s.SHA384withECDSA, s.SHA3_384withECDSA:
+		pkAlgorithm = keypair.PK_ECDSA
+		params = keypair.P384
+	case s.SHA512withECDSA, s.SHA3_512withECDSA:
+		pkAlgorithm = keypair.PK_ECDSA
+		params = keypair.P521
+	case s.SM3withSM2:
+		pkAlgorithm = keypair.PK_SM2
+		params = keypair.SM2P256V1
+	case s.SHA512withEDDSA:
+		pkAlgorithm = keypair.PK_EDDSA
+		params = keypair.ED25519
+	default:
+		return nil
+	}
+	pri, pub, _ := keypair.GenerateKeyPair(pkAlgorithm, params)
+	address := types.AddressFromPubKey(pub)
+	return &Account{
+		PrivateKey: pri,
+		PublicKey:  pub,
+		Address:    address,
+		SigScheme:  scheme,
+	}
+}
+
 func (this *Account) Sign(data []byte) ([]byte, error) {
 	sig, err := s.Sign(this.SigScheme, this.PrivateKey, data, nil)
 	if err != nil {
