@@ -28,7 +28,7 @@ import (
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
-	"time"
+	"math/rand"
 )
 
 //OntologySdk is the main struct for user
@@ -70,7 +70,7 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
 		TxType:   types.Invoke,
-		Nonce:    uint32(time.Now().Unix()),
+		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),
 	}
