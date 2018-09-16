@@ -31,6 +31,13 @@ func TestMain(m *testing.M) {
 		fmt.Printf("GetDefaultAccount error:%s\n", err)
 		return
 	}
+
+	ws := testOntSdk.NewWebSocketClient()
+	err = ws.Connect("ws://localhost:20335")
+	if err != nil {
+		fmt.Printf("Connect ws error:%s", err)
+		return
+	}
 	m.Run()
 }
 
@@ -110,4 +117,49 @@ func TestGlobalParam_SetGlobalParams(t *testing.T) {
 		return
 	}
 	fmt.Printf("After set params gasPrice:%d\n", gasPriceValueAfter)
+}
+
+func TestWsScribeEvent(t *testing.T) {
+	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
+	err := wsClient.SubscribeEvent()
+	if err != nil {
+		t.Errorf("SubscribeTxHash error:%s", err)
+		return
+	}
+	defer wsClient.UnsubscribeTxHash()
+
+	actionCh := wsClient.GetActionCh()
+	timer := time.NewTimer(time.Minute * 3)
+	for {
+		select {
+		case <-timer.C:
+			return
+		case action := <-actionCh:
+			fmt.Printf("Action:%s\n", action.Action)
+			fmt.Printf("Result:%s\n", action.Result)
+		}
+	}
+}
+
+func TestWsTransfer(t *testing.T){
+	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
+	testOntSdk.ClientMgr.SetDefaultClient(wsClient)
+	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
+	if err != nil {
+		t.Errorf("NewTransferTransaction error:%s", err)
+		return
+	}
+	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
+	evts, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
+	if err != nil {
+		t.Errorf("GetSmartContractEvent error:%s", err)
+		return
+	}
+	fmt.Printf("TxHash:%s\n", txHash.ToHexString())
+	fmt.Printf("State:%d\n", evts.State)
+	fmt.Printf("GasConsume:%d\n", evts.GasConsumed)
+	for _, notify := range evts.Notify {
+		fmt.Printf("ContractAddress:%s\n", notify.ContractAddress)
+		fmt.Printf("States:%+v\n", notify.States)
+	}
 }

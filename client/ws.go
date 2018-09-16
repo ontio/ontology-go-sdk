@@ -25,6 +25,8 @@ import (
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/core/types"
+	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -83,6 +85,7 @@ type WSClient struct {
 	addr              string
 	defReqTimeout     time.Duration
 	heartbeatInterval int
+	heartbeatTimeout  int
 	subStatus         *WSSubscribeStatus
 	ws                *utils.WebSocketClient
 	reqMap            map[string]*WSRequest
@@ -90,6 +93,10 @@ type WSClient struct {
 	actionCh          chan *WSAction
 	exitCh            chan interface{}
 	lastHeartbeatTime time.Time
+	lastRecvTime      time.Time
+	onConnect         func(address string)
+	onClose           func(address string)
+	onError           func(address string, err error)
 	lock              sync.RWMutex
 }
 
@@ -97,36 +104,75 @@ func NewWSClient() *WSClient {
 	wsClient := &WSClient{
 		defReqTimeout:     DEFAULT_REQ_TIMEOUT,
 		heartbeatInterval: DEFAULT_WS_HEARTBEAT_INTERVAL,
+		heartbeatTimeout:  DEFAULT_WS_HEARTBEAT_TIMEOUT,
 		subStatus:         &WSSubscribeStatus{},
-		ws:                utils.NewWebSocketClient(),
 		reqMap:            make(map[string]*WSRequest),
 		recvCh:            make(chan []byte, WS_RECV_CHAN_SIZE),
 		actionCh:          make(chan *WSAction, WS_RECV_CHAN_SIZE),
+		lastHeartbeatTime: time.Now(),
+		lastRecvTime:      time.Now(),
 		exitCh:            make(chan interface{}, 0),
 	}
-	wsClient.ws.OnMessage = wsClient.onMessage
-	wsClient.ws.OnError = wsClient.onError
-	wsClient.ws.OnConnect = wsClient.onConnect
-	wsClient.ws.OnClose = wsClient.onClose
+	go wsClient.start()
 	return wsClient
 }
 
 func (this *WSClient) Connect(address string) error {
+	if this.getWsClient() != nil {
+		return fmt.Errorf("address:%s has already connect", this.addr)
+	}
+	if address == "" {
+		return fmt.Errorf("address cannot empty")
+	}
 	this.addr = address
-	err := this.ws.Connect(address)
+	ws := utils.NewWebSocketClient()
+	ws.OnMessage = this.onMessage
+	ws.OnError = this.GetOnError()
+	ws.OnConnect = this.GetOnConnect()
+	ws.OnClose = this.GetOnClose()
+
+	err := ws.Connect(address)
 	if err != nil {
 		return err
 	}
-	go this.start()
+	this.setWsClient(ws)
 	return nil
 }
 
+func (this *WSClient) GetDefaultReqTimeout() time.Duration {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	return this.defReqTimeout
+}
+
 func (this *WSClient) SetDefaultReqTimeout(timeout time.Duration) {
+	this.lock.Lock()
+	defer this.lock.Unlock()
 	this.defReqTimeout = timeout
 }
 
+func (this *WSClient) GetHeartbeatInterval() int {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	return this.heartbeatInterval
+}
+
 func (this *WSClient) SetHeartbeatInterval(interval int) {
+	this.lock.Lock()
+	defer this.lock.Unlock()
 	this.heartbeatInterval = interval
+}
+
+func (this *WSClient) GetHeartbeatTimeout() int {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	return this.heartbeatTimeout
+}
+
+func (this *WSClient) SetHeartbeatTimeout(timeout int) {
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.heartbeatTimeout = timeout
 }
 
 func (this *WSClient) updateLastHeartbeatTime() {
@@ -141,32 +187,94 @@ func (this *WSClient) getLastHeartbeatTime() time.Time {
 	return this.lastHeartbeatTime
 }
 
+func (this *WSClient) updateLastRecvTime() {
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.lastRecvTime = time.Now()
+}
+
+func (this *WSClient) getLastRecvTime() time.Time {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	return this.lastRecvTime
+}
+
+func (this *WSClient) GetOnConnect() func(address string) {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	if this.onConnect != nil {
+		return this.onConnect
+	}
+	return this.onDefConnect
+}
+
 func (this *WSClient) SetOnConnect(f func(address string)) {
-	this.ws.OnConnect = f
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.onConnect = f
+	ws := this.getWsClient()
+	if ws != nil {
+		ws.OnConnect = f
+	}
+}
+
+func (this *WSClient) GetOnClose() func(address string) {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	if this.onClose != nil {
+		return this.onClose
+	}
+	return this.onDefClose
 }
 
 func (this *WSClient) SetOnClose(f func(address string)) {
-	this.ws.OnClose = f
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.onClose = f
+	ws := this.getWsClient()
+	if ws != nil {
+		ws.OnClose = f
+	}
+}
+
+func (this *WSClient) GetOnError() func(address string, er error) {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	if this.onError != nil {
+		return this.onError
+	}
+	return this.onDefError
 }
 
 func (this *WSClient) SetOnError(f func(address string, err error)) {
-	this.ws.OnError = f
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.onError = f
+	ws := this.getWsClient()
+	if ws != nil {
+		ws.OnError = f
+	}
 }
 
 func (this *WSClient) onMessage(data []byte) {
 	this.updateLastHeartbeatTime()
-	this.recvCh <- data
+	this.updateLastRecvTime()
+	select {
+	case this.recvCh <- data:
+	case <-this.exitCh:
+		return
+	}
 }
 
-func (this *WSClient) onError(address string, err error) {
+func (this *WSClient) onDefError(address string, err error) {
 	fmt.Printf("WSClient OnError address:%s error:%s\n", address, err)
 }
 
-func (this *WSClient) onConnect(address string) {
+func (this *WSClient) onDefConnect(address string) {
 	fmt.Printf("WSClient OnConnect address:%s connect success\n", address)
 }
 
-func (this *WSClient) onClose(address string) {
+func (this *WSClient) onDefClose(address string) {
 	fmt.Printf("WSClient OnClose address:%s close success\n", address)
 }
 
@@ -177,27 +285,51 @@ func (this *WSClient) start() {
 		select {
 		case <-this.exitCh:
 			return
-		case <-heartbeatTimer.C:
-			if int(time.Now().Sub(this.getLastHeartbeatTime()).Seconds()) >= this.heartbeatInterval {
-				this.sendHeartbeat()
-			}
 		case data := <-this.recvCh:
 			wsResp := &WSResponse{}
 			err := json.Unmarshal(data, wsResp)
 			if err != nil {
-				this.ws.OnError(this.addr, fmt.Errorf("json.Unmarshal WSResponse error:%s", err))
+				this.GetOnError()(this.addr, fmt.Errorf("json.Unmarshal WSResponse error:%s", err))
 			} else {
 				go this.onAction(wsResp)
 			}
+		case <-heartbeatTimer.C:
+			now := time.Now()
+			if int(now.Sub(this.getLastRecvTime()).Seconds()) >= this.GetHeartbeatTimeout() {
+				go this.reconnect()
+				this.updateLastRecvTime()
+			} else if int(now.Sub(this.getLastHeartbeatTime()).Seconds()) >= this.GetHeartbeatInterval() {
+				go this.sendHeartbeat()
+				this.updateLastHeartbeatTime()
+			}
 		}
+	}
+}
+
+func (this *WSClient) reconnect() {
+	ws := this.getWsClient()
+	if ws != nil {
+		this.setWsClient(nil)
+		err := ws.Close()
+		if err != nil {
+			this.GetOnError()(this.addr, fmt.Errorf("close error:%s", err))
+		}
+		ws.OnMessage = nil
+	}
+	err := this.Connect(this.addr)
+	if err != nil {
+		this.GetOnError()(this.addr, fmt.Errorf("connect error:%s", err))
+		return
+	}
+	err = this.reSubscribe()
+	if err != nil {
+		this.GetOnError()(this.addr, fmt.Errorf("reSubscribe:%v error:%s", this.subStatus, err))
 	}
 }
 
 func (this *WSClient) onAction(resp *WSResponse) {
 	if resp.Id == "" {
 		switch resp.Action {
-		case WS_ACTION_HEARBEAT:
-			return
 		case WS_SUB_ACTION_RAW_BLOCK:
 			this.onRawBlockAction(resp)
 		case WS_SUB_ACTION_BLOCK_TX_HASH:
@@ -207,7 +339,7 @@ func (this *WSClient) onAction(resp *WSResponse) {
 		case WS_SUB_ACTION_LOG:
 			this.onSmartContractEventLogAction(resp)
 		default:
-			this.ws.OnError(this.addr, fmt.Errorf("unknown subscribe action:%s", resp.Action))
+			this.GetOnError()(this.addr, fmt.Errorf("unknown subscribe action:%s", resp.Action))
 		}
 		return
 	}
@@ -215,64 +347,84 @@ func (this *WSClient) onAction(resp *WSResponse) {
 	if req == nil {
 		return
 	}
-	req.ResCh <- resp
+	select {
+	case req.ResCh <- resp:
+	case <-this.exitCh:
+		return
+	}
 	this.delReq(resp.Id)
 }
 
 func (this *WSClient) onRawBlockAction(resp *WSResponse) {
 	block, err := utils.GetBlock(resp.Result)
 	if err != nil {
-		this.ws.OnError(this.addr, fmt.Errorf("onRawBlockAction error:%s", err))
+		this.GetOnError()(this.addr, fmt.Errorf("onRawBlockAction error:%s", err))
 		return
 	}
-	this.actionCh <- &WSAction{
+	select {
+	case this.actionCh <- &WSAction{
 		Action: sdkcom.WS_SUBSCRIBE_ACTION_BLOCK,
 		Result: block,
+	}:
+	case <-this.exitCh:
+		return
 	}
 }
 
 func (this *WSClient) onBlockTxHashesAction(resp *WSResponse) {
 	blockTxHashes, err := utils.GetBlockTxHashes(resp.Result)
 	if err != nil {
-		this.ws.OnError(this.addr, fmt.Errorf("onBlockTxHashesAction error:%s", err))
+		this.GetOnError()(this.addr, fmt.Errorf("onBlockTxHashesAction error:%s", err))
 		return
 	}
-	this.actionCh <- &WSAction{
+	select {
+	case this.actionCh <- &WSAction{
 		Action: sdkcom.WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH,
 		Result: blockTxHashes,
+	}:
+	case <-this.exitCh:
+		return
 	}
 }
 
 func (this *WSClient) onSmartContractEventAction(resp *WSResponse) {
 	event, err := utils.GetSmartContractEvent(resp.Result)
 	if err != nil {
-		this.ws.OnError(this.addr, fmt.Errorf("onSmartContractEventAction error:%s", err))
+		this.GetOnError()(this.addr, fmt.Errorf("onSmartContractEventAction error:%s", err))
 		return
 	}
-	this.actionCh <- &WSAction{
+	select {
+	case this.actionCh <- &WSAction{
 		Action: sdkcom.WS_SUBSCRIBE_ACTION_EVENT_NOTIFY,
 		Result: event,
+	}:
+	case <-this.exitCh:
+		return
 	}
 }
 
 func (this *WSClient) onSmartContractEventLogAction(resp *WSResponse) {
 	log, err := utils.GetSmartContractEventLog(resp.Result)
 	if err != nil {
-		this.ws.OnError(this.addr, fmt.Errorf("onSmartContractEventLogAction error:%s", err))
+		this.GetOnError()(this.addr, fmt.Errorf("onSmartContractEventLogAction error:%s", err))
 		return
 	}
-	this.actionCh <- &WSAction{
+	select {
+	case this.actionCh <- &WSAction{
 		Action: sdkcom.WS_SUBSCRIBE_ACTION_EVENT_LOG,
 		Result: log,
+	}:
+	case <-this.exitCh:
+		return
 	}
 }
 
-func (this *WSClient) AddContractFilter(qid string, contractAddress string) error {
+func (this *WSClient) AddContractFilter(contractAddress string) error {
 	if this.subStatus.HasContractFilter(contractAddress) {
 		return nil
 	}
 	this.subStatus.AddContractFilter(contractAddress)
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -286,12 +438,12 @@ func (this *WSClient) AddContractFilter(qid string, contractAddress string) erro
 	return nil
 }
 
-func (this *WSClient) DelContractFilter(qid string, contractAddress string) error {
+func (this *WSClient) DelContractFilter(contractAddress string) error {
 	if !this.subStatus.HasContractFilter(contractAddress) {
 		return nil
 	}
 	this.subStatus.DelContractFilter(contractAddress)
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -305,11 +457,11 @@ func (this *WSClient) DelContractFilter(qid string, contractAddress string) erro
 	return nil
 }
 
-func (this *WSClient) SubscribeBlock(qid string) error {
+func (this *WSClient) SubscribeBlock() error {
 	if this.subStatus.SubscribeRawBlock {
 		return nil
 	}
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -323,11 +475,11 @@ func (this *WSClient) SubscribeBlock(qid string) error {
 	return nil
 }
 
-func (this *WSClient) UnsubscribeBlock(qid string) error {
+func (this *WSClient) UnsubscribeBlock() error {
 	if !this.subStatus.SubscribeRawBlock {
 		return nil
 	}
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -341,11 +493,11 @@ func (this *WSClient) UnsubscribeBlock(qid string) error {
 	return nil
 }
 
-func (this *WSClient) SubscribeEvent(qid string) error {
+func (this *WSClient) SubscribeEvent() error {
 	if this.subStatus.SubscribeEvent {
 		return nil
 	}
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           true,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -359,11 +511,11 @@ func (this *WSClient) SubscribeEvent(qid string) error {
 	return nil
 }
 
-func (this *WSClient) UnsubscribeEvent(qid string) error {
+func (this *WSClient) UnsubscribeEvent() error {
 	if !this.subStatus.SubscribeEvent {
 		return nil
 	}
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           false,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -377,11 +529,11 @@ func (this *WSClient) UnsubscribeEvent(qid string) error {
 	return nil
 }
 
-func (this *WSClient) SubscribeTxHash(qid string) error {
+func (this *WSClient) SubscribeTxHash() error {
 	if this.subStatus.SubscribeBlockTxHashes {
 		return nil
 	}
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -395,11 +547,11 @@ func (this *WSClient) SubscribeTxHash(qid string) error {
 	return nil
 }
 
-func (this *WSClient) UnsubscribeTxHash(qid string) error {
+func (this *WSClient) UnsubscribeTxHash() error {
 	if !this.subStatus.SubscribeBlockTxHashes {
 		return nil
 	}
-	_, err := this.sendSyncWSRequest(qid, WS_ACTION_SUBSCRIBE, map[string]interface{}{
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
 		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
 		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
 		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
@@ -411,6 +563,17 @@ func (this *WSClient) UnsubscribeTxHash(qid string) error {
 	}
 	this.subStatus.SubscribeBlockTxHashes = false
 	return nil
+}
+
+func (this *WSClient) reSubscribe() error {
+	_, err := this.sendSyncWSRequest("", WS_ACTION_SUBSCRIBE, map[string]interface{}{
+		WS_SUB_CONTRACT_FILTER: this.subStatus.GetContractFilter(),
+		WS_SUB_EVENT:           this.subStatus.SubscribeEvent,
+		WS_SUB_JSON_BLOCK:      this.subStatus.SubscribeJsonBlock,
+		WS_SUB_RAW_BLOCK:       this.subStatus.SubscribeRawBlock,
+		WS_SUB_BLOCK_TX_HASH:   this.subStatus.SubscribeBlockTxHashes,
+	})
+	return err
 }
 
 func (this *WSClient) getVersion(qid string) ([]byte, error) {
@@ -445,7 +608,9 @@ func (this *WSClient) sendRawTransaction(qid string, tx *types.Transaction, isPr
 	}
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := map[string]interface{}{"Data": txData}
-	params["PreExec"] = "1"
+	if isPreExec {
+		params["PreExec"] = "1"
+	}
 	return this.sendSyncWSRequest(qid, WS_ACTION_SEND_TRANSACTION, params)
 }
 
@@ -501,7 +666,7 @@ func (this *WSClient) getSmartContractEventByBlock(qid string, blockHeight uint3
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HEIGHT, map[string]interface{}{"Height": blockHeight})
 }
 
-func (this *WSClient) getActionCh() chan *WSAction {
+func (this *WSClient) GetActionCh() chan *WSAction {
 	return this.actionCh
 }
 
@@ -520,6 +685,9 @@ func (this *WSClient) sendAsyncRawTransaction(qid string, tx *types.Transaction,
 }
 
 func (this *WSClient) sendSyncWSRequest(qid, action string, params map[string]interface{}) ([]byte, error) {
+	if qid == "" {
+		qid = strconv.Itoa(int(rand.Int31()))
+	}
 	wsReq, err := this.sendAsyncWSRequest(qid, action, params)
 	if err != nil {
 		return nil, err
@@ -558,7 +726,11 @@ func (this *WSClient) sendAsyncWSRequest(qid, action string, params map[string]i
 		ResCh:  make(chan *WSResponse, 1),
 	}
 	this.addReq(wsReq)
-	err = this.ws.Send(data)
+	ws := this.getWsClient()
+	if ws == nil {
+		return nil, fmt.Errorf("ws client is nil")
+	}
+	err = ws.Send(data)
 	if err != nil {
 		this.delReq(wsReq.Id)
 		return nil, fmt.Errorf("send error:%s", err)
@@ -595,10 +767,25 @@ func (this *WSClient) getReq(id string) *WSRequest {
 
 func (this *WSClient) sendHeartbeat() {
 	this.sendSyncWSRequest("", WS_ACTION_HEARBEAT, nil)
-	this.updateLastHeartbeatTime()
+}
+
+func (this *WSClient) setWsClient(ws *utils.WebSocketClient) {
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.ws = ws
+}
+
+func (this *WSClient) getWsClient() *utils.WebSocketClient {
+	this.lock.RLock()
+	defer this.lock.RUnlock()
+	return this.ws
 }
 
 func (this *WSClient) Close() error {
 	close(this.exitCh)
-	return this.ws.Close()
+	ws := this.getWsClient()
+	if ws != nil {
+		return ws.Close()
+	}
+	return nil
 }

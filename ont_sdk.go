@@ -29,7 +29,12 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"math/rand"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 //OntologySdk is the main struct for user
 type OntologySdk struct {
