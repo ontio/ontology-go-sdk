@@ -45,6 +45,7 @@ func NewWallet(path string) *Wallet {
 		Scrypt:           keypair.GetScryptParameters(),
 		accounts:         make([]*AccountData, 0),
 		accAddressMap:    make(map[string]*AccountData),
+		accLabelMap:      make(map[string]*AccountData),
 		identities:       make([]*Identity, 0),
 		identityMap:      make(map[string]*Identity),
 		identityLabelMap: make(map[string]*Identity),

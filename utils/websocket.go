@@ -55,7 +55,9 @@ func (this *WebSocketClient) Connect(addr string) (err error) {
 	if err != nil {
 		return err
 	}
-	this.OnConnect(this.addr)
+	if this.OnConnect != nil {
+		this.OnConnect(this.addr)
+	}
 	this.status = true
 	go this.doRecv()
 	return nil
@@ -76,13 +78,14 @@ func (this *WebSocketClient) doRecv() {
 	for {
 		_, data, err := this.conn.ReadMessage()
 		if err != nil {
-			if this.Status() {
+			if this.Status() && this.OnError != nil {
 				this.OnError(this.addr, fmt.Errorf("ReadMessage error:%s", err))
 			}
 			return
 		}
-
-		this.OnMessage(data)
+		if this.OnMessage != nil {
+			this.OnMessage(data)
+		}
 	}
 }
 
@@ -103,6 +106,8 @@ func (this *WebSocketClient) Close() error {
 	}
 	this.status = false
 	close(this.existCh)
-	this.OnClose(this.addr)
+	if this.OnClose != nil {
+		this.OnClose(this.addr)
+	}
 	return this.conn.Close()
 }
