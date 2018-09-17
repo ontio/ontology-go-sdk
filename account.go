@@ -165,6 +165,7 @@ func (this *AccountData) Clone() *AccountData {
 		SigSch:    this.SigSch,
 		IsDefault: this.IsDefault,
 		Lock:      this.Lock,
+		scrypt:    this.scrypt,
 	}
 	accData.SetKeyPair(this.GetKeyPair())
 	return accData
