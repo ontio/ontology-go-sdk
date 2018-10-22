@@ -64,7 +64,7 @@ func GetContractAddress(contractCode string) (common.Address, error) {
 	if err != nil {
 		return common.ADDRESS_EMPTY, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	return types.AddressFromVmCode(code), nil
+	return common.AddressFromVmCode(code), nil
 }
 
 func GetAssetAddress(asset string) (common.Address, error) {
