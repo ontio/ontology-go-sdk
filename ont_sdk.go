@@ -41,6 +41,7 @@ type OntologySdk struct {
 	client.ClientMgr
 	Native *NativeContract
 	NeoVM  *NeoVMContract
+	WasmVM *WasmVMContract
 }
 
 //NewOntologySdk return OntologySdk.
@@ -50,6 +51,8 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
+	wasmVM :=newWasmVMContract(ontSdk)
+	ontSdk.WasmVM = wasmVM
 	return ontSdk
 }
 
