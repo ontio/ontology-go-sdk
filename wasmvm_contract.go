@@ -17,6 +17,7 @@ import (
 	"encoding/binary"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
 	"github.com/ontio/ontology/smartcontract/states"
+	"github.com/ontio/ontology/core/utils"
 )
 
 type WasmVMContract struct{
@@ -194,10 +195,66 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	contract.Args = argbytes
 	bf := bytes.NewBuffer(nil)
 	contract.Serialize(bf)
-	tx :=  this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, bf.Bytes())
+
+	txStruct := utils.TxStruct{}
+	txStruct.Address = contract.Address[:]
+	txStruct.Version = int(contract.Version)
+	txStruct.Method = []byte(contract.Method)
+	txStruct.Args = bf.Bytes()
+
+	bs, err:= json.Marshal(txStruct)
+	if err != nil{
+		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
+
+	}
+
+	tx :=  this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, bs)
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.Uint256{}, nil
 	}
 	return this.ontSdk.SendTransaction(tx)
 }
+
+func (this *WasmVMContract) PreExecInvokeNeoVMContract(
+	contractAddress common.Address,
+	methodName string,
+	paramType wasmvm.ParamType,
+	version byte,
+	params []interface{}) (*sdkcom.PreExecResult, error) {
+
+
+	contract := &states.ContractInvokeParam{}
+	contract.Address = contractAddress
+	contract.Method = methodName
+	contract.Version = version
+
+	argbytes, err := buildWasmContractParam(params, paramType)
+
+	if err != nil {
+		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
+	}
+	contract.Args = argbytes
+	bf := bytes.NewBuffer(nil)
+	contract.Serialize(bf)
+
+	txStruct := utils.TxStruct{}
+	txStruct.Address = contract.Address[:]
+	txStruct.Version = int(contract.Version)
+	txStruct.Method = []byte(contract.Method)
+	txStruct.Args = bf.Bytes()
+
+	bs, err:= json.Marshal(txStruct)
+	if err != nil{
+		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
+
+	}
+
+
+	tx := this.ontSdk.NewInvokeTransaction(0, 0,  bs)
+	if err != nil {
+		return nil, err
+	}
+	return this.ontSdk.PreExecTransaction(tx)
+}
+
