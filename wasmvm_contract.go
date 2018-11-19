@@ -202,10 +202,15 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	txStruct.Method = []byte(contract.Method)
 	txStruct.Args = bf.Bytes()
 
-	bs, err:= json.Marshal(txStruct)
+	//bs, err:= json.Marshal(txStruct)
+	//if err != nil{
+	//	return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
+	//
+	//}
+
+	bs, err:= txStruct.Serialize()
 	if err != nil{
 		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
-
 	}
 
 	tx :=  this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, bs)
@@ -244,10 +249,15 @@ func (this *WasmVMContract) PreExecInvokeNeoVMContract(
 	txStruct.Method = []byte(contract.Method)
 	txStruct.Args = bf.Bytes()
 
-	bs, err:= json.Marshal(txStruct)
+	//bs, err:= json.Marshal(txStruct)
+	//if err != nil{
+	//	return nil, fmt.Errorf("build wasm contract param failed:%s", err)
+	//
+	//}
+
+	bs, err:= txStruct.Serialize()
 	if err != nil{
 		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
-
 	}
 
 
