@@ -10,7 +10,7 @@ import (
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/serialization"
 	"github.com/ontio/ontology/core/types"
-	httpcom "github.com/ontio/ontology/http/base/common"
+	cutils "github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/smartcontract/service/native/global_params"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 )
@@ -67,7 +67,7 @@ func (this *NativeContract) NewNativeInvokeTransaction(
 	if len(params) == 0 {
 		params = append(params, "")
 	}
-	invokeCode, err := httpcom.BuildNativeInvokeCode(contractAddress, version, method, params)
+	invokeCode, err := cutils.BuildNativeInvokeCode(contractAddress, version, method, params)
 	if err != nil {
 		return nil, fmt.Errorf("BuildNativeInvokeCode error:%s", err)
 	}
