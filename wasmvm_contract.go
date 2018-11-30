@@ -1,23 +1,22 @@
 package ontology_go_sdk
 
 import (
-	"github.com/ontio/ontology/core/types"
-	"github.com/ontio/ontology/core/payload"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-
 	"time"
 	"encoding/hex"
 	"github.com/ontio/ontology/common"
 	"fmt"
-	"github.com/ontio/ontology/common/serialization"
-	"github.com/ontio/ontology/smartcontract/service/wasmvm"
 	"bytes"
 	"strconv"
 	"encoding/json"
 	"encoding/binary"
+
+	"github.com/ontio/ontology/common/serialization"
+	"github.com/ontio/ontology/smartcontract/service/wasmvm"
 	"github.com/ontio/ontology/vm/wasmvm/exec"
 	"github.com/ontio/ontology/smartcontract/states"
-	"github.com/ontio/ontology/core/utils"
+	"github.com/ontio/ontology/core/types"
+	"github.com/ontio/ontology/core/payload"
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
 )
 
 type WasmVMContract struct{
@@ -29,6 +28,65 @@ func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract{
 		ontSdk: ontSdk,
 	}
 }
+
+type TxStruct struct {
+	Address []byte `json:"address"`
+	Method  []byte `json:"method"`
+	Version int    `json:"version"`
+	Args    []byte `json:"args"`
+}
+
+func (txs *TxStruct) Serialize() ([]byte, error) {
+	buffer := bytes.NewBuffer([]byte{})
+	err := serialization.WriteVarBytes(buffer, txs.Address)
+	if err != nil {
+		return nil, err
+	}
+	err = serialization.WriteVarBytes(buffer, txs.Method)
+	if err != nil {
+		return nil, err
+	}
+	err = serialization.WriteUint32(buffer, uint32(txs.Version))
+	if err != nil {
+		return nil, err
+	}
+	err = serialization.WriteVarBytes(buffer, txs.Args)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func (txs *TxStruct) Deserialize(data []byte) error {
+
+	buffer := bytes.NewBuffer(data)
+	address, err := serialization.ReadVarBytes(buffer)
+	if err != nil {
+		return err
+	}
+
+	method, err := serialization.ReadVarBytes(buffer)
+	if err != nil {
+		return err
+	}
+	version, err := serialization.ReadUint32(buffer)
+	if err != nil {
+		return err
+	}
+
+	args, err := serialization.ReadVarBytes(buffer)
+	if err != nil {
+		return err
+	}
+
+	txs.Args = args
+	txs.Version = int(version)
+	txs.Method = method
+	txs.Address = address
+
+	return nil
+}
+
 
 func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
@@ -196,7 +254,7 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	bf := bytes.NewBuffer(nil)
 	contract.Serialize(bf)
 
-	txStruct := utils.TxStruct{}
+	txStruct := TxStruct{}
 	txStruct.Address = contract.Address[:]
 	txStruct.Version = int(contract.Version)
 	txStruct.Method = []byte(contract.Method)
@@ -243,7 +301,7 @@ func (this *WasmVMContract) PreExecInvokeNeoVMContract(
 	bf := bytes.NewBuffer(nil)
 	contract.Serialize(bf)
 
-	txStruct := utils.TxStruct{}
+	txStruct := TxStruct{}
 	txStruct.Address = contract.Address[:]
 	txStruct.Version = int(contract.Version)
 	txStruct.Method = []byte(contract.Method)
