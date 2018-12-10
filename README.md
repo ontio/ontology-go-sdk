@@ -1,14 +1,14 @@
 # Go SDK For Ontology
 
 * [Go SDK For Ontology](#go-sdk-for-ontology)
-	* [1、Overview](#1-overview)
-	* [2、How to use?](#2-how-to-use)
+	* [1. Overview](#1-overview)
+	* [2. How to use?](#2-how-to-use)
 		* [2.1 Block Chain API](#21-block-chain-api)
 			* [2.1.1 Get current block height](#211-get-current-block-height)
 			* [2.1.2 Get current block hash](#212-get-current-block-hash)
 			* [2.1.3 Get block by height](#213-get-block-by-height)
 			* [2.1.4 Get block by hash](#214-get-block-by-hash)
-			* [2.1.5 Get transaction by transactiom hash](#215-get-transaction-by-transactiom-hash)
+			* [2.1.5 Get transaction by transaction hash](#215-get-transaction-by-transaction-hash)
 			* [2.1.6 Get block hash by block height](#216-get-block-hash-by-block-height)
 			* [2.1.7 Get block height by transaction hash](#217-get-block-height-by-transaction-hash)
 			* [2.1.8 Get transaction hashes of block by block height](#218-get-transaction-hashes-of-block-by-block-height)
@@ -33,7 +33,7 @@
 			* [2.2.5 Get default account](#225-get-default-account)
 			* [2.2.6 Set default account](#226-set-default-account)
 			* [2.2.7 Get account by address](#227-get-account-by-address)
-			* [2.2.8 Get account by lable](#228-get-account-by-lable)
+			* [2.2.8 Get account by label](#228-get-account-by-label)
 			* [2.2.9 Get account by index](#229-get-account-by-index)
 			* [2.2.10 Get account count of wallet](#2210-get-account-count-of-wallet)
 			* [2.2.11 Get default account data](#2211-get-default-account-data)
@@ -48,14 +48,14 @@
 		* [2.3 ONT Contract API](#23-ont-contract-api)
 			* [2.3.1 Get balance](#231-get-balance)
 			* [2.3.2 Transfer](#232-transfer)
-			* [2.3.3 Multipe Transfer](#233-multipe-transfer)
+			* [2.3.3 Multiple Transfer](#233-multiple-transfer)
 			* [2.3.4 Approve](#234-approve)
 			* [2.3.5 Approve Balance](#235-approve-balance)
 			* [2.3.6 TransferFrom](#236-transferfrom)
 		* [2.4 ONG Contract API](#24-ong-contract-api)
 			* [2.4.1 Get balance](#241-get-balance)
 			* [2.4.2 Transfer](#242-transfer)
-			* [2.4.3 Multipe Transfer](#243-multipe-transfer)
+			* [2.4.3 Multiple Transfer](#243-multiple-transfer)
 			* [2.4.4 Approve](#244-approve)
 			* [2.4.5 Approve Balance](#245-approve-balance)
 			* [2.4.6 TransferFrom](#246-transferfrom)
@@ -65,20 +65,24 @@
 	* [Website](#website)
 	* [License](#license)
 
-## 1、Overview
-This is a comprehensive Go library for the Ontology blockchain. Currently, it supports local wallet management, digital asset management,  deployment and invoke for Smart Contract , and communication with Ontology Blockchain. The future will also support more rich functions and applications .
+## 1. Overview
+This is a comprehensive Go library for the Ontology blockchain. Currently, it supports local wallet management, digital asset management,  deployment/invoking of smart contracts and communication with the Ontology Blockchain. In the future it will also support more rich functions and applications.
 
-## 2、How to use?
+## 2. How to use?
 
-First of all, Create OntologySDK instance by NewOntologySdk method.
+First, create an `OntologySDK` instance with the `NewOntologySdk` method.
 
-`ontSdk := NewOntologySdk()`
+```
+ontSdk := NewOntologySdk()
+```
 
-Then, create rpc, rest or websocket client.
+Next, create an rpc, rest or websocket client.
 
-`ontSdk.NewRpcClient().SetAddress("http://localhost:20336")`
+```
+ontSdk.NewRpcClient().SetAddress("http://localhost:20336")
+```
 
-Then, call rpc server through sdk instance.
+Then, call the rpc server through the sdk instance.
 
 
 ### 2.1 Block Chain API
@@ -107,7 +111,7 @@ ontSdk.GetBlockByHeight(height uint32) (*types.Block, error)
 ontSdk.GetBlockByHash(blockHash string) (*types.Block, error)
 ```
 
-#### 2.1.5 Get transaction by transactiom hash
+#### 2.1.5 Get transaction by transaction hash
 
 ```
 ontSdk.GetTransaction(txHash string) (*types.Transaction, error)
@@ -205,14 +209,14 @@ ontSdk.PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResul
 wa, err := OpenWallet(path string) (*Wallet, error)
 ```
 
-If wallet file of path exist, open wallet, or create new wallet.
+If the path is for an existing wallet file, then open the wallet, otherwise create a new wallet.
 
 #### 2.2.2 Save Wallet
 
 ```
 wa.Save() error
 ```
-Note that any modify of wallet need call Save() method to presist to wallet file.
+Note that any modifications of the wallet require calling `Save()` in order for the changes to persist.
 
 #### 2.2.3 New account
 
@@ -220,11 +224,11 @@ Note that any modify of wallet need call Save() method to presist to wallet file
 wa.NewAccount(keyType keypair.KeyType, curveCode byte, sigScheme s.SignatureScheme, passwd []byte) (*Account, error)
 ```
 
-Ontology support three type of key: ecdsa, sm2 and ed25519, and support 224、256、384、521 bits length of key in ecdsa, but only support 256 bits length of key in sm2 and ed25519.
+Ontology supports three type of keys: ecdsa, sm2 and ed25519, and support 224, 256, 384, 521 bits length of key in ecdsa, but only support 256 bits length of key in sm2 and ed25519.
 
 Ontology support multiple signature scheme.
 
-For ECDSA support SHA224withECDSA、SHA256withECDSA、SHA384withECDSA、SHA512withEdDSA、SHA3-224withECDSA、SHA3-256withECDSA、SHA3-384withECDSA、SHA3-512withECDSA、RIPEMD160withECDSA;
+For ECDSA support SHA224withECDSA, SHA256withECDSA, SHA384withECDSA, SHA512withEdDSA, SHA3-224withECDSA, SHA3-256withECDSA, SHA3-384withECDSA, SHA3-512withECDSA, RIPEMD160withECDSA;
 
 For SM2 support SM3withSM2, and for SHA512withEdDSA.
 
@@ -234,7 +238,7 @@ For SM2 support SM3withSM2, and for SHA512withEdDSA.
 wa.NewDefaultSettingAccount(passwd []byte) (*Account, error)
 ```
 
-Default setting account using ECDSA with SHA256withECDSA as signature scheme.
+The default settings for an account uses ECDSA with SHA256withECDSA as signature scheme.
 
 #### 2.2.5 New account from wif private key
 
@@ -266,7 +270,7 @@ wa.SetDefaultAccount(address string) error
 wa.GetAccountByAddress(address string, passwd []byte) (*Account, error)
 ```
 
-#### 2.2.8 Get account by lable
+#### 2.2.8 Get account by label
 
 ```
 wa.GetAccountByLabel(label string, passwd []byte) (*Account, error)
@@ -277,7 +281,7 @@ wa.GetAccountByLabel(label string, passwd []byte) (*Account, error)
 ```
 wa.GetAccountByIndex(index int, passwd []byte) (*Account, error)
 ```
-Note that index start from 1.
+Note that indexes start from 1.
 
 #### 2.2.10 Get account count of wallet
 
@@ -308,7 +312,7 @@ wa.GetAccountDataByLabel(label string) (*AccountData, error)
 ```
 wa.GetAccountDataByIndex(index int) (*AccountData, error)
 ```
-Note that index start from 1.
+Note that indexes start from 1.
 
 #### 2.2.15 Set account label
 
@@ -356,13 +360,13 @@ ontSdk.Native.Ont.BalanceOf(address common.Address) (uint64, error)
 ontSdk.Native.Ont.Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
 ```
 
-#### 2.3.3 Multipe Transfer
+#### 2.3.3 Multiple Transfer
 
 ```
 ontSdk.Native.Ont.MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error)
 ```
 
-Multipe transfer means do more than one transfers ONT in one transaction.
+A multi transfer does more than one transfer of ONT in one transaction.
 
 #### 2.3.4 Approve
 
@@ -397,13 +401,13 @@ ontSdk.Native.Ong.BalanceOf(address common.Address) (uint64, error)
 ontSdk.Native.Ong.Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
 ```
 
-#### 2.4.3 Multipe Transfer
+#### 2.4.3 Multiple Transfer
 
 ```
 ontSdk.Native.Ong.MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error)
 ```
 
-Multipe transfer means do more than one transfers ONT in one transaction.
+A multi transfer does more than one transfer of ONG in one transaction.
 
 #### 2.4.4 Approve
 
@@ -437,35 +441,35 @@ ontSdk.Native.Ong.UnboundONG(address common.Address) (uint64, error)
 
 # Contributing
 
-Can I contribute patches to Ontology project?
+Can I contribute patches to the Ontology project?
 
-Yes! Please open a pull request with signed-off commits. We appreciate your help!
+Yes! We appreciate your help!
+
+Please open a pull request with signed-off commits. This means adding a line that
+says "Signed-off-by: Name <email>" at the end of each commit, indicating that you
+wrote the code and have the right to pass it on as an open source patch.
+If you don't sign off your patches, we will not accept them.
 
 You can also send your patches as emails to the developer mailing list.
 Please join the Ontology mailing list or forum and talk to us about it.
 
-Either way, if you don't sign off your patches, we will not accept them.
-This means adding a line that says "Signed-off-by: Name <email>" at the
-end of each commit, indicating that you wrote the code and have the right
-to pass it on as an open source patch.
-
-Also, please write good git commit messages.  A good commit message
+Also, please write good git commit messages. A good commit message
 looks like this:
 
-  Header line: explain the commit in one line (use the imperative)
+  Header line: explain the commit in one line
 
-  Body of commit message is a few lines of text, explaining things
+  The body of the commit message should be a few lines of text, explaining things
   in more detail, possibly giving some background about the issue
-  being fixed, etc etc.
+  being fixed, etc.
 
-  The body of the commit message can be several paragraphs, and
-  please do proper word-wrap and keep columns shorter than about
+  The body of the commit message can be several paragraphs long, and
+  should use proper word-wrapping and keep the columns shorter than about
   74 characters or so. That way "git log" will show things
   nicely even when it's indented.
 
   Make sure you explain your solution and why you're doing what you're
-  doing, as opposed to describing what you're doing. Reviewers and your
-  future self can read the patch, but might not understand why a
+  doing, and not just what you're doing. Reviewers (and your
+  future self) can read the patch, but might not understand why a
   particular solution was implemented.
 
   Reported-by: whoever-reported-it
@@ -477,5 +481,4 @@ looks like this:
 
 ## License
 
-The Ontology library (i.e. all code outside of the cmd directory) is licensed under the GNU Lesser General Public License v3.0, also included in our repository in the License file.
-
+The Ontology library (i.e. all of the code outside of the cmd directory) is licensed under the GNU Lesser General Public License v3.0, also included in our repository in the License file.
