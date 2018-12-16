@@ -195,3 +195,11 @@ func (this *OntologySdk) GetMutableTx(rawTx string) (*types.MutableTransaction, 
 	}
 	return mutTx, nil
 }
+
+func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
+	addr, err := types.AddressFromMultiPubKeys(pubkeys, m)
+	if err != nil {
+		return "", fmt.Errorf("GetMultiAddrs error:%s", err)
+	}
+	return addr.ToBase58(), nil
+}
