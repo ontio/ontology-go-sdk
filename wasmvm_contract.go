@@ -1,29 +1,29 @@
 package ontology_go_sdk
 
 import (
-	"time"
-	"encoding/hex"
-	"github.com/ontio/ontology/common"
-	"fmt"
 	"bytes"
-	"strconv"
-	"encoding/json"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"github.com/ontio/ontology/common"
+	"strconv"
+	"time"
 
-	"github.com/ontio/ontology/common/serialization"
-	"github.com/ontio/ontology/smartcontract/service/wasmvm"
-	"github.com/ontio/ontology/vm/wasmvm/exec"
-	"github.com/ontio/ontology/smartcontract/states"
-	"github.com/ontio/ontology/core/types"
-	"github.com/ontio/ontology/core/payload"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology/common/serialization"
+	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/types"
+	"github.com/ontio/ontology/smartcontract/service/wasmvm"
+	"github.com/ontio/ontology/smartcontract/states"
+	"github.com/ontio/ontology/vm/wasmvm/exec"
 )
 
-type WasmVMContract struct{
+type WasmVMContract struct {
 	ontSdk *OntologySdk
 }
 
-func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract{
+func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract {
 	return &WasmVMContract{
 		ontSdk: ontSdk,
 	}
@@ -86,7 +86,6 @@ func (txs *TxStruct) Deserialize(data []byte) error {
 
 	return nil
 }
-
 
 func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
@@ -231,6 +230,7 @@ func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([
 //paramType  is Json or Raw format
 //version should be greater than 0 (0 is reserved for test)
 func (this *WasmVMContract) InvokeWasmVMSmartContract(
+	sideChainID string,
 	gasPrice,
 	gasLimit uint64,
 	signer *Account,
@@ -266,12 +266,12 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	//
 	//}
 
-	bs, err:= txStruct.Serialize()
-	if err != nil{
+	bs, err := txStruct.Serialize()
+	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
 	}
 
-	tx :=  this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, bs)
+	tx := this.ontSdk.NewInvokeTransaction(sideChainID, gasPrice, gasLimit, bs)
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.Uint256{}, nil
@@ -280,12 +280,12 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 }
 
 func (this *WasmVMContract) PreExecInvokeNeoVMContract(
+	sideChainID string,
 	contractAddress common.Address,
 	methodName string,
 	paramType wasmvm.ParamType,
 	version byte,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
-
 
 	contract := &states.ContractInvokeParam{}
 	contract.Address = contractAddress
@@ -313,16 +313,14 @@ func (this *WasmVMContract) PreExecInvokeNeoVMContract(
 	//
 	//}
 
-	bs, err:= txStruct.Serialize()
-	if err != nil{
+	bs, err := txStruct.Serialize()
+	if err != nil {
 		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
 	}
 
-
-	tx := this.ontSdk.NewInvokeTransaction(0, 0,  bs)
+	tx := this.ontSdk.NewInvokeTransaction(sideChainID, 0, 0, bs)
 	if err != nil {
 		return nil, err
 	}
 	return this.ontSdk.PreExecTransaction(tx)
 }
-

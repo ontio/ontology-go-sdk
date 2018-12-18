@@ -267,7 +267,7 @@ func (this *ClientMgr) SendTransaction(mutTx *types.MutableTransaction) (common.
 	}
 	tx, err := mutTx.IntoImmutable()
 	if err != nil {
-		return common.UINT256_EMPTY, err
+		return common.UINT256_EMPTY, fmt.Errorf("mutTx.IntoImmutable error:%v ", err)
 	}
 	data, err := client.sendRawTransaction(this.getNextQid(), tx, false)
 	if err != nil {

@@ -21,15 +21,16 @@ package ontology_go_sdk
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-go-sdk/client"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
-	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
-	"math/rand"
-	"time"
+	"github.com/ontio/ontology/core/payload"
 )
 
 func init() {
@@ -51,7 +52,7 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
-	wasmVM :=newWasmVMContract(ontSdk)
+	wasmVM := newWasmVMContract(ontSdk)
 	ontSdk.WasmVM = wasmVM
 	return ontSdk
 }
@@ -70,11 +71,13 @@ func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 }
 
 //NewInvokeTransaction return smart contract invoke transaction
-func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
+func (this *OntologySdk) NewInvokeTransaction(sideChainID string, gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
 	tx := &types.MutableTransaction{
+		SideChainID: sideChainID,
+		Version: types.TX_VERSION,
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
 		TxType:   types.Invoke,
