@@ -203,3 +203,8 @@ func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (strin
 	}
 	return addr.ToBase58(), nil
 }
+
+func (this *OntologySdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
+	address := types.AddressFromPubKey(pubKey)
+	return address.ToBase58()
+}
