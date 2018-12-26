@@ -20,16 +20,19 @@
 package ontology_go_sdk
 
 import (
+	"encoding/hex"
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-go-sdk/client"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
+	sign "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
-	"math/rand"
-	"time"
 )
 
 func init() {
@@ -161,4 +164,47 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m 
 		})
 	}
 	return nil
+}
+
+func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error) {
+	txData, err := tx.IntoImmutable()
+	if err != nil {
+		return "", fmt.Errorf("IntoImmutable error:%s", err)
+	}
+	sink := sign.ZeroCopySink{}
+	err = txData.Serialization(&sink)
+	if err != nil {
+		return "", fmt.Errorf("tx serialization error:%s", err)
+	}
+	rawtx := hex.EncodeToString(sink.Bytes())
+	return rawtx, nil
+}
+
+func (this *OntologySdk) GetMutableTx(rawTx string) (*types.MutableTransaction, error) {
+	txData, err := hex.DecodeString(rawTx)
+	if err != nil {
+		return nil, fmt.Errorf("RawTx hex decode error:%s", err)
+	}
+	tx, err := types.TransactionFromRawBytes(txData)
+	if err != nil {
+		return nil, fmt.Errorf("TransactionFromRawBytes error:%s", err)
+	}
+	mutTx, err := tx.IntoMutable()
+	if err != nil {
+		return nil, fmt.Errorf("[ONT]IntoMutable error:%s", err)
+	}
+	return mutTx, nil
+}
+
+func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
+	addr, err := types.AddressFromMultiPubKeys(pubkeys, m)
+	if err != nil {
+		return "", fmt.Errorf("GetMultiAddrs error:%s", err)
+	}
+	return addr.ToBase58(), nil
+}
+
+func (this *OntologySdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
+	address := types.AddressFromPubKey(pubKey)
+	return address.ToBase58()
 }
