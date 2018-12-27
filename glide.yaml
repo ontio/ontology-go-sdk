@@ -3,12 +3,12 @@ import:
 - package: github.com/gorilla/websocket
   version: ^1.2.0
 - package: github.com/ontio/ontology-crypto
-  version: ^1.0.1
+  version: ^1.0.4
   subpackages:
   - keypair
   - signature
 - package: github.com/ontio/ontology
-  version: ^1.0.1
+  version: ^1.5.2
   subpackages:
   - account
   - common
