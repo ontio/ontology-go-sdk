@@ -21,14 +21,13 @@ package utils
 import (
 	"encoding/hex"
 	"fmt"
+	"os"
+	"sort"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/signature"
 	"github.com/ontio/ontology/core/types"
-	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
-	"os"
-	"sort"
-	"strings"
 )
 
 func TransactionFromHexString(rawTx string) (*types.Transaction, error) {
@@ -65,19 +64,6 @@ func GetContractAddress(contractCode string) (common.Address, error) {
 		return common.ADDRESS_EMPTY, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
 	return common.AddressFromVmCode(code), nil
-}
-
-func GetAssetAddress(asset string) (common.Address, error) {
-	var contractAddress common.Address
-	switch strings.ToUpper(asset) {
-	case "ONT":
-		contractAddress = nvutils.OntContractAddress
-	case "ONG":
-		contractAddress = nvutils.OngContractAddress
-	default:
-		return common.ADDRESS_EMPTY, fmt.Errorf("asset:%s not equal ont or ong", asset)
-	}
-	return contractAddress, nil
 }
 
 //IsFileExist return is file is exist

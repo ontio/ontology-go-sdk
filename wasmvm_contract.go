@@ -230,7 +230,7 @@ func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([
 //paramType  is Json or Raw format
 //version should be greater than 0 (0 is reserved for test)
 func (this *WasmVMContract) InvokeWasmVMSmartContract(
-	sideChainID string,
+	sideChainID uint32,
 	gasPrice,
 	gasLimit uint64,
 	signer *Account,
@@ -280,7 +280,7 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 }
 
 func (this *WasmVMContract) PreExecInvokeNeoVMContract(
-	sideChainID string,
+	sideChainID uint32,
 	contractAddress common.Address,
 	methodName string,
 	paramType wasmvm.ParamType,
