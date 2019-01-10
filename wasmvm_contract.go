@@ -87,7 +87,7 @@ func (txs *TxStruct) Deserialize(data []byte) error {
 	return nil
 }
 
-func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
+func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(sideChainID uint32, gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
 		Code:        contract.Code,
 		NeedStorage: contract.NeedStorage,
@@ -99,6 +99,7 @@ func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit ui
 	}
 	tx := &types.MutableTransaction{
 		Version:  sdkcom.VERSION_TRANSACTION,
+		SideChainID: sideChainID,
 		TxType:   types.Deploy,
 		Nonce:    uint32(time.Now().Unix()),
 		Payload:  deployPayload,
@@ -111,6 +112,7 @@ func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit ui
 
 //DeploySmartContract Deploy smart contract to ontology
 func (this *WasmVMContract) DeployWasmVMSmartContract(
+	sideChainID uint32,
 	gasPrice,
 	gasLimit uint64,
 	singer *Account,
@@ -126,7 +128,7 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
 	}
-	tx := this.NewDeployWasmVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
+	tx := this.NewDeployWasmVMCodeTransaction(sideChainID, gasPrice, gasLimit, &sdkcom.SmartContract{
 		Code:        invokeCode,
 		NeedStorage: needStorage,
 		Name:        name,

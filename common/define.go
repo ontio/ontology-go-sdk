@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	VERSION_TRANSACTION = byte(0)
+	VERSION_TRANSACTION = byte(1)
 )
 
 const (
