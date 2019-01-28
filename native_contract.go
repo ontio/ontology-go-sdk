@@ -97,6 +97,28 @@ func (this *NativeContract) InvokeNativeContract(
 	return this.ontSdk.SendTransaction(tx)
 }
 
+func (this *NativeContract) InvokeShardNativeContract(
+	shardID,
+	gasPrice,
+	gasLimit uint64,
+	singer *Account,
+	version byte,
+	contractAddress common.Address,
+	method string,
+	params []interface{},
+) (common.Uint256, error) {
+	tx, err := this.NewNativeInvokeTransaction(gasPrice, gasLimit, version, contractAddress, method, params)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	tx.ShardID = shardID
+	err = this.ontSdk.SignToTransaction(tx, singer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
 func (this *NativeContract) PreExecInvokeNativeContract(
 	contractAddress common.Address,
 	version byte,
