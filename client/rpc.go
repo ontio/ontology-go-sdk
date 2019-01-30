@@ -121,6 +121,11 @@ func (this *RpcClient) getStorage(qid, contractAddress string, key []byte) ([]by
 	return this.sendRpcRequest(qid, RPC_GET_STORAGE, []interface{}{contractAddress, hex.EncodeToString(key)})
 }
 
+func (this *RpcClient) getShardStorage(shardID uint64, qid, contractAddress string, key []byte) ([]byte, error) {
+	return this.sendRpcRequest(qid, RPC_GET_SHARD_STORAGE,
+		[]interface{}{fmt.Sprintf("%d", shardID), contractAddress, hex.EncodeToString(key)})
+}
+
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
 func (this *RpcClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT_EVENT, []interface{}{txHash})

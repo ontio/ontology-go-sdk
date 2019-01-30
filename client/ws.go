@@ -654,6 +654,16 @@ func (this *WSClient) getStorage(qid, contractAddress string, key []byte) ([]byt
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_STORAGE, map[string]interface{}{"Hash": contractAddress, "Key": hex.EncodeToString(key)})
 }
 
+func (this *WSClient) getShardStorage(shardID uint64, qid, contractAddress string, key []byte) ([]byte, error) {
+	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SHARD_STORAGE,
+		map[string]interface{}{
+			"ShardID": shardID,
+			"Hash":    contractAddress,
+			"Key":     hex.EncodeToString(key),
+		},
+	)
+}
+
 func (this *WSClient) getSmartContract(qid, contractAddress string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_CONTRACT, map[string]interface{}{"Hash": contractAddress, "Raw": "1"})
 }

@@ -131,6 +131,11 @@ func (this *RestClient) getStorage(qid, contractAddress string, key []byte) ([]b
 	return this.sendRestGetRequest(reqPath)
 }
 
+func (this *RestClient) getShardStorage(shardID uint64, qid, contractAddress string, key []byte) ([]byte, error) {
+	reqPath := GET_SHARD_STORAGE + "/" + fmt.Sprintf("%d", shardID) + "/" + contractAddress + "/" + hex.EncodeToString(key)
+	return this.sendRestGetRequest(reqPath)
+}
+
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
 func (this *RestClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	reqPath := GET_SMTCOCE_EVTS + txHash

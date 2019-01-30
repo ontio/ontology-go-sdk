@@ -171,6 +171,18 @@ func (this *ClientMgr) GetStorage(contractAddress string, key []byte) ([]byte, e
 	return utils.GetStorage(data)
 }
 
+func (this *ClientMgr) GetShardStorage(shardID uint64, contractAddress string, key []byte) ([]byte, error) {
+	client := this.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getShardStorage(shardID, this.getNextQid(), contractAddress, key)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetStorage(data)
+}
+
 func (this *ClientMgr) GetSmartContract(contractAddress string) (*sdkcom.SmartContract, error) {
 	client := this.getClient()
 	if client == nil {
