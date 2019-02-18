@@ -188,12 +188,12 @@ func (this *ClientMgr) GetSmartContractEvent(txHash string) (*sdkcom.SmartContac
 	return utils.GetSmartContractEvent(data)
 }
 
-func (this *ClientMgr) GetSmartContractEventByBlock(height uint32) ([]*sdkcom.SmartContactEvent, error) {
+func (this *ClientMgr) GetSmartContractEventByHeight(height uint32) ([]*sdkcom.SmartContactEvent, error) {
 	client := this.getClient()
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
 	}
-	data, err := client.getSmartContractEventByBlock(this.getNextQid(), height)
+	data, err := client.getSmartContractEventByHeight(this.getNextQid(), height)
 	if err != nil {
 		return nil, err
 	}

@@ -122,7 +122,7 @@ func (this *RpcClient) getSmartContractEvent(qid, txHash string) ([]byte, error)
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT_EVENT, []interface{}{txHash})
 }
 
-func (this *RpcClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
+func (this *RpcClient) getSmartContractEventByHeight(qid string, blockHeight uint32) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT_EVENT, []interface{}{blockHeight})
 }
 
