@@ -6,13 +6,9 @@ import (
 	"github.com/ontio/ontology/common"
 	"fmt"
 	"bytes"
-	"strconv"
-	"encoding/json"
 	"encoding/binary"
 
 	"github.com/ontio/ontology/common/serialization"
-	"github.com/ontio/ontology/smartcontract/service/wasmvm"
-	"github.com/ontio/ontology/vm/wasmvm/exec"
 	"github.com/ontio/ontology/smartcontract/states"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/core/payload"
@@ -115,7 +111,7 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
 	singer *Account,
-	needStorage bool,
+	needStorage byte,
 	code,
 	name,
 	version,
@@ -149,81 +145,36 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 
 //for wasm vm
 //build param bytes for wasm contract
-func buildWasmContractParam(params []interface{}, paramType wasmvm.ParamType) ([]byte, error) {
-	switch paramType {
-	case wasmvm.Json:
-		args := make([]exec.Param, len(params))
+func buildWasmContractParam(params []interface{}) ([]byte, error) {
+	bf := bytes.NewBuffer(nil)
+	for _, param := range params {
+		switch param.(type) {
+		case string:
+			tmp := bytes.NewBuffer(nil)
+			serialization.WriteString(tmp, param.(string))
+			bf.Write(tmp.Bytes())
 
-		for i, param := range params {
-			switch param.(type) {
-			case string:
-				arg := exec.Param{Ptype: "string", Pval: param.(string)}
-				args[i] = arg
-			case int:
-				arg := exec.Param{Ptype: "int", Pval: strconv.Itoa(param.(int))}
-				args[i] = arg
-			case int64:
-				arg := exec.Param{Ptype: "int64", Pval: strconv.FormatInt(param.(int64), 10)}
-				args[i] = arg
-			case []int:
-				bf := bytes.NewBuffer(nil)
-				array := param.([]int)
-				for i, tmp := range array {
-					bf.WriteString(strconv.Itoa(tmp))
-					if i != len(array)-1 {
-						bf.WriteString(",")
-					}
-				}
-				arg := exec.Param{Ptype: "int_array", Pval: bf.String()}
-				args[i] = arg
-			case []int64:
-				bf := bytes.NewBuffer(nil)
-				array := param.([]int64)
-				for i, tmp := range array {
-					bf.WriteString(strconv.FormatInt(tmp, 10))
-					if i != len(array)-1 {
-						bf.WriteString(",")
-					}
-				}
-				arg := exec.Param{Ptype: "int_array", Pval: bf.String()}
-				args[i] = arg
-			default:
-				return nil, fmt.Errorf("not a supported type :%v\n", param)
-			}
+		case int:
+			tmpBytes := make([]byte, 4)
+			binary.LittleEndian.PutUint32(tmpBytes, uint32(param.(int)))
+			bf.Write(tmpBytes)
+
+		case int64:
+			tmpBytes := make([]byte, 8)
+			binary.LittleEndian.PutUint64(tmpBytes, uint64(param.(int64)))
+			bf.Write(tmpBytes)
+
+		case []byte:
+			tmp := bytes.NewBuffer(nil)
+			serialization.WriteVarBytes(tmp,param.([]byte))
+			bf.Write(tmp.Bytes())
+
+		default:
+			return nil, fmt.Errorf("not a supported type :%v\n", param)
 		}
-
-		bs, err := json.Marshal(exec.Args{args})
-		if err != nil {
-			return nil, err
-		}
-		return bs, nil
-	case wasmvm.Raw:
-		bf := bytes.NewBuffer(nil)
-		for _, param := range params {
-			switch param.(type) {
-			case string:
-				tmp := bytes.NewBuffer(nil)
-				serialization.WriteString(tmp, param.(string))
-				bf.Write(tmp.Bytes())
-
-			case int:
-				tmpBytes := make([]byte, 4)
-				binary.LittleEndian.PutUint32(tmpBytes, uint32(param.(int)))
-				bf.Write(tmpBytes)
-
-			case int64:
-				tmpBytes := make([]byte, 8)
-				binary.LittleEndian.PutUint64(tmpBytes, uint64(param.(int64)))
-				bf.Write(tmpBytes)
-
-			default:
-				return nil, fmt.Errorf("not a supported type :%v\n", param)
-			}
-		}
-		return bf.Bytes(), nil
-	default:
-		return nil, fmt.Errorf("unsupported type")
 	}
+	return bf.Bytes(), nil
+
 }
 
 //Invoke wasm smart contract
@@ -236,7 +187,6 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	signer *Account,
 	smartcodeAddress common.Address,
 	methodName string,
-	paramType wasmvm.ParamType,
 	version byte,
 	params []interface{}) (common.Uint256, error) {
 
@@ -245,7 +195,7 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	contract.Method = methodName
 	contract.Version = version
 
-	argbytes, err := buildWasmContractParam(params, paramType)
+	argbytes, err := buildWasmContractParam(params)
 
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
@@ -254,11 +204,11 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	bf := bytes.NewBuffer(nil)
 	contract.Serialize(bf)
 
-	txStruct := TxStruct{}
-	txStruct.Address = contract.Address[:]
-	txStruct.Version = int(contract.Version)
-	txStruct.Method = []byte(contract.Method)
-	txStruct.Args = bf.Bytes()
+	//txStruct := TxStruct{}
+	//txStruct.Address = contract.Address[:]
+	//txStruct.Version = int(contract.Version)
+	//txStruct.Method = []byte(contract.Method)
+	//txStruct.Args = bf.Bytes()
 
 	//bs, err:= json.Marshal(txStruct)
 	//if err != nil{
@@ -266,12 +216,12 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	//
 	//}
 
-	bs, err:= txStruct.Serialize()
-	if err != nil{
-		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
-	}
+	//bs, err:= txStruct.Serialize()
+	//if err != nil{
+	//	return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
+	//}
 
-	tx :=  this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, bs)
+	tx :=  this.ontSdk.NewInvokeWasmTransaction(gasPrice, gasLimit, bf.Bytes())
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.Uint256{}, nil
@@ -279,10 +229,9 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *WasmVMContract) PreExecInvokeNeoVMContract(
+func (this *WasmVMContract) PreExecInvokeWasmVMContract(
 	contractAddress common.Address,
 	methodName string,
-	paramType wasmvm.ParamType,
 	version byte,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
 
@@ -292,7 +241,7 @@ func (this *WasmVMContract) PreExecInvokeNeoVMContract(
 	contract.Method = methodName
 	contract.Version = version
 
-	argbytes, err := buildWasmContractParam(params, paramType)
+	argbytes, err := buildWasmContractParam(params)
 
 	if err != nil {
 		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
@@ -301,11 +250,13 @@ func (this *WasmVMContract) PreExecInvokeNeoVMContract(
 	bf := bytes.NewBuffer(nil)
 	contract.Serialize(bf)
 
-	txStruct := TxStruct{}
-	txStruct.Address = contract.Address[:]
-	txStruct.Version = int(contract.Version)
-	txStruct.Method = []byte(contract.Method)
-	txStruct.Args = bf.Bytes()
+	//txStruct := TxStruct{}
+	//txStruct.Address = contract.Address[:]
+	//txStruct.Version = int(contract.Version)
+	//txStruct.Method = []byte(contract.Method)
+	//txStruct.Args = bf.Bytes()
+
+	//txStruct := &states.ContractInvokeParam{Version:version,Address:contract.Address,Method:contract.Method,Args:bf.Bytes()}
 
 	//bs, err:= json.Marshal(txStruct)
 	//if err != nil{
@@ -313,13 +264,14 @@ func (this *WasmVMContract) PreExecInvokeNeoVMContract(
 	//
 	//}
 
-	bs, err:= txStruct.Serialize()
-	if err != nil{
-		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
-	}
+	//bs := bytes.NewBuffer(nil)
+	//err = txStruct.Serialize(bs)
+	//if err != nil{
+	//	return nil, fmt.Errorf("build wasm contract param failed:%s", err)
+	//}
 
-
-	tx := this.ontSdk.NewInvokeTransaction(0, 0,  bs)
+	fmt.Printf("bytes is %v\n",bf.Bytes())
+	tx := this.ontSdk.NewInvokeWasmTransaction(0, 0,  bf.Bytes())
 	if err != nil {
 		return nil, err
 	}

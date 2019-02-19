@@ -85,6 +85,24 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	return tx
 }
 
+
+//NewInvokeTransaction return smart contract invoke transaction
+func (this *OntologySdk) NewInvokeWasmTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
+	invokePayload := &payload.InvokeCode{
+		Code: invokeCode,
+	}
+	tx := &types.MutableTransaction{
+		GasPrice: gasPrice,
+		GasLimit: gasLimit,
+		TxType:   types.InvokeWasm,
+		Nonce:    rand.Uint32(),
+		Payload:  invokePayload,
+		Sigs:     make([]types.Sig, 0, 0),
+	}
+	return tx
+}
+
+
 func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
 	if tx.Payer == common.ADDRESS_EMPTY {
 		account, ok := signer.(*Account)

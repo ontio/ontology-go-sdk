@@ -62,7 +62,7 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	}
 	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
 		Code:        invokeCode,
-		NeedStorage: needStorage,
+		NeedStorage: byte(1),
 		Name:        name,
 		Version:     version,
 		Author:      author,
