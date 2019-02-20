@@ -51,7 +51,7 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
-	wasmVM :=newWasmVMContract(ontSdk)
+	wasmVM := newWasmVMContract(ontSdk)
 	ontSdk.WasmVM = wasmVM
 	return ontSdk
 }
@@ -85,7 +85,6 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	return tx
 }
 
-
 //NewInvokeTransaction return smart contract invoke transaction
 func (this *OntologySdk) NewInvokeWasmTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
 	invokePayload := &payload.InvokeCode{
@@ -101,7 +100,6 @@ func (this *OntologySdk) NewInvokeWasmTransaction(gasPrice, gasLimit uint64, inv
 	}
 	return tx
 }
-
 
 func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
 	if tx.Payer == common.ADDRESS_EMPTY {

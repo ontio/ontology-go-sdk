@@ -141,7 +141,7 @@ func TestWsScribeEvent(t *testing.T) {
 	}
 }
 
-func TestWsTransfer(t *testing.T){
+func TestWsTransfer(t *testing.T) {
 	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
 	testOntSdk.ClientMgr.SetDefaultClient(wsClient)
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
