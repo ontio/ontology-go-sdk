@@ -25,63 +25,44 @@ func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract {
 	}
 }
 
-type TxStruct struct {
-	Address []byte `json:"address"`
-	Method  []byte `json:"method"`
-	Version int    `json:"version"`
-	Args    []byte `json:"args"`
-}
-
-func (txs *TxStruct) Serialize() ([]byte, error) {
-	buffer := bytes.NewBuffer([]byte{})
-	err := serialization.WriteVarBytes(buffer, txs.Address)
-	if err != nil {
-		return nil, err
-	}
-	err = serialization.WriteVarBytes(buffer, txs.Method)
-	if err != nil {
-		return nil, err
-	}
-	err = serialization.WriteUint32(buffer, uint32(txs.Version))
-	if err != nil {
-		return nil, err
-	}
-	err = serialization.WriteVarBytes(buffer, txs.Args)
-	if err != nil {
-		return nil, err
-	}
-	return buffer.Bytes(), nil
-}
-
-func (txs *TxStruct) Deserialize(data []byte) error {
-
-	buffer := bytes.NewBuffer(data)
-	address, err := serialization.ReadVarBytes(buffer)
-	if err != nil {
-		return err
-	}
-
-	method, err := serialization.ReadVarBytes(buffer)
-	if err != nil {
-		return err
-	}
-	version, err := serialization.ReadUint32(buffer)
-	if err != nil {
-		return err
-	}
-
-	args, err := serialization.ReadVarBytes(buffer)
-	if err != nil {
-		return err
-	}
-
-	txs.Args = args
-	txs.Version = int(version)
-	txs.Method = method
-	txs.Address = address
-
-	return nil
-}
+//type TxStruct struct {
+//	Address []byte `json:"address"`
+//	//Method  []byte `json:"method"`
+//	//Version int    `json:"version"`
+//	Args    []byte `json:"args"`
+//}
+//
+//func (txs *TxStruct) Serialize() ([]byte, error) {
+//	buffer := bytes.NewBuffer([]byte{})
+//	err := serialization.WriteVarBytes(buffer, txs.Address)
+//	if err != nil {
+//		return nil, err
+//	}
+//	err = serialization.WriteVarBytes(buffer, txs.Args)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return buffer.Bytes(), nil
+//}
+//
+//func (txs *TxStruct) Deserialize(data []byte) error {
+//
+//	buffer := bytes.NewBuffer(data)
+//	address, err := serialization.ReadVarBytes(buffer)
+//	if err != nil {
+//		return err
+//	}
+//
+//	args, err := serialization.ReadVarBytes(buffer)
+//	if err != nil {
+//		return err
+//	}
+//
+//	txs.Args = args
+//	txs.Address = address
+//
+//	return nil
+//}
 
 func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
@@ -144,8 +125,9 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 
 //for wasm vm
 //build param bytes for wasm contract
-func buildWasmContractParam(params []interface{}) ([]byte, error) {
+func buildWasmContractParam(method string, params []interface{}) ([]byte, error) {
 	bf := bytes.NewBuffer(nil)
+	serialization.WriteString(bf, method)
 	for _, param := range params {
 		switch param.(type) {
 		case string:
@@ -197,12 +179,9 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	version byte,
 	params []interface{}) (common.Uint256, error) {
 
-	contract := &states.ContractInvokeParam{}
+	contract := &states.WasmContractParam{}
 	contract.Address = smartcodeAddress
-	contract.Method = methodName
-	contract.Version = version
-
-	argbytes, err := buildWasmContractParam(params)
+	argbytes, err := buildWasmContractParam(methodName, params)
 
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
@@ -225,12 +204,10 @@ func (this *WasmVMContract) PreExecInvokeWasmVMContract(
 	version byte,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
 
-	contract := &states.ContractInvokeParam{}
+	contract := &states.WasmContractParam{}
 	contract.Address = contractAddress
-	contract.Method = methodName
-	contract.Version = version
 
-	argbytes, err := buildWasmContractParam(params)
+	argbytes, err := buildWasmContractParam(methodName, params)
 
 	if err != nil {
 		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
