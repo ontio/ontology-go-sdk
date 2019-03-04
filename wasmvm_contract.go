@@ -176,7 +176,6 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	signer *Account,
 	smartcodeAddress common.Address,
 	methodName string,
-	version byte,
 	params []interface{}) (common.Uint256, error) {
 
 	contract := &states.WasmContractParam{}
@@ -201,7 +200,6 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 func (this *WasmVMContract) PreExecInvokeWasmVMContract(
 	contractAddress common.Address,
 	methodName string,
-	version byte,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
 
 	contract := &states.WasmContractParam{}
