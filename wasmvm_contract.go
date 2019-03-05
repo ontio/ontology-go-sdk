@@ -157,6 +157,8 @@ func buildWasmContractParam(method string, params []interface{}) ([]byte, error)
 			bs := param.(common.Address)
 			parambytes := bs[:]
 			bf.Write(parambytes)
+		case byte:
+			bf.WriteByte(param.(byte))
 
 		default:
 			return nil, fmt.Errorf("not a supported type :%v\n", param)
