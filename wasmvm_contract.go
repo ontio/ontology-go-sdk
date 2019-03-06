@@ -25,49 +25,10 @@ func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract {
 	}
 }
 
-//type TxStruct struct {
-//	Address []byte `json:"address"`
-//	//Method  []byte `json:"method"`
-//	//Version int    `json:"version"`
-//	Args    []byte `json:"args"`
-//}
-//
-//func (txs *TxStruct) Serialize() ([]byte, error) {
-//	buffer := bytes.NewBuffer([]byte{})
-//	err := serialization.WriteVarBytes(buffer, txs.Address)
-//	if err != nil {
-//		return nil, err
-//	}
-//	err = serialization.WriteVarBytes(buffer, txs.Args)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return buffer.Bytes(), nil
-//}
-//
-//func (txs *TxStruct) Deserialize(data []byte) error {
-//
-//	buffer := bytes.NewBuffer(data)
-//	address, err := serialization.ReadVarBytes(buffer)
-//	if err != nil {
-//		return err
-//	}
-//
-//	args, err := serialization.ReadVarBytes(buffer)
-//	if err != nil {
-//		return err
-//	}
-//
-//	txs.Args = args
-//	txs.Address = address
-//
-//	return nil
-//}
-
 func (this *WasmVMContract) NewDeployWasmVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
 		Code:        contract.Code,
-		NeedStorage: contract.NeedStorage,
+		VmType:      contract.VmType,
 		Name:        contract.Name,
 		Version:     contract.Version,
 		Author:      contract.Author,
@@ -91,7 +52,6 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
 	singer *Account,
-	needStorage byte,
 	code,
 	name,
 	version,
@@ -105,7 +65,7 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 	}
 	tx := this.NewDeployWasmVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
 		Code:        invokeCode,
-		NeedStorage: needStorage,
+		VmType:      payload.WASMVM_TYPE,
 		Name:        name,
 		Version:     version,
 		Author:      author,
