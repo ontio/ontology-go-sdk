@@ -148,10 +148,10 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
 	}
 	contract.Args = argbytes
-	bf := bytes.NewBuffer(nil)
-	contract.Serialize(bf)
+	sink := common.NewZeroCopySink(nil)
+	contract.Serialization(sink)
 
-	tx := this.ontSdk.NewInvokeWasmTransaction(gasPrice, gasLimit, bf.Bytes())
+	tx := this.ontSdk.NewInvokeWasmTransaction(gasPrice, gasLimit, sink.Bytes())
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.Uint256{}, nil
@@ -173,10 +173,10 @@ func (this *WasmVMContract) PreExecInvokeWasmVMContract(
 		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
 	}
 	contract.Args = argbytes
-	bf := bytes.NewBuffer(nil)
-	contract.Serialize(bf)
+	sink := common.NewZeroCopySink(nil)
+	contract.Serialization(sink)
 
-	tx := this.ontSdk.NewInvokeWasmTransaction(0, 0, bf.Bytes())
+	tx := this.ontSdk.NewInvokeWasmTransaction(0, 0, sink.Bytes())
 	if err != nil {
 		return nil, err
 	}
