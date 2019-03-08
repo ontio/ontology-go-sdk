@@ -99,12 +99,22 @@ func buildWasmContractParam(method string, params []interface{}) ([]byte, error)
 			tmpBytes := make([]byte, 4)
 			binary.LittleEndian.PutUint32(tmpBytes, uint32(param.(int)))
 			bf.Write(tmpBytes)
-
 		case int64:
 			tmpBytes := make([]byte, 8)
 			binary.LittleEndian.PutUint64(tmpBytes, uint64(param.(int64)))
 			bf.Write(tmpBytes)
-
+		case uint16:
+			tmpBytes := make([]byte, 2)
+			binary.LittleEndian.PutUint16(tmpBytes,param.(uint16))
+			bf.Write(tmpBytes)
+		case uint32:
+			tmpBytes := make([]byte, 4)
+			binary.LittleEndian.PutUint32(tmpBytes, param.(uint32))
+			bf.Write(tmpBytes)
+		case uint64:
+			tmpBytes := make([]byte, 8)
+			binary.LittleEndian.PutUint64(tmpBytes, param.(uint64))
+			bf.Write(tmpBytes)
 		case []byte:
 			tmp := bytes.NewBuffer(nil)
 			serialization.WriteVarBytes(tmp, param.([]byte))
