@@ -157,6 +157,9 @@ func (this *AccountData) GetAccount(passwd []byte) (*Account, error) {
 func (this *AccountData) GetScrypt() *keypair.ScryptParam {
 	return this.scrypt
 }
+func (this *AccountData) SetScript(scrypt *keypair.ScryptParam) {
+	this.scrypt = scrypt
+}
 
 func (this *AccountData) Clone() *AccountData {
 	accData := &AccountData{

@@ -149,6 +149,7 @@ func (this *Wallet) NewAccountFromWIF(wif, passwd []byte) (*Account, error) {
 	accData.SetKeyPair(prvSecret)
 	accData.SigSch = s.SHA256withECDSA.Name()
 	accData.PubKey = hex.EncodeToString(keypair.SerializePublicKey(pubKey))
+	accData.SetScript(this.Scrypt)
 	err = this.AddAccountData(accData)
 	if err != nil {
 		return nil, err
