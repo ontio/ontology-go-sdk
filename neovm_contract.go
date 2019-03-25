@@ -24,7 +24,7 @@ func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
 func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
 	deployPayload := &payload.DeployCode{
 		Code:        contract.Code,
-		NeedStorage: contract.NeedStorage,
+		VmType:      contract.VmType,
 		Name:        contract.Name,
 		Version:     contract.Version,
 		Author:      contract.Author,
@@ -62,7 +62,7 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	}
 	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
 		Code:        invokeCode,
-		NeedStorage: needStorage,
+		VmType:      payload.NEOVM_TYPE,
 		Name:        name,
 		Version:     version,
 		Author:      author,

@@ -44,6 +44,7 @@ type OntologySdk struct {
 	client.ClientMgr
 	Native *NativeContract
 	NeoVM  *NeoVMContract
+	WasmVM *WasmVMContract
 }
 
 //NewOntologySdk return OntologySdk.
@@ -53,6 +54,8 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
+	wasmVM := newWasmVMContract(ontSdk)
+	ontSdk.WasmVM = wasmVM
 	return ontSdk
 }
 
@@ -77,7 +80,23 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		TxType:   types.Invoke,
+		TxType:   types.InvokeNeo,
+		Nonce:    rand.Uint32(),
+		Payload:  invokePayload,
+		Sigs:     make([]types.Sig, 0, 0),
+	}
+	return tx
+}
+
+//NewInvokeTransaction return smart contract invoke transaction
+func (this *OntologySdk) NewInvokeWasmTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
+	invokePayload := &payload.InvokeCode{
+		Code: invokeCode,
+	}
+	tx := &types.MutableTransaction{
+		GasPrice: gasPrice,
+		GasLimit: gasLimit,
+		TxType:   types.InvokeWasm,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),

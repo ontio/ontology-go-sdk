@@ -289,6 +289,7 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 	if err != nil {
 		return nil, err
 	}
+
 	preResult := &sdkcom.PreExecResult{}
 	err = json.Unmarshal(data, &preResult)
 	if err != nil {
