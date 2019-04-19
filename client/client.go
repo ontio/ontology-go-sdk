@@ -87,6 +87,18 @@ func (this *ClientMgr) GetBlockByHeight(height uint32) (*types.Block, error) {
 	return utils.GetBlock(data)
 }
 
+func (this *ClientMgr) GetBlockInfoByHeight(height uint32) ([]byte, error) {
+	client := this.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getBlockInfoByHeight(this.getNextQid(), height)
+	if err != nil {
+		return nil, err
+	}
+	return data,nil
+}
+
 func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
 	client := this.getClient()
 	if client == nil {

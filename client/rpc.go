@@ -83,6 +83,10 @@ func (this *RpcClient) getBlockByHeight(qid string, height uint32) ([]byte, erro
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK, []interface{}{height})
 }
 
+func (this *RpcClient) getBlockInfoByHeight(qid string, height uint32) ([]byte, error) {
+	return this.sendRpcRequest(qid, RPC_GET_BLOCK, []interface{}{height,1})
+}
+
 //GetBlockCount return the total block count of ontology
 func (this *RpcClient) getBlockCount(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK_COUNT, []interface{}{})
