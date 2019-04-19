@@ -202,7 +202,7 @@ func (this *RestClient) getRequestUrl(reqPath string, values ...*url.Values) (st
 		return "", fmt.Errorf("Parse address:%s error:%s", addr, err)
 	}
 	reqUrl.Path = reqPath
-	if len(values) > 0 {
+	if len(values) > 0 && values[0] != nil {
 		reqUrl.RawQuery = values[0].Encode()
 	}
 	return reqUrl.String(), nil
