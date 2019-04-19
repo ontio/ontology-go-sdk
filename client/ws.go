@@ -592,6 +592,10 @@ func (this *WSClient) getBlockByHeight(qid string, height uint32) ([]byte, error
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_BY_HEIGHT, map[string]interface{}{"Raw": "1", "Height": height})
 }
 
+func (this *WSClient) getBlockInfoByHeight(qid string, height uint32) ([]byte, error) {
+	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_BY_HEIGHT, map[string]interface{}{"Raw": "0", "Height": height})
+}
+
 func (this *WSClient) getBlockHash(qid string, height uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_BLOCK_HASH, map[string]interface{}{"Height": height})
 }

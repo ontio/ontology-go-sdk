@@ -89,6 +89,13 @@ func (this *RestClient) getBlockByHeight(qid string, height uint32) ([]byte, err
 	return this.sendRestGetRequest(reqPath, reqValues)
 }
 
+func (this *RestClient) getBlockInfoByHeight(qid string, height uint32) ([]byte, error) {
+	reqPath := fmt.Sprintf("%s%d", GET_BLK_BY_HEIGHT, height)
+	reqValues := &url.Values{}
+	reqValues.Add("raw", "0")
+	return this.sendRestGetRequest(reqPath, reqValues)
+}
+
 func (this *RestClient) getCurrentBlockHeight(qid string) ([]byte, error) {
 	reqPath := GET_BLK_HEIGHT
 	return this.sendRestGetRequest(reqPath)

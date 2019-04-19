@@ -13,6 +13,7 @@ type OntologyClient interface {
 	getNetworkId(qid string) ([]byte, error)
 	getBlockByHash(qid, hash string) ([]byte, error)
 	getBlockByHeight(qid string, height uint32) ([]byte, error)
+	getBlockInfoByHeight(qid string, height uint32) ([]byte, error)
 	getBlockHash(qid string, height uint32) ([]byte, error)
 	getBlockHeightByTxHash(qid, txHash string) ([]byte, error)
 	getBlockTxHashesByHeight(qid string, height uint32) ([]byte, error)
