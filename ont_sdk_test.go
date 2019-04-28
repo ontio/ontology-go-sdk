@@ -1,7 +1,26 @@
+/*
+ * Copyright (C) 2018 The ontology Authors
+ * This file is part of The ontology library.
+ *
+ * The ontology is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The ontology is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package ontology_go_sdk
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 	"time"
@@ -16,11 +35,31 @@ var (
 	testGasLimit = uint64(20000)
 )
 
-func TestMain(m *testing.M) {
+func TestOntologySdk_CreateWallet(t *testing.T) {
+	testOntSdk := NewOntologySdk()
+	wal, err := testOntSdk.CreateWallet("./wallet2.dat")
+	assert.Nil(t, err)
+	_, err = wal.NewDefaultSettingAccount(testPasswd)
+	assert.Nil(t, err)
+	wal.Save()
+}
+
+func Init() {
 	testOntSdk = NewOntologySdk()
 	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
 
 	var err error
+	wallet, err := testOntSdk.CreateWallet("./wallet.dat")
+	if err != nil {
+		fmt.Println("[CreateWallet] error:", err)
+		return
+	}
+	_, err = wallet.NewDefaultSettingAccount(testPasswd)
+	if err != nil {
+		fmt.Println("")
+		return
+	}
+	wallet.Save()
 	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
 	if err != nil {
 		fmt.Printf("account.Open error:%s\n", err)
@@ -38,10 +77,10 @@ func TestMain(m *testing.M) {
 		fmt.Printf("Connect ws error:%s", err)
 		return
 	}
-	m.Run()
 }
 
 func TestOnt_Transfer(t *testing.T) {
+	Init()
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
@@ -63,6 +102,7 @@ func TestOnt_Transfer(t *testing.T) {
 }
 
 func TestOng_WithDrawONG(t *testing.T) {
+	Init()
 	unboundONG, err := testOntSdk.Native.Ong.UnboundONG(testDefAcc.Address)
 	if err != nil {
 		t.Errorf("UnboundONG error:%s", err)
@@ -78,6 +118,7 @@ func TestOng_WithDrawONG(t *testing.T) {
 }
 
 func TestGlobalParam_GetGlobalParams(t *testing.T) {
+	Init()
 	gasPrice := "gasPrice"
 	params := []string{gasPrice}
 	results, err := testOntSdk.Native.GlobalParams.GetGlobalParams(params)
@@ -89,6 +130,7 @@ func TestGlobalParam_GetGlobalParams(t *testing.T) {
 }
 
 func TestGlobalParam_SetGlobalParams(t *testing.T) {
+	Init()
 	gasPrice := "gasPrice"
 	globalParams, err := testOntSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
 	if err != nil {
@@ -120,6 +162,7 @@ func TestGlobalParam_SetGlobalParams(t *testing.T) {
 }
 
 func TestWsScribeEvent(t *testing.T) {
+	Init()
 	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
 	err := wsClient.SubscribeEvent()
 	if err != nil {
@@ -141,7 +184,8 @@ func TestWsScribeEvent(t *testing.T) {
 	}
 }
 
-func TestWsTransfer(t *testing.T){
+func TestWsTransfer(t *testing.T) {
+	Init()
 	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
 	testOntSdk.ClientMgr.SetDefaultClient(wsClient)
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)

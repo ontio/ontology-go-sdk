@@ -96,7 +96,7 @@ func (this *ClientMgr) GetBlockInfoByHeight(height uint32) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return data,nil
+	return data, nil
 }
 
 func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
