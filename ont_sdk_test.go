@@ -21,6 +21,12 @@ func TestMain(m *testing.M) {
 	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
 
 	var err error
+	wallet,err := testOntSdk.CreateWallet("./wallet.dat")
+	if err != nil {
+		return
+	}
+	wallet.NewDefaultSettingAccount(testPasswd)
+	wallet.Save()
 	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
 	if err != nil {
 		fmt.Printf("account.Open error:%s\n", err)
@@ -32,15 +38,18 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	ws := testOntSdk.NewWebSocketClient()
-	err = ws.Connect("ws://localhost:20335")
-	if err != nil {
-		fmt.Printf("Connect ws error:%s", err)
-		return
-	}
-	m.Run()
+	//ws := testOntSdk.NewWebSocketClient()
+	//err = ws.Connect("ws://localhost:20335")
+	//if err != nil {
+	//	fmt.Printf("Connect ws error:%s", err)
+	//	return
+	//}
+	//m.Run()
 }
 
+func TestOntologySdk_CreateWallet(t *testing.T) {
+	testOntSdk.CreateWallet("./wallet2.dat")
+}
 func TestOnt_Transfer(t *testing.T) {
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {

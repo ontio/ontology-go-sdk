@@ -61,7 +61,7 @@ func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 	if utils.IsFileExist(walletFile) {
 		return nil, fmt.Errorf("wallet:%s has already exist", walletFile)
 	}
-	return OpenWallet(walletFile)
+	return NewWallet(walletFile), nil
 }
 
 //OpenWallet return a wallet instance
