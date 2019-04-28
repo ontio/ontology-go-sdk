@@ -23,9 +23,14 @@ func TestMain(m *testing.M) {
 	var err error
 	wallet,err := testOntSdk.CreateWallet("./wallet.dat")
 	if err != nil {
+		fmt.Println("[CreateWallet] error:", err)
 		return
 	}
-	wallet.NewDefaultSettingAccount(testPasswd)
+	_, err = wallet.NewDefaultSettingAccount(testPasswd)
+	if err != nil {
+		fmt.Println("")
+		return
+	}
 	wallet.Save()
 	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
 	if err != nil {
@@ -38,18 +43,15 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	//ws := testOntSdk.NewWebSocketClient()
-	//err = ws.Connect("ws://localhost:20335")
-	//if err != nil {
-	//	fmt.Printf("Connect ws error:%s", err)
-	//	return
-	//}
-	//m.Run()
+	ws := testOntSdk.NewWebSocketClient()
+	err = ws.Connect("ws://localhost:20335")
+	if err != nil {
+		fmt.Printf("Connect ws error:%s", err)
+		return
+	}
+	m.Run()
 }
 
-func TestOntologySdk_CreateWallet(t *testing.T) {
-	testOntSdk.CreateWallet("./wallet2.dat")
-}
 func TestOnt_Transfer(t *testing.T) {
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
