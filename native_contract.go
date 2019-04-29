@@ -132,6 +132,21 @@ func (this *NativeContract) PreExecInvokeNativeContract(
 	return this.ontSdk.PreExecTransaction(tx)
 }
 
+func (this *NativeContract) PreExecInvokeShardNativeContract(
+	contractAddress common.Address,
+	version byte,
+	method string,
+	shardId uint64,
+	params []interface{},
+) (*sdkcom.PreExecResult, error) {
+	tx, err := this.NewNativeInvokeTransaction(0, 0, version, contractAddress, method, params)
+	if err != nil {
+		return nil, err
+	}
+	tx.ShardID = shardId
+	return this.ontSdk.PreExecTransaction(tx)
+}
+
 type Ont struct {
 	ontSdk *OntologySdk
 	native *NativeContract
