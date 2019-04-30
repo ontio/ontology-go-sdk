@@ -156,7 +156,7 @@ ontSdk.GetSmartContractEvent(txHash string) (*sdkcom.SmartContactEvent, error)
 #### 2.1.12 Get all of smart contract events of block by block height
 
 ```
-ontSdk.GetSmartContractEventByBlock(height uint32) ([]*sdkcom.SmartContactEvent, error)
+ontSdk.GetSmartContractEventByHeight(height uint32) ([]*sdkcom.SmartContactEvent, error)
 ```
 
 #### 2.1.13 Get block merkle proof by transaction hash
