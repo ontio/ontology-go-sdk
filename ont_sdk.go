@@ -318,7 +318,7 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 		Code: invokeCode,
 	}
 	tx := &types.MutableTransaction{
-		Version: types.VERSION_SUPPORT_SHARD,
+		Version:  common.CURR_TX_VERSION,
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
 		TxType:   types.Invoke,
