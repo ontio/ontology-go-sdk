@@ -7,7 +7,7 @@ import (
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
-	httpcom "github.com/ontio/ontology/http/base/common"
+	"github.com/ontio/ontology/core/utils"
 	"time"
 )
 
@@ -86,7 +86,7 @@ func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 	contractAddress common.Address,
 	params []interface{},
 ) (*types.MutableTransaction, error) {
-	invokeCode, err := httpcom.BuildNeoVMInvokeCode(contractAddress, params)
+	invokeCode, err := utils.BuildNeoVMInvokeCode(contractAddress, params)
 	if err != nil {
 		return nil, err
 	}
