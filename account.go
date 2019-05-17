@@ -1,8 +1,10 @@
 package ontology_go_sdk
 
 import (
+	"crypto/elliptic"
 	"encoding/hex"
 	"fmt"
+	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
 	"github.com/ontio/ontology/common"
@@ -24,6 +26,20 @@ type Account struct {
 	SigScheme  s.SignatureScheme
 }
 
+func NewAccountFromPrivateKey(privateKey []byte, signatureScheme s.SignatureScheme) (*Account, error) {
+	prikey := ec.ConstructPrivateKey(privateKey, elliptic.P256())
+	privaKey := ec.PrivateKey{
+		Algorithm:  ec.ECDSA,
+		PrivateKey: prikey,
+	}
+	address := types.AddressFromPubKey(privaKey.Public())
+	return &Account{
+		PrivateKey: &privaKey,
+		PublicKey:  privaKey.Public(),
+		Address:    address,
+		SigScheme:  signatureScheme,
+	}, nil
+}
 func NewAccount(sigscheme ...s.SignatureScheme) *Account {
 	var scheme s.SignatureScheme
 	if len(sigscheme) == 0 {

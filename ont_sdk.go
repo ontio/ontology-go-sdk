@@ -22,6 +22,10 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/ontio/go-bip32"
+	"github.com/ontio/ontology-go-sdk/bip44"
+	"github.com/ontio/ontology/smartcontract/event"
+	"github.com/tyler-smith/go-bip39"
 	"math/rand"
 	"time"
 
@@ -67,6 +71,33 @@ func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 //OpenWallet return a wallet instance
 func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
+}
+
+func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
+	entropy, _ := bip39.NewEntropy(128)
+	return bip39.NewMnemonic(entropy)
+}
+
+func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr string, index uint32) ([]byte, error) {
+	if mnemonicCodesStr == "" {
+		return nil, fmt.Errorf("mnemonicCodesStr should not be nil")
+	}
+	seed := bip39.NewSeed(mnemonicCodesStr, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return nil, err
+	}
+	coin := 0x80000400
+	account := 0x80000000
+	key, err := bip44.NewKeyFromMasterKey(masterKey, uint32(coin), uint32(account), 0, index)
+	if err != nil {
+		return nil, err
+	}
+	keyBytes, err := key.Serialize()
+	if err != nil {
+		return nil, err
+	}
+	return keyBytes[46:78], nil
 }
 
 //NewInvokeTransaction return smart contract invoke transaction
@@ -175,6 +206,52 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 	txData.Serialization(&sink)
 	rawtx := hex.EncodeToString(sink.Bytes())
 	return rawtx, nil
+}
+
+type OEP4TransferEvent struct {
+	FuncName string
+	From     string
+	To       string
+	Amount   uint64
+}
+
+func (this *OntologySdk) ParseOEP4TransferEvent(event *event.NotifyEventInfo) (*OEP4TransferEvent, error) {
+	if event == nil {
+		return nil, fmt.Errorf("event is nil")
+	}
+	state, ok := event.States.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("state.States is not []interface")
+	}
+	if len(state) != 4 {
+		return nil, fmt.Errorf("state length is not 4")
+	}
+	funcName, ok := state[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("state.States[0] is not string")
+	}
+	if funcName != "transfer" {
+		return nil, fmt.Errorf("funcName is not transfer")
+	} else {
+		from, ok := state[1].(string)
+		if !ok {
+			return nil, fmt.Errorf("state[1] is not string")
+		}
+		to, ok := state[2].(string)
+		if !ok {
+			return nil, fmt.Errorf("state[2] is not string")
+		}
+		amount, ok := state[3].(uint64)
+		if !ok {
+			return nil, fmt.Errorf("state[3] is not uint64")
+		}
+		return &OEP4TransferEvent{
+			FuncName: "transfer",
+			From:     from,
+			To:       to,
+			Amount:   uint64(amount),
+		}, nil
+	}
 }
 
 func (this *OntologySdk) GetMutableTx(rawTx string) (*types.MutableTransaction, error) {

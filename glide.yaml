@@ -7,6 +7,10 @@ import:
   subpackages:
   - keypair
   - signature
+- package: github.com/ontio/go-bip32
+  repo: https://github.com/ontio/go-bip32.git
+- package: github.com/tyler-smith/go-bip39
+- package: github.com/FactomProject/basen
 - package: github.com/ontio/ontology
   version: ^1.5.2
   subpackages:

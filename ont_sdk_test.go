@@ -19,8 +19,17 @@
 package ontology_go_sdk
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
+	"github.com/ontio/go-bip32"
+	"github.com/ontio/ontology-crypto/signature"
+	"github.com/ontio/ontology-go-sdk/bip44"
+	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/validation"
+	"github.com/ontio/ontology/smartcontract/event"
 	"github.com/stretchr/testify/assert"
+	"github.com/tyler-smith/go-bip39"
 	"strconv"
 	"testing"
 	"time"
@@ -35,6 +44,42 @@ var (
 	testGasLimit = uint64(20000)
 )
 
+func TestOntologySdk_GetMultiAddr(t *testing.T) {
+	testOntSdk := NewOntologySdk()
+	mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
+	assert.Nil(t, err)
+	private, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, 0)
+	assert.Nil(t, err)
+	acc, err := NewAccountFromPrivateKey(private, signature.SHA256withECDSA)
+	assert.Nil(t, err)
+	si, err := signature.Sign(acc.SigScheme, acc.PrivateKey, []byte("test"), nil)
+	boo := signature.Verify(acc.PublicKey, []byte("test"), si)
+	assert.True(t, boo)
+
+	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(0, 0, acc.Address, acc.Address, 10)
+	assert.Nil(t, err)
+	testOntSdk.SignToTransaction(tx, acc)
+	tx2, err := tx.IntoImmutable()
+	assert.Nil(t, err)
+	res := validation.VerifyTransaction(tx2)
+	assert.Equal(t, res.Error(), "no error code")
+}
+
+func TestGenerateMemory(t *testing.T) {
+	entropy, _ := bip39.NewEntropy(128)
+	mnemonic, _ := bip39.NewMnemonic(entropy)
+	mnemonic = "ecology cricket napkin scrap board purpose picnic toe bean heart coast retire"
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	assert.Nil(t, err)
+	coin := 0x80000400
+	account := 0x80000000
+	key, _ := bip44.NewKeyFromMasterKey(masterKey, uint32(coin), uint32(account), 0, 0)
+	privk, err := key.Serialize()
+	assert.Nil(t, err)
+	assert.Equal(t, common.ToHexString(privk[46:78]), "915f5df65c75afe3293ed613970a1661b0b28d0cb711f21c489d8785977df0cd")
+}
+
 func TestOntologySdk_CreateWallet(t *testing.T) {
 	testOntSdk := NewOntologySdk()
 	wal, err := testOntSdk.CreateWallet("./wallet2.dat")
@@ -42,6 +87,32 @@ func TestOntologySdk_CreateWallet(t *testing.T) {
 	_, err = wal.NewDefaultSettingAccount(testPasswd)
 	assert.Nil(t, err)
 	wal.Save()
+}
+
+func TestNewOntologySdk(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	event := &event.NotifyEventInfo{
+		ContractAddress: common.ADDRESS_EMPTY,
+		States:          []interface{}{"transfer", "Abc3UVbyL1kxd9sK6N9hzAT2u91ftbpoXT", "AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK", uint64(10000000)},
+	}
+	e, err := testOntSdk.ParseOEP4TransferEvent(event)
+	assert.Nil(t, err)
+	fmt.Println(e)
+}
+
+func TestOntologySdk_GetTxData(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	acc, _ := testWallet.GetAccountByAddress("AVBzcUtgdgS94SpBmw4rDMhYA4KDq1YTzy", testPasswd)
+	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
+	testOntSdk.SignToTransaction(tx, acc)
+	tx2, _ := tx.IntoImmutable()
+	var buffer bytes.Buffer
+	tx2.Serialize(&buffer)
+	txData := hex.EncodeToString(buffer.Bytes())
+	tx3, _ := testOntSdk.GetMutableTx(txData)
+	fmt.Println(tx3)
 }
 
 func Init() {
@@ -80,7 +151,8 @@ func Init() {
 }
 
 func TestOnt_Transfer(t *testing.T) {
-	Init()
+	testOntSdk = NewOntologySdk()
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
