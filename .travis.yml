@@ -1,0 +1,15 @@
+language: go
+
+go_import_path: github.com/ontio/ontology-go-sdk
+
+install:
+- go get github.com/Masterminds/glide
+- glide install
+
+go:
+- 1.9.x
+
+script:
+- make
+- bash ./.travis.gofmt.sh
+- bash ./.travis.gotest.sh
