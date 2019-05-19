@@ -46,23 +46,25 @@ var (
 
 func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
 	testOntSdk := NewOntologySdk()
-	mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
-	assert.Nil(t, err)
-	private, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, 0)
-	assert.Nil(t, err)
-	acc, err := NewAccountFromPrivateKey(private, signature.SHA256withECDSA)
-	assert.Nil(t, err)
-	si, err := signature.Sign(acc.SigScheme, acc.PrivateKey, []byte("test"), nil)
-	boo := signature.Verify(acc.PublicKey, []byte("test"), si)
-	assert.True(t, boo)
+	for i:=0;i<1000;i++ {
+		mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
+		assert.Nil(t, err)
+		private, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, 0)
+		assert.Nil(t, err)
+		acc, err := NewAccountFromPrivateKey(private, signature.SHA256withECDSA)
+		assert.Nil(t, err)
+		si, err := signature.Sign(acc.SigScheme, acc.PrivateKey, []byte("test"), nil)
+		boo := signature.Verify(acc.PublicKey, []byte("test"), si)
+		assert.True(t, boo)
 
-	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(0, 0, acc.Address, acc.Address, 10)
-	assert.Nil(t, err)
-	testOntSdk.SignToTransaction(tx, acc)
-	tx2, err := tx.IntoImmutable()
-	assert.Nil(t, err)
-	res := validation.VerifyTransaction(tx2)
-	assert.Equal(t, res.Error(), "no error code")
+		tx, err := testOntSdk.Native.Ont.NewTransferTransaction(0, 0, acc.Address, acc.Address, 10)
+		assert.Nil(t, err)
+		testOntSdk.SignToTransaction(tx, acc)
+		tx2, err := tx.IntoImmutable()
+		assert.Nil(t, err)
+		res := validation.VerifyTransaction(tx2)
+		assert.Equal(t, "not an error", res.Error())
+	}
 }
 
 func TestGenerateMemory(t *testing.T) {
@@ -112,7 +114,7 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 	tx2.Serialize(&buffer)
 	txData := hex.EncodeToString(buffer.Bytes())
 	tx3, _ := testOntSdk.GetMutableTx(txData)
-	fmt.Println(tx3)
+	assert.Equal(t, tx, tx3)
 }
 
 func Init() {
