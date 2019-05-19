@@ -82,12 +82,19 @@ func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr
 	if mnemonicCodesStr == "" {
 		return nil, fmt.Errorf("mnemonicCodesStr should not be nil")
 	}
+	//address_index
+	if index < 0 {
+		return nil, fmt.Errorf("index should be bigger than 0")
+	}
 	seed := bip39.NewSeed(mnemonicCodesStr, "")
 	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
 		return nil, err
 	}
+	//m / purpose' / coin_type' / account' / change / address_index
+	//coin type 1024'
 	coin := 0x80000400
+	//account 0'
 	account := 0x80000000
 	key, err := bip44.NewKeyFromMasterKey(masterKey, uint32(coin), uint32(account), 0, index)
 	if err != nil {

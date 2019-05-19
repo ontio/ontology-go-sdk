@@ -44,7 +44,7 @@ var (
 	testGasLimit = uint64(20000)
 )
 
-func TestOntologySdk_GetMultiAddr(t *testing.T) {
+func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
 	testOntSdk := NewOntologySdk()
 	mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
 	assert.Nil(t, err)
