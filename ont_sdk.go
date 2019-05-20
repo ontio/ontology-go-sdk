@@ -74,7 +74,10 @@ func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 }
 
 func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
-	entropy, _ := bip39.NewEntropy(128)
+	entropy, err := bip39.NewEntropy(128)
+	if err != nil {
+		return "", err
+	}
 	return bip39.NewMnemonic(entropy)
 }
 
