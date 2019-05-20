@@ -137,7 +137,7 @@ func (this *RestClient) getSmartContractEvent(qid, txHash string) ([]byte, error
 	return this.sendRestGetRequest(reqPath)
 }
 
-func (this *RestClient) getSmartContractEventByHeight(qid string, blockHeight uint32) ([]byte, error) {
+func (this *RestClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_SMTCOCE_EVT_TXS, blockHeight)
 	return this.sendRestGetRequest(reqPath)
 }
