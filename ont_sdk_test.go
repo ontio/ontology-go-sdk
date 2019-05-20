@@ -22,9 +22,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-crypto/signature"
-	"github.com/ontio/ontology-go-sdk/bip44"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/validation"
 	"github.com/ontio/ontology/smartcontract/event"
@@ -44,9 +42,23 @@ var (
 	testGasLimit = uint64(20000)
 )
 
+func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
+	mnemonic := make(map[string]bool)
+	testOntSdk := NewOntologySdk()
+	for i := 0; i < 100000; i++ {
+		mnemonicStr, err := testOntSdk.GenerateMnemonicCodesStr()
+		assert.Nil(t, err)
+		if mnemonic[mnemonicStr] == true {
+			panic("there is the same mnemonicStr ")
+		} else {
+			mnemonic[mnemonicStr] = true
+		}
+	}
+}
+
 func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
 	testOntSdk := NewOntologySdk()
-	for i:=0;i<1000;i++ {
+	for i := 0; i < 1000; i++ {
 		mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
 		private, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, 0)
@@ -68,18 +80,17 @@ func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
 }
 
 func TestGenerateMemory(t *testing.T) {
+	expectedPrivateKey := []string{"915f5df65c75afe3293ed613970a1661b0b28d0cb711f21c489d8785977df0cd", "dbf1090889ba8b19aa01fa31c8b1ce29828bd2fa664afd95cc62e6055b74e112",
+		"1487a8e53e4f4e2e1991781bcd14b3d334d3b2965cb48c976b234da29d7cf242", "79f85da015f079469c6e04aa0fc23523187d0f72c29450073d858ddeed272617"}
 	entropy, _ := bip39.NewEntropy(128)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
 	mnemonic = "ecology cricket napkin scrap board purpose picnic toe bean heart coast retire"
-	seed := bip39.NewSeed(mnemonic, "")
-	masterKey, err := bip32.NewMasterKey(seed)
-	assert.Nil(t, err)
-	coin := 0x80000400
-	account := 0x80000000
-	key, _ := bip44.NewKeyFromMasterKey(masterKey, uint32(coin), uint32(account), 0, 0)
-	privk, err := key.Serialize()
-	assert.Nil(t, err)
-	assert.Equal(t, common.ToHexString(privk[46:78]), "915f5df65c75afe3293ed613970a1661b0b28d0cb711f21c489d8785977df0cd")
+	testOntSdk := NewOntologySdk()
+	for i := 0; i < len(expectedPrivateKey); i++ {
+		privk, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, uint32(i))
+		assert.Nil(t, err)
+		assert.Equal(t, expectedPrivateKey[i], common.ToHexString(privk))
+	}
 }
 
 func TestOntologySdk_CreateWallet(t *testing.T) {
