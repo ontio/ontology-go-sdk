@@ -27,6 +27,12 @@ type Account struct {
 }
 
 func NewAccountFromPrivateKey(privateKey []byte, signatureScheme s.SignatureScheme) (*Account, error) {
+	if privateKey == nil {
+		return nil, fmt.Errorf("privatekey should not be nil")
+	}
+	if len(privateKey) != 32 {
+		return nil, fmt.Errorf("the length of privatekey should be 32")
+	}
 	prikey := ec.ConstructPrivateKey(privateKey, elliptic.P256())
 	privaKey := ec.PrivateKey{
 		Algorithm:  ec.ECDSA,
