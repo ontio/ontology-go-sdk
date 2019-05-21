@@ -204,13 +204,15 @@ func (this *Oep4) MultiSignTransferFrom(spenders []*ontology_go_sdk.Account, m i
 	return this.sdk.SendTransaction(mutableTx)
 }
 
-func (this *Oep4) FetchTransactionEvent(hash string) ([]*Oep4TransferEvent, error) {
+func (this *Oep4) FetchTxTransferEvent(hash string) ([]*Oep4TransferEvent, error) {
 	contractEvt, err := this.sdk.GetSmartContractEvent(hash)
 	if err != nil {
 		return nil, err
 	}
-	return this.parseEvent(contractEvt), nil
+	return this.parseTransferEvent(contractEvt), nil
 }
+
+// TODO: fetch approve event
 
 func (this *Oep4) FetchBlockTransferEvent(height uint32) ([]*Oep4TransferEvent, error) {
 	contractEvt, err := this.sdk.GetSmartContractEventByBlock(height)
@@ -219,12 +221,12 @@ func (this *Oep4) FetchBlockTransferEvent(height uint32) ([]*Oep4TransferEvent, 
 	}
 	result := make([]*Oep4TransferEvent, 0)
 	for _, evt := range contractEvt {
-		result = append(result, this.parseEvent(evt)...)
+		result = append(result, this.parseTransferEvent(evt)...)
 	}
 	return result, nil
 }
 
-func (this *Oep4) parseEvent(contractEvt *scomm.SmartContactEvent) []*Oep4TransferEvent {
+func (this *Oep4) parseTransferEvent(contractEvt *scomm.SmartContactEvent) []*Oep4TransferEvent {
 	result := make([]*Oep4TransferEvent, 0)
 	for _, notify := range contractEvt.Notify {
 		addr, _ := utils.AddressFromHexString(notify.ContractAddress)

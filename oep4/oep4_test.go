@@ -125,7 +125,7 @@ func TestOep4(t *testing.T) {
 		transferFromTx.ToHexString(), multiSignAddr.ToBase58(), acc.Address.ToBase58(), acc.Address.ToBase58(), amount)
 	_, _ = ontSdk.WaitForGenerateBlock(30 * time.Second)
 
-	eventsFromTx, err := oep4.FetchTransactionEvent(transferTx.ToHexString())
+	eventsFromTx, err := oep4.FetchTxTransferEvent(transferTx.ToHexString())
 	if err != nil {
 		t.Fatal(err)
 	}
