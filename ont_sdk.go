@@ -218,14 +218,14 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 	return rawtx, nil
 }
 
-type OEP4TransferEvent struct {
+type TransferEvent struct {
 	FuncName string
 	From     string
 	To       string
 	Amount   uint64
 }
 
-func (this *OntologySdk) ParseOEP4TransferEvent(event *event.NotifyEventInfo) (*OEP4TransferEvent, error) {
+func (this *OntologySdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
 	if event == nil {
 		return nil, fmt.Errorf("event is nil")
 	}
@@ -255,7 +255,7 @@ func (this *OntologySdk) ParseOEP4TransferEvent(event *event.NotifyEventInfo) (*
 		if !ok {
 			return nil, fmt.Errorf("state[3] is not uint64")
 		}
-		return &OEP4TransferEvent{
+		return &TransferEvent{
 			FuncName: "transfer",
 			From:     from,
 			To:       to,
