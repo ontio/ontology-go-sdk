@@ -1,12 +1,12 @@
 package bip44
+
 // Copyright 2016 Factom Foundation
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-
 import (
 	"github.com/ontio/go-bip32"
-    "github.com/tyler-smith/go-bip39"
+	"github.com/tyler-smith/go-bip39"
 )
 
 const Purpose uint32 = 0x8000002C

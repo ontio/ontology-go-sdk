@@ -109,7 +109,7 @@ func TestNewOntologySdk(t *testing.T) {
 		ContractAddress: common.ADDRESS_EMPTY,
 		States:          []interface{}{"transfer", "Abc3UVbyL1kxd9sK6N9hzAT2u91ftbpoXT", "AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK", uint64(10000000)},
 	}
-	e, err := testOntSdk.ParseOEP4TransferEvent(event)
+	e, err := testOntSdk.ParseNaitveTransferEvent(event)
 	assert.Nil(t, err)
 	fmt.Println(e)
 }
