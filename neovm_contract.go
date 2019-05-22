@@ -110,6 +110,25 @@ func (this *NeoVMContract) InvokeNeoVMContract(
 	return this.ontSdk.SendTransaction(tx)
 }
 
+func (this *NeoVMContract) InvokeShardNeoVMContract(
+	shardId uint64,
+	gasPrice,
+	gasLimit uint64,
+	signer *Account,
+	contractAddress common.Address,
+	params []interface{}) (common.Uint256, error) {
+	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
+	}
+	tx.ShardID = shardId
+	err = this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
 func (this *NeoVMContract) PreExecInvokeNeoVMContract(
 	contractAddress common.Address,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
@@ -117,5 +136,17 @@ func (this *NeoVMContract) PreExecInvokeNeoVMContract(
 	if err != nil {
 		return nil, err
 	}
+	return this.ontSdk.PreExecTransaction(tx)
+}
+
+func (this *NeoVMContract) PreExecInvokeShardNeoVMContract(
+	shardId uint64,
+	contractAddress common.Address,
+	params []interface{}) (*sdkcom.PreExecResult, error) {
+	tx, err := this.NewNeoVMInvokeTransaction(0, 0, contractAddress, params)
+	if err != nil {
+		return nil, err
+	}
+	tx.ShardID = shardId
 	return this.ontSdk.PreExecTransaction(tx)
 }
