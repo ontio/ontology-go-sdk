@@ -79,7 +79,7 @@ func (this *Oep4) TotalSupply() (*big.Int, error) {
 
 func (this *Oep4) BalanceOf(account common.Address) (*big.Int, error) {
 	preResult, err := this.sdk.NeoVM.PreExecInvokeNeoVMContract(this.ContractAddress,
-		[]interface{}{"totalSupply", []interface{}{account}})
+		[]interface{}{"balanceOf", []interface{}{account}})
 	if err != nil {
 		return nil, err
 	}
