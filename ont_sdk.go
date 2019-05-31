@@ -33,7 +33,7 @@ import (
 	"github.com/ontio/ontology-go-sdk/client"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
-	sign "github.com/ontio/ontology/common"
+	common2 "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
@@ -73,6 +73,92 @@ func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
 }
 
+func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
+	tx, err := types.TransactionFromRawBytes(raw)
+	if err != nil {
+		return nil, err
+	}
+	invokeCode, ok := tx.Payload.(*payload.InvokeCode)
+	if !ok {
+		return nil, fmt.Errorf("error payload")
+	}
+	code := invokeCode.Code
+	codeHex := common.ToHexString(code)
+	fmt.Println("codeHex:", codeHex)
+	l := len(code)
+	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
+		if string(code[l-46-8:l-46]) == "transfer" {
+			from, err := utils.AddressParseFromBytes(code[5:25])
+			if err != nil {
+				return nil, err
+			}
+			res := make(map[string]interface{})
+			res["functionName"] = "transfer"
+			res["from"] = from.ToBase58()
+			to, err := utils.AddressParseFromBytes(code[28:48])
+			if err != nil {
+				return nil, err
+			}
+			res["to"] = to.ToBase58()
+			var amount = uint64(0)
+			if string(codeHex[100]) == "5" {
+				b := common.BigIntFromNeoBytes([]byte{code[50]})
+				amount = b.Uint64() - 0x50
+			} else {
+				amount = common.BigIntFromNeoBytes(code[51 : 51+code[50]]).Uint64()
+			}
+			res["amount"] = amount
+			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
+				res["asset"] = "ont"
+			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
+				res["asset"] = "ong"
+				res["amount"] = amount / 1000000000
+			} else {
+				return nil, fmt.Errorf("not ont or ong contractAddress")
+			}
+			return res, nil
+		} else if string(code[l-46-12:l-46]) == "transferFrom" {
+			res := make(map[string]interface{})
+			res["functionName"] = "transferFrom"
+			sender, err := utils.AddressParseFromBytes(code[5:25])
+			if err != nil {
+				return nil, err
+			}
+			res["sender"] = sender.ToBase58()
+			from, err := utils.AddressParseFromBytes(code[28:48])
+			if err != nil {
+				return nil, err
+			}
+			res["from"] = from.ToBase58()
+
+			to, err := utils.AddressParseFromBytes(code[51:71])
+			if err != nil {
+				return nil, err
+			}
+			res["to"] = to.ToBase58()
+
+			var amount = uint64(0)
+			if string(codeHex[146]) == "5" {
+				b := common.BigIntFromNeoBytes([]byte{code[73]})
+				amount = b.Uint64() - 0x50
+			} else {
+				//a := common.BigIntFromNeoBytes([]byte{code[73]})
+				amount = common.BigIntFromNeoBytes(code[74 : 74+code[73]]).Uint64()
+				//amount = common.BigIntFromNeoBytes(code[75 : a.Uint64()]).Uint64()
+				//amount = common.BigIntFromNeoBytes(code[75 : 75+code[73]]).Uint64()
+			}
+			res["amount"] = amount
+			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
+				res["asset"] = "ont"
+			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
+				res["asset"] = "ong"
+				res["amount"] = amount / 1000000000
+			}
+			return res, nil
+		}
+	}
+	return nil, fmt.Errorf("not native invoke transaction")
+}
 func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
@@ -212,7 +298,7 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
 	}
-	sink := sign.ZeroCopySink{}
+	sink := common2.ZeroCopySink{}
 	txData.Serialization(&sink)
 	rawtx := hex.EncodeToString(sink.Bytes())
 	return rawtx, nil
