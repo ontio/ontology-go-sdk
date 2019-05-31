@@ -78,13 +78,17 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	fmt.Println(res["from"].(string))
 	assert.Equal(t, acc.Address.ToBase58(), res["from"].(string))
 	assert.Equal(t, acc2.Address.ToBase58(), res["to"].(string))
-	assert.Equal(t, uint64(10), res["amount"].(uint64))
+	assert.Equal(t, uint64(15), res["amount"].(uint64))
 	assert.Equal(t, "transfer", res["functionName"].(string))
 
 	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
 	transferFrom2, err := transferFrom.IntoImmutable()
-	r, _ := testOntSdk.ParseNativeTxPayload(transferFrom2.ToArray())
-	fmt.Println("r:", r)
+	r, err := testOntSdk.ParseNativeTxPayload(transferFrom2.ToArray())
+	assert.Nil(t, err)
+	assert.Equal(t, r["sender"], acc.Address.ToBase58())
+	assert.Equal(t, r["from"], acc2.Address.ToBase58())
+	assert.Equal(t, r["to"], acc3.Address.ToBase58())
+	assert.Equal(t, r["amount"], uint64(10))
 }
 
 func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
