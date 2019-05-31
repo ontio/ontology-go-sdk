@@ -42,6 +42,51 @@ var (
 	testGasLimit = uint64(20000)
 )
 
+func TestOntologySdk_TrabsferFrom(t *testing.T) {
+
+}
+func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	var err error
+	assert.Nil(t, err)
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+
+	pri2, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb8cf")
+	assert.Nil(t, err)
+
+	pri3, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb9cf")
+	assert.Nil(t, err)
+	acc, err = NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+
+	acc2, err := NewAccountFromPrivateKey(pri2, signature.SHA256withECDSA)
+
+	acc3, err := NewAccountFromPrivateKey(pri3, signature.SHA256withECDSA)
+	y, _ := common.HexToBytes(acc.Address.ToHexString())
+
+	fmt.Println("acc:", common.ToHexString(common.ToArrayReverse(y)))
+	assert.Nil(t, err)
+	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, 15)
+	assert.Nil(t, err)
+
+	tx2, err := tx.IntoImmutable()
+	fmt.Println("&&&", common.ToHexString(tx2.ToArray()))
+	assert.Nil(t, err)
+	res, err := testOntSdk.ParseNativeTxPayload(tx2.ToArray())
+	assert.Nil(t, err)
+	fmt.Println("res:", res)
+	fmt.Println(res["from"].(string))
+	assert.Equal(t, acc.Address.ToBase58(), res["from"].(string))
+	assert.Equal(t, acc2.Address.ToBase58(), res["to"].(string))
+	assert.Equal(t, uint64(10), res["amount"].(uint64))
+	assert.Equal(t, "transfer", res["functionName"].(string))
+
+	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
+	transferFrom2, err := transferFrom.IntoImmutable()
+	r, _ := testOntSdk.ParseNativeTxPayload(transferFrom2.ToArray())
+	fmt.Println("r:", r)
+}
+
 func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
 	mnemonic := make(map[string]bool)
 	testOntSdk := NewOntologySdk()
@@ -133,10 +178,19 @@ func Init() {
 	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
 
 	var err error
-	wallet, err := testOntSdk.CreateWallet("./wallet.dat")
-	if err != nil {
-		fmt.Println("[CreateWallet] error:", err)
-		return
+	var wallet *Wallet
+	if !common.FileExisted("./wallet.dat") {
+		wallet, err = testOntSdk.CreateWallet("./wallet.dat")
+		if err != nil {
+			fmt.Println("[CreateWallet] error:", err)
+			return
+		}
+	} else {
+		wallet, err = testOntSdk.OpenWallet("./wallet.dat")
+		if err != nil {
+			fmt.Println("[CreateWallet] error:", err)
+			return
+		}
 	}
 	_, err = wallet.NewDefaultSettingAccount(testPasswd)
 	if err != nil {
