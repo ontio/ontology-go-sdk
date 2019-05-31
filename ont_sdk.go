@@ -112,7 +112,7 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 				res["asset"] = "ont"
 			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
 				res["asset"] = "ong"
-				res["amount"] = amount / 1000000000
+				res["amount"] = amount
 			} else {
 				return nil, fmt.Errorf("not ont or ong contractAddress")
 			}
@@ -152,7 +152,7 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 				res["asset"] = "ont"
 			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
 				res["asset"] = "ong"
-				res["amount"] = amount / 1000000000
+				res["amount"] = amount
 			}
 			return res, nil
 		}
