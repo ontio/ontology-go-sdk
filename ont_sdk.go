@@ -74,7 +74,7 @@ func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
 }
 
-func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
+func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
 	tx, err := types.TransactionFromRawBytes(raw)
 	if err != nil {
 		return nil, err
@@ -84,10 +84,10 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 		return nil, fmt.Errorf("error payload")
 	}
 	code := invokeCode.Code
-	return this.ParsePayload(code)
+	return ParsePayload(code)
 }
 
-func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, error) {
+func ParsePayload(code []byte) (map[string]interface{}, error) {
 	codeHex := common.ToHexString(code)
 	l := len(code)
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
@@ -99,11 +99,7 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 				return nil, err
 			}
 			source.BackUp(1)
-			fromBytes, _, irregular, eof := source.NextVarBytes()
-			if eof || irregular {
-				return nil, io.EOF
-			}
-			from, err := common.AddressParseFromBytes(fromBytes)
+			from, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
@@ -115,11 +111,7 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 				return nil, err
 			}
 			source.BackUp(1)
-			toBytes, _, irregular, eof := source.NextVarBytes()
-			if eof || irregular {
-				return nil, io.EOF
-			}
-			to, err := common.AddressParseFromBytes(toBytes)
+			to, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
@@ -131,10 +123,21 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 			source.BackUp(1)
 			var amount = uint64(0)
 			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
+				//b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
+				//amount = b.Uint64() - 0x50
+				data, eof := source.NextByte()
+				if eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				b := common.BigIntFromNeoBytes([]byte{data})
 				amount = b.Uint64() - 0x50
 			} else {
-				amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
+				//amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
+				amountBytes, _, irregular, eof := source.NextVarBytes()
+				if irregular || eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
 			}
 
 			res["amount"] = amount
@@ -145,6 +148,22 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 			} else {
 				return nil, fmt.Errorf("not ont or ong contractAddress")
 			}
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			//method name
+			_, _, irregular, eof := source.NextVarBytes()
+			if irregular || eof {
+				return nil, io.ErrUnexpectedEOF
+			}
+			//contract address
+			contractAddress, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			res["contractAddress"] = contractAddress
 			return res, nil
 		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
 			res := make(map[string]interface{})
@@ -188,10 +207,22 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 			source.BackUp(1)
 			var amount = uint64(0)
 			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
+				//b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
+				//amount = b.Uint64() - 0x50
+				//read amount
+				data, eof := source.NextByte()
+				if eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				b := common.BigIntFromNeoBytes([]byte{data})
 				amount = b.Uint64() - 0x50
 			} else {
-				amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
+				amountBytes, _, irregular, eof := source.NextVarBytes()
+				if irregular || eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
+				//amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
 			}
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
@@ -200,6 +231,22 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 				res["asset"] = "ong"
 				res["amount"] = amount
 			}
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			//method name
+			_, _, irregular, eof := source.NextVarBytes()
+			if irregular || eof {
+				return nil, io.ErrUnexpectedEOF
+			}
+			//contract address
+			contractAddress, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			res["contractAddress"] = contractAddress
 			return res, nil
 		}
 	}
@@ -219,7 +266,8 @@ func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
 }
 func ignoreOpCode(source *common.ZeroCopySource) error {
 	opCode := make(map[byte]bool)
-	opCode = map[byte]bool{0x00: true, 0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true, 0x7c: true}
+	opCode = map[byte]bool{0x00: true, 0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
+		0x7c: true, 0x51: true, 0xc1: true}
 	s := source.Size()
 	for {
 		if source.Pos() >= s {
