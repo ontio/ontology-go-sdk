@@ -18,7 +18,7 @@ func main() {
 		for _, tx := range block.Transactions {
 			invokeCode, ok := tx.Payload.(*payload.InvokeCode)
 			if ok {
-				res, err := testOntSdk.ParsePayload(invokeCode.Code)
+				res, err := ontology_go_sdk.ParsePayload(invokeCode.Code)
 				if err != nil {
 					//fmt.Printf("error: %s, height:%d\n", err, i)
 					continue

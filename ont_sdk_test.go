@@ -48,7 +48,7 @@ func TestOntologySdk_TrabsferFrom(t *testing.T) {
 	payloadHex := "00c66b1421ab6ece5c9e44fa5e35261ef42cc6bc31d98e9c6a7cc814c1d2d106f9d2276b383958973b9fca8e4f48cc966a7cc80400e1f5056a7cc86c51c1087472616e736665721400000000000000000000000000000000000000020068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
 	payloadBytes, err := common.HexToBytes(payloadHex)
 	assert.Nil(t, err)
-	res, err := testOntSdk.ParsePayload(payloadBytes)
+	res, err := ParsePayload(payloadBytes)
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
 
@@ -72,7 +72,7 @@ func TestOntologySdk_TrabsferFrom(t *testing.T) {
 
 	payloadBytes, err = common.HexToBytes(payloadHex)
 	assert.Nil(t, err)
-	res, err = testOntSdk.ParsePayload(payloadBytes)
+	res, err = ParsePayload(payloadBytes)
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
 }
@@ -103,7 +103,7 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	invokeCode, ok := tx.Payload.(*payload.InvokeCode)
 	assert.True(t, ok)
 	code := invokeCode.Code
-	res, err := testOntSdk.ParsePayload(code)
+	res, err := ParsePayload(code)
 	assert.Nil(t, err)
 	assert.Equal(t, acc.Address.ToBase58(), res["sender"].(string))
 	assert.Equal(t, acc2.Address.ToBase58(), res["from"].(string))
@@ -139,7 +139,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 
 	tx2, err := tx.IntoImmutable()
 	assert.Nil(t, err)
-	res, err := testOntSdk.ParseNativeTxPayload(tx2.ToArray())
+	res, err := ParseNativeTxPayload(tx2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
 	assert.Equal(t, acc.Address.ToBase58(), res["from"].(string))
@@ -149,7 +149,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 
 	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
 	transferFrom2, err := transferFrom.IntoImmutable()
-	r, err := testOntSdk.ParseNativeTxPayload(transferFrom2.ToArray())
+	r, err := ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", r)
 	assert.Equal(t, r["sender"], acc.Address.ToBase58())
@@ -161,7 +161,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	assert.Nil(t, err)
 	ongTx, err := ongTransfer.IntoImmutable()
 	assert.Nil(t, err)
-	res, err = testOntSdk.ParseNativeTxPayload(ongTx.ToArray())
+	res, err = ParseNativeTxPayload(ongTx.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
 }
