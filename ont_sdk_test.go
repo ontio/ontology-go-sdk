@@ -133,7 +133,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	fmt.Println("acc:", common.ToHexString(common.ToArrayReverse(y)))
 	assert.Nil(t, err)
 
-	amount := uint64(10)
+	amount := uint64(1000000000)
 	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, amount)
 	assert.Nil(t, err)
 
