@@ -9,7 +9,7 @@ import (
 func main() {
 	testOntSdk := ontology_go_sdk.NewOntologySdk()
 	testOntSdk.NewRpcClient().SetAddress("http://dappnode1.ont.io:20336")
-	for i := uint32(0); i < 100000; i++ {
+	for i := uint32(4513925); i > 100000; i++ {
 		block, err := testOntSdk.GetBlockByHeight(i)
 		if err != nil {
 			fmt.Println("error: ", err)
@@ -20,10 +20,11 @@ func main() {
 			if ok {
 				res, err := testOntSdk.ParsePayload(invokeCode.Code)
 				if err != nil {
-					fmt.Printf("error: %s, height:%d\n", err, i)
+					//fmt.Printf("error: %s, height:%d\n", err, i)
 					continue
 				}
-				fmt.Printf("res: %x, height: %d\n", res, i)
+				fmt.Println("res:", res)
+				fmt.Printf("height: %d\n", i)
 			}
 		}
 	}

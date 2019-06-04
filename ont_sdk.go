@@ -94,6 +94,7 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 		offset = 1
 	}
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
+		fmt.Println("codeHex:", codeHex)
 		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
 			from, err := utils.AddressParseFromBytes(code[4+offset : 24+offset])
 			if err != nil {
@@ -108,7 +109,7 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 			}
 			res["to"] = to.ToBase58()
 			var amount = uint64(0)
-			if string(codeHex[102-2*offset]) == "5" {
+			if string(codeHex[102-2*offset]) == "5" || string(codeHex[102-2*offset]) == "6" {
 				b := common.BigIntFromNeoBytes([]byte{code[51-offset]})
 				amount = b.Uint64() - 0x50
 			} else {
@@ -145,7 +146,7 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 			res["to"] = to.ToBase58()
 
 			var amount = uint64(0)
-			if string(codeHex[150-4*offset]) == "5" {
+			if string(codeHex[150-4*offset]) == "5" || string(codeHex[102-2*offset]) == "6" {
 				b := common.BigIntFromNeoBytes([]byte{code[73]})
 				amount = b.Uint64() - 0x50
 			} else {
