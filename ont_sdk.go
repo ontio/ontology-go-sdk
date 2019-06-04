@@ -83,12 +83,19 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 		return nil, fmt.Errorf("error payload")
 	}
 	code := invokeCode.Code
+	return this.ParsePayload(code)
+}
+
+func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, error) {
 	codeHex := common.ToHexString(code)
-	fmt.Println("codeHex:", codeHex)
 	l := len(code)
+	var offset = 0
+	if code[3] == 0x6a {
+		offset = 1
+	}
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
-		if string(code[l-46-8:l-46]) == "transfer" {
-			from, err := utils.AddressParseFromBytes(code[5:25])
+		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
+			from, err := utils.AddressParseFromBytes(code[4+offset : 24+offset])
 			if err != nil {
 				return nil, err
 			}
@@ -101,11 +108,11 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 			}
 			res["to"] = to.ToBase58()
 			var amount = uint64(0)
-			if string(codeHex[100]) == "5" {
-				b := common.BigIntFromNeoBytes([]byte{code[50]})
+			if string(codeHex[102-2*offset]) == "5" {
+				b := common.BigIntFromNeoBytes([]byte{code[51-offset]})
 				amount = b.Uint64() - 0x50
 			} else {
-				amount = common.BigIntFromNeoBytes(code[51 : 51+code[50]]).Uint64()
+				amount = common.BigIntFromNeoBytes(code[52-offset : 52-offset+int(code[51-offset])]).Uint64()
 			}
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
@@ -117,10 +124,10 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 				return nil, fmt.Errorf("not ont or ong contractAddress")
 			}
 			return res, nil
-		} else if string(code[l-46-12:l-46]) == "transferFrom" {
+		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
 			res := make(map[string]interface{})
 			res["functionName"] = "transferFrom"
-			sender, err := utils.AddressParseFromBytes(code[5:25])
+			sender, err := utils.AddressParseFromBytes(code[4+offset : 24+offset])
 			if err != nil {
 				return nil, err
 			}
@@ -138,14 +145,11 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 			res["to"] = to.ToBase58()
 
 			var amount = uint64(0)
-			if string(codeHex[146]) == "5" {
+			if string(codeHex[150-4*offset]) == "5" {
 				b := common.BigIntFromNeoBytes([]byte{code[73]})
 				amount = b.Uint64() - 0x50
 			} else {
-				//a := common.BigIntFromNeoBytes([]byte{code[73]})
-				amount = common.BigIntFromNeoBytes(code[74 : 74+code[73]]).Uint64()
-				//amount = common.BigIntFromNeoBytes(code[75 : a.Uint64()]).Uint64()
-				//amount = common.BigIntFromNeoBytes(code[75 : 75+code[73]]).Uint64()
+				amount = common.BigIntFromNeoBytes(code[75-offset : 75-offset+int(code[74-offset])]).Uint64()
 			}
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
@@ -157,7 +161,7 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 			return res, nil
 		}
 	}
-	return nil, fmt.Errorf("not native invoke transaction")
+	return nil, fmt.Errorf("not native transfer and transferFrom transaction")
 }
 func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
