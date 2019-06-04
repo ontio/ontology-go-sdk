@@ -147,10 +147,10 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 
 			var amount = uint64(0)
 			if string(codeHex[150-4*offset]) == "5" || string(codeHex[102-2*offset]) == "6" {
-				b := common.BigIntFromNeoBytes([]byte{code[73]})
+				b := common.BigIntFromNeoBytes([]byte{code[75-2*offset]})
 				amount = b.Uint64() - 0x50
 			} else {
-				amount = common.BigIntFromNeoBytes(code[75-offset : 75-offset+int(code[74-offset])]).Uint64()
+				amount = common.BigIntFromNeoBytes(code[76-offset : 76-offset+int(code[75-offset])]).Uint64()
 			}
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
