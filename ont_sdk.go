@@ -26,6 +26,7 @@ import (
 	"github.com/ontio/ontology-go-sdk/bip44"
 	"github.com/ontio/ontology/smartcontract/event"
 	"github.com/tyler-smith/go-bip39"
+	"io"
 	"math/rand"
 	"time"
 
@@ -89,38 +90,58 @@ func (this *OntologySdk) ParseNativeTxPayload(raw []byte) (map[string]interface{
 func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, error) {
 	codeHex := common.ToHexString(code)
 	l := len(code)
-	var offset = 0
-	if code[3] == 0x6a {
-		offset = 1
-	}
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
 		fmt.Println("codeHex:", codeHex)
 		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
-			from, err := utils.AddressParseFromBytes(code[4+offset : 24+offset])
+			source := common.NewZeroCopySource(code)
+			err := ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			fromBytes, _, irregular, eof := source.NextVarBytes()
+			if eof || irregular {
+				return nil, io.EOF
+			}
+			from, err := common.AddressParseFromBytes(fromBytes)
 			if err != nil {
 				return nil, err
 			}
 			res := make(map[string]interface{})
 			res["functionName"] = "transfer"
 			res["from"] = from.ToBase58()
-			to, err := utils.AddressParseFromBytes(code[28:48])
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			toBytes, _, irregular, eof := source.NextVarBytes()
+			if eof || irregular {
+				return nil, io.EOF
+			}
+			to, err := common.AddressParseFromBytes(toBytes)
 			if err != nil {
 				return nil, err
 			}
 			res["to"] = to.ToBase58()
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
 			var amount = uint64(0)
-			if string(codeHex[102-2*offset]) == "5" || string(codeHex[102-2*offset]) == "6" {
-				b := common.BigIntFromNeoBytes([]byte{code[51-offset]})
+			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
+				b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
 				amount = b.Uint64() - 0x50
 			} else {
-				amount = common.BigIntFromNeoBytes(code[52-offset : 52-offset+int(code[51-offset])]).Uint64()
+				amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
 			}
+
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
 				res["asset"] = "ont"
 			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
 				res["asset"] = "ong"
-				res["amount"] = amount
 			} else {
 				return nil, fmt.Errorf("not ont or ong contractAddress")
 			}
@@ -128,29 +149,49 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
 			res := make(map[string]interface{})
 			res["functionName"] = "transferFrom"
-			sender, err := utils.AddressParseFromBytes(code[4+offset : 24+offset])
+			source := common.NewZeroCopySource(code)
+			err := ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			sender, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
 			res["sender"] = sender.ToBase58()
-			from, err := utils.AddressParseFromBytes(code[28:48])
+
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			from, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
 			res["from"] = from.ToBase58()
-
-			to, err := utils.AddressParseFromBytes(code[51:71])
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
+			to, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
 			res["to"] = to.ToBase58()
-
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			source.BackUp(1)
 			var amount = uint64(0)
-			if string(codeHex[150-4*offset]) == "5" || string(codeHex[102-2*offset]) == "6" {
-				b := common.BigIntFromNeoBytes([]byte{code[75-2*offset]})
+			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
+				b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
 				amount = b.Uint64() - 0x50
 			} else {
-				amount = common.BigIntFromNeoBytes(code[76-offset : 76-offset+int(code[75-offset])]).Uint64()
+				amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
 			}
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
@@ -164,6 +205,38 @@ func (this *OntologySdk) ParsePayload(code []byte) (map[string]interface{}, erro
 	}
 	return nil, fmt.Errorf("not native transfer and transferFrom transaction")
 }
+
+func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
+	senderBytes, _, irregular, eof := source.NextVarBytes()
+	if irregular || eof {
+		return common.ADDRESS_EMPTY, io.ErrUnexpectedEOF
+	}
+	sender, err := utils.AddressParseFromBytes(senderBytes)
+	if err != nil {
+		return common.ADDRESS_EMPTY, err
+	}
+	return sender, nil
+}
+func ignoreOpCode(source *common.ZeroCopySource) error {
+	opCode := make(map[byte]bool)
+	opCode = map[byte]bool{0x00: true, 0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true, 0x7c: true}
+	s := source.Size()
+	for {
+		if source.Pos() >= s {
+			return nil
+		}
+		by, eof := source.NextByte()
+		if eof {
+			return io.EOF
+		}
+		if opCode[by] {
+			continue
+		} else {
+			return nil
+		}
+	}
+}
+
 func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
