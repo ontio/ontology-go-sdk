@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"github.com/ontio/ontology-crypto/signature"
 	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/validation"
 	"github.com/ontio/ontology/smartcontract/event"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,72 @@ var (
 )
 
 func TestOntologySdk_TrabsferFrom(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	payloadHex := "00c66b1421ab6ece5c9e44fa5e35261ef42cc6bc31d98e9c6a7cc814c1d2d106f9d2276b383958973b9fca8e4f48cc966a7cc80400e1f5056a7cc86c51c1087472616e736665721400000000000000000000000000000000000000020068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	payloadBytes, err := common.HexToBytes(payloadHex)
+	assert.Nil(t, err)
+	res, err := testOntSdk.ParsePayload(payloadBytes)
+	assert.Nil(t, err)
+	fmt.Println("res:", res)
 
+	//java sdk,  transferFrom
+	//amount =100
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc8149018fbdfe16d5b1054165ab892b0e040919bd1ca6a7cc8143e7c40c2a2a98e3f95adace19b12ef4a1d7a35066a7cc801646a7cc86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	//amount =10
+	//payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc8149018fbdfe16d5b1054165ab892b0e040919bd1ca6a7cc8143e7c40c2a2a98e3f95adace19b12ef4a1d7a35066a7cc85a6a7cc86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//amount = 1000000000
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc8149018fbdfe16d5b1054165ab892b0e040919bd1ca6a7cc8143e7c40c2a2a98e3f95adace19b12ef4a1d7a35066a7cc80400ca9a3b6a7cc86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//java sdk, transfer
+	//amount = 100
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc814d2c124dd088190f709b684e0bc676d70c41b37766a7cc801646a7cc86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//amount = 10
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc814d2c124dd088190f709b684e0bc676d70c41b37766a7cc85a6a7cc86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	//amount = 1000000000
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc814d2c124dd088190f709b684e0bc676d70c41b37766a7cc80400ca9a3b6a7cc86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	payloadBytes, err = common.HexToBytes(payloadHex)
+	assert.Nil(t, err)
+	res, err = testOntSdk.ParsePayload(payloadBytes)
+	assert.Nil(t, err)
+	fmt.Println("res:", res)
+}
+
+//transferFrom
+func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	var err error
+	assert.Nil(t, err)
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+
+	pri2, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb8cf")
+	assert.Nil(t, err)
+
+	pri3, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb9cf")
+	assert.Nil(t, err)
+	acc, err = NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+
+	acc2, err := NewAccountFromPrivateKey(pri2, signature.SHA256withECDSA)
+
+	acc3, err := NewAccountFromPrivateKey(pri3, signature.SHA256withECDSA)
+	amount := 1000000000
+	txFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, uint64(amount))
+	assert.Nil(t, err)
+	tx, err := txFrom.IntoImmutable()
+	assert.Nil(t, err)
+	invokeCode, ok := tx.Payload.(*payload.InvokeCode)
+	assert.True(t, ok)
+	code := invokeCode.Code
+	res, err := testOntSdk.ParsePayload(code)
+	assert.Nil(t, err)
+	assert.Equal(t, acc.Address.ToBase58(), res["sender"].(string))
+	assert.Equal(t, acc2.Address.ToBase58(), res["from"].(string))
+	assert.Equal(t, uint64(amount), res["amount"].(uint64))
+	assert.Equal(t, "transferFrom", res["functionName"].(string))
+	fmt.Println("res:", res)
 }
 func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	testOntSdk = NewOntologySdk()
@@ -66,29 +132,38 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 
 	fmt.Println("acc:", common.ToHexString(common.ToArrayReverse(y)))
 	assert.Nil(t, err)
-	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, 15)
+
+	amount := uint64(10)
+	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, amount)
 	assert.Nil(t, err)
 
 	tx2, err := tx.IntoImmutable()
-	fmt.Println("&&&", common.ToHexString(tx2.ToArray()))
 	assert.Nil(t, err)
 	res, err := testOntSdk.ParseNativeTxPayload(tx2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
-	fmt.Println(res["from"].(string))
 	assert.Equal(t, acc.Address.ToBase58(), res["from"].(string))
 	assert.Equal(t, acc2.Address.ToBase58(), res["to"].(string))
-	assert.Equal(t, uint64(15), res["amount"].(uint64))
+	assert.Equal(t, amount, res["amount"].(uint64))
 	assert.Equal(t, "transfer", res["functionName"].(string))
 
 	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
 	transferFrom2, err := transferFrom.IntoImmutable()
 	r, err := testOntSdk.ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
+	fmt.Println("res:", r)
 	assert.Equal(t, r["sender"], acc.Address.ToBase58())
 	assert.Equal(t, r["from"], acc2.Address.ToBase58())
 	assert.Equal(t, r["to"], acc3.Address.ToBase58())
 	assert.Equal(t, r["amount"], uint64(10))
+
+	ongTransfer, err := testOntSdk.Native.Ong.NewTransferTransaction(uint64(500), uint64(20000), acc.Address, acc2.Address, 100000000)
+	assert.Nil(t, err)
+	ongTx, err := ongTransfer.IntoImmutable()
+	assert.Nil(t, err)
+	res, err = testOntSdk.ParseNativeTxPayload(ongTx.ToArray())
+	assert.Nil(t, err)
+	fmt.Println("res:", res)
 }
 
 func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
