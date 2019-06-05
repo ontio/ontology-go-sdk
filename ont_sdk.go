@@ -91,7 +91,6 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 	codeHex := common.ToHexString(code)
 	l := len(code)
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
-		fmt.Println("codeHex:", codeHex)
 		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
 			source := common.NewZeroCopySource(code)
 			err := ignoreOpCode(source)
@@ -123,8 +122,6 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			source.BackUp(1)
 			var amount = uint64(0)
 			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				//b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
-				//amount = b.Uint64() - 0x50
 				data, eof := source.NextByte()
 				if eof {
 					return nil, io.ErrUnexpectedEOF
@@ -132,7 +129,6 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 				b := common.BigIntFromNeoBytes([]byte{data})
 				amount = b.Uint64() - 0x50
 			} else {
-				//amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
 				amountBytes, _, irregular, eof := source.NextVarBytes()
 				if irregular || eof {
 					return nil, io.ErrUnexpectedEOF
@@ -207,8 +203,6 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			source.BackUp(1)
 			var amount = uint64(0)
 			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				//b := common.BigIntFromNeoBytes([]byte{code[source.Pos()]})
-				//amount = b.Uint64() - 0x50
 				//read amount
 				data, eof := source.NextByte()
 				if eof {
@@ -222,7 +216,6 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 					return nil, io.ErrUnexpectedEOF
 				}
 				amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
-				//amount = common.BigIntFromNeoBytes(code[source.Pos()+1 : source.Pos()+1+uint64(code[source.Pos()])]).Uint64()
 			}
 			res["amount"] = amount
 			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
