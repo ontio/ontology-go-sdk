@@ -265,9 +265,6 @@ func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
 	return sender, nil
 }
 func ignoreOpCode(source *common.ZeroCopySource) error {
-	opCode := make(map[byte]bool)
-	opCode = map[byte]bool{0x00: true, 0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
-		0x7c: true, 0x51: true, 0xc1: true}
 	s := source.Size()
 	for {
 		if source.Pos() >= s {
@@ -277,7 +274,7 @@ func ignoreOpCode(source *common.ZeroCopySource) error {
 		if eof {
 			return io.EOF
 		}
-		if opCode[by] {
+		if OPCODE_IN_PAYLOAD[by] {
 			continue
 		} else {
 			return nil
