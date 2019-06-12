@@ -8,6 +8,7 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/core/utils"
+	"math/rand"
 	"time"
 )
 
@@ -149,4 +150,29 @@ func (this *NeoVMContract) PreExecInvokeShardNeoVMContract(
 	}
 	tx.ShardID = shardId
 	return this.ontSdk.PreExecTransaction(tx)
+}
+
+func (this *NeoVMContract) ChangeMetaData(shardId uint64, gasPrice, gasLimit uint64, signer *Account,
+	contractAddress common.Address, newOwner common.Address, frozen bool,
+	invokedContract []common.Address) (common.Uint256, error) {
+	metaData := payload.NewDefaultMetaData()
+	metaData.Contract = contractAddress
+	metaData.Owner = newOwner
+	metaData.IsFrozen = frozen
+	metaData.InvokedContract = invokedContract
+	tx := &types.MutableTransaction{
+		Version:  common.CURR_TX_VERSION,
+		GasPrice: gasPrice,
+		GasLimit: gasLimit,
+		TxType:   types.MetaData,
+		Nonce:    rand.Uint32(),
+		Payload:  metaData,
+		Sigs:     make([]types.Sig, 0, 0),
+	}
+	tx.ShardID = shardId
+	err := this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
 }
