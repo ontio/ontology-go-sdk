@@ -12,7 +12,7 @@ import:
 - package: github.com/tyler-smith/go-bip39
 - package: github.com/FactomProject/basen
 - package: github.com/ontio/ontology
-  version: ^1.7.0
+  version: go-sdk-v1.7.0
   subpackages:
   - account
   - common
