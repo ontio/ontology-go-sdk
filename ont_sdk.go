@@ -191,7 +191,7 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
 	}
 	sink := sign.ZeroCopySink{}
-	err = txData.Serialization(&sink)
+	txData.Serialization(&sink)
 	if err != nil {
 		return "", fmt.Errorf("tx serialization error:%s", err)
 	}
