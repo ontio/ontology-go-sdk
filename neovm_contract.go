@@ -112,7 +112,7 @@ func (this *NeoVMContract) InvokeNeoVMContract(
 }
 
 func (this *NeoVMContract) InvokeShardNeoVMContract(
-	shardId uint64,
+	shardId common.ShardID,
 	gasPrice,
 	gasLimit uint64,
 	signer *Account,
@@ -141,7 +141,7 @@ func (this *NeoVMContract) PreExecInvokeNeoVMContract(
 }
 
 func (this *NeoVMContract) PreExecInvokeShardNeoVMContract(
-	shardId uint64,
+	shardId common.ShardID,
 	contractAddress common.Address,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
 	tx, err := this.NewNeoVMInvokeTransaction(0, 0, contractAddress, params)
@@ -152,7 +152,7 @@ func (this *NeoVMContract) PreExecInvokeShardNeoVMContract(
 	return this.ontSdk.PreExecTransaction(tx)
 }
 
-func (this *NeoVMContract) ChangeMetaData(shardId uint64, gasPrice, gasLimit uint64, signer *Account,
+func (this *NeoVMContract) ChangeMetaData(shardId common.ShardID, gasPrice, gasLimit uint64, signer *Account,
 	contractAddress common.Address, newOwner common.Address, frozen bool,
 	invokedContract []common.Address) (common.Uint256, error) {
 	metaData := payload.NewDefaultMetaData()
