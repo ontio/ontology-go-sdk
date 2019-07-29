@@ -98,7 +98,7 @@ func (this *NativeContract) InvokeNativeContract(
 }
 
 func (this *NativeContract) InvokeShardNativeContract(
-	shardID,
+	shardID common.ShardID,
 	gasPrice,
 	gasLimit uint64,
 	singer *Account,
@@ -136,7 +136,7 @@ func (this *NativeContract) PreExecInvokeShardNativeContract(
 	contractAddress common.Address,
 	version byte,
 	method string,
-	shardId uint64,
+	shardId common.ShardID,
 	params []interface{},
 ) (*sdkcom.PreExecResult, error) {
 	tx, err := this.NewNativeInvokeTransaction(0, 0, version, contractAddress, method, params)
