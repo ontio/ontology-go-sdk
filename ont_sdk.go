@@ -130,8 +130,8 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 					return nil, err
 				}
 				amount, err := getValue(source)
-                if err != nil {
-                	return nil, err
+				if err != nil {
+					return nil, err
 				}
 				state := common3.StateInfo{
 					From:  from.ToBase58(),

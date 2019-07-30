@@ -113,10 +113,10 @@ func TestParsePayloadRandom(t *testing.T) {
 			assert.Equal(t, uint64(amount), stateInfos[0].Value)
 		}
 		tr := ont.TransferFrom{
-			Sender:acc.Address,
-			From:acc.Address,
-			To:acc.Address,
-			Value:uint64(amount),
+			Sender: acc.Address,
+			From:   acc.Address,
+			To:     acc.Address,
+			Value:  uint64(amount),
 		}
 		invokeCode, err = utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transferFrom", []interface{}{tr})
 		res, err = ParsePayload(invokeCode)
