@@ -177,6 +177,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			return res, nil
 		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
 			source := common.NewZeroCopySource(code)
+			//ignore 00
 			_, eof := source.NextByte()
 			if eof {
 				return nil, io.ErrUnexpectedEOF

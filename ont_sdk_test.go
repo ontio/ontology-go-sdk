@@ -145,7 +145,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 			To:    acc.Address,
 			Value: uint64(amount),
 		}
-		paramLen := rand.Intn(100)
+		paramLen := rand.Intn(20)
 		if paramLen == 0 {
 			paramLen += 1
 		}
@@ -164,7 +164,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 		} else {
 			stateInfos := res["param"].([]common2.StateInfo)
 			for i := 0; i < paramLen; i++ {
-				assert.Equal(t, amount, stateInfos[i].Value)
+				assert.Equal(t, uint64(amount), stateInfos[i].Value)
 			}
 		}
 	}
