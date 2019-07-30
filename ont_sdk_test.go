@@ -23,13 +23,16 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/signature"
+	common2 "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/core/validation"
 	"github.com/ontio/ontology/smartcontract/event"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -81,6 +84,68 @@ func TestParsePayload(t *testing.T) {
 	assert.Nil(t, err)
 	_, err = ParsePayload(payloadBytes)
 	assert.Nil(t, err)
+}
+
+func TestParsePayloadRandom(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	assert.Nil(t, err)
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+	assert.Nil(t, err)
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 100000; i++ {
+		amount := rand.Uint64()
+		state := &ont.State{
+			From:  acc.Address,
+			To:    acc.Address,
+			Value: amount,
+		}
+		param := []*ont.State{state}
+		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{param})
+		res, err := ParsePayload(invokeCode)
+		assert.Nil(t, err)
+		if res["param"] == nil {
+			fmt.Println(res["param"])
+		} else {
+			stateInfos := res["param"].([]common2.StateInfo)
+			assert.Equal(t, amount, stateInfos[0].Value)
+		}
+	}
+}
+func TestParsePayloadRandomMulti(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	assert.Nil(t, err)
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+	assert.Nil(t, err)
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 100000; i++ {
+		amount := rand.Uint64()
+		state := &ont.State{
+			From:  acc.Address,
+			To:    acc.Address,
+			Value: amount,
+		}
+		paramLen := rand.Intn(10)
+		if paramLen == 0 {
+			paramLen += 1
+		}
+		params := make([]*ont.State, 0)
+		for i := 0; i < paramLen; i++ {
+			params = append(params, state)
+		}
+		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{params})
+		res, err := ParsePayload(invokeCode)
+		assert.Nil(t, err)
+		if res["param"] == nil {
+			fmt.Println(res["param"])
+		} else {
+			stateInfos := res["param"].([]common2.StateInfo)
+			for i := 0; i < paramLen; i++ {
+				assert.Equal(t, amount, stateInfos[i].Value)
+			}
+		}
+	}
 }
 
 func TestOntologySdk_TrabsferFrom(t *testing.T) {
