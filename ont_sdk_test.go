@@ -94,7 +94,7 @@ func TestParsePayloadRandom(t *testing.T) {
 	assert.Nil(t, err)
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 1000000; i++ {
-		amount := rand.Intn(100)
+		amount := rand.Intn(1000000)
 		state := &ont.State{
 			From:  acc.Address,
 			To:    acc.Address,
@@ -139,13 +139,13 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 	assert.Nil(t, err)
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 100000; i++ {
-		amount := rand.Uint64()
+		amount := rand.Intn(10000000)
 		state := &ont.State{
 			From:  acc.Address,
 			To:    acc.Address,
-			Value: amount,
+			Value: uint64(amount),
 		}
-		paramLen := rand.Intn(10)
+		paramLen := rand.Intn(100)
 		if paramLen == 0 {
 			paramLen += 1
 		}
@@ -158,6 +158,9 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 		assert.Nil(t, err)
 		if res["param"] == nil {
 			fmt.Println(res["param"])
+			fmt.Println(amount)
+			fmt.Println("invokeCode:", common.ToHexString(invokeCode))
+			return
 		} else {
 			stateInfos := res["param"].([]common2.StateInfo)
 			for i := 0; i < paramLen; i++ {
