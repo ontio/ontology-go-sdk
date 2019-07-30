@@ -89,7 +89,6 @@ func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
 }
 
 func ParsePayload(code []byte) (map[string]interface{}, error) {
-	codeHex := common.ToHexString(code)
 	l := len(code)
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
 		//46 = 22  "Ontology.Native.Invoke"
@@ -103,6 +102,13 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			param := make([]common3.StateInfo, 0)
 			source := common.NewZeroCopySource(code)
 			for {
+				zeroByte, eof := source.NextByte()
+				if eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				if zeroByte != 0 {
+					break
+				}
 				err := ignoreOpCode(source)
 				if err != nil {
 					return nil, err
@@ -123,20 +129,9 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 				if err != nil {
 					return nil, err
 				}
-				var amount = uint64(0)
-				if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-					data, eof := source.NextByte()
-					if eof {
-						return nil, io.ErrUnexpectedEOF
-					}
-					b := common.BigIntFromNeoBytes([]byte{data})
-					amount = b.Uint64() - 0x50
-				} else {
-					amountBytes, _, irregular, eof := source.NextVarBytes()
-					if irregular || eof {
-						return nil, io.ErrUnexpectedEOF
-					}
-					amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
+				amount, err := getValue(source)
+                if err != nil {
+                	return nil, err
 				}
 				state := common3.StateInfo{
 					From:  from.ToBase58(),
@@ -182,6 +177,10 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			return res, nil
 		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
 			source := common.NewZeroCopySource(code)
+			_, eof := source.NextByte()
+			if eof {
+				return nil, io.ErrUnexpectedEOF
+			}
 			err := ignoreOpCode(source)
 			if err != nil {
 				return nil, err
@@ -210,21 +209,9 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			var amount = uint64(0)
-			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				//read amount
-				data, eof := source.NextByte()
-				if eof {
-					return nil, io.ErrUnexpectedEOF
-				}
-				b := common.BigIntFromNeoBytes([]byte{data})
-				amount = b.Uint64() - 0x50
-			} else {
-				amountBytes, _, irregular, eof := source.NextVarBytes()
-				if irregular || eof {
-					return nil, io.ErrUnexpectedEOF
-				}
-				amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
+			amount, err := getValue(source)
+			if err != nil {
+				return nil, err
 			}
 			tf := common3.TransferFromInfo{
 				Sender: sender.ToBase58(),
@@ -260,7 +247,28 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 	}
 	return nil, fmt.Errorf("not native transfer and transferFrom transaction")
 }
+func getValue(source *common.ZeroCopySource) (uint64, error) {
+	var amount = uint64(0)
+	zeroByte, eof := source.NextByte()
+	if eof {
+		return 0, io.ErrUnexpectedEOF
+	}
 
+	if common.ToHexString([]byte{zeroByte}) == "00" {
+		amount = 0
+	} else if zeroByte >= 0x51 && zeroByte <= 0x5f {
+		b := common.BigIntFromNeoBytes([]byte{zeroByte})
+		amount = b.Uint64() - 0x50
+	} else {
+		source.BackUp(1)
+		amountBytes, _, irregular, eof := source.NextVarBytes()
+		if irregular || eof {
+			return 0, io.ErrUnexpectedEOF
+		}
+		amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
+	}
+	return amount, nil
+}
 func isEnd(source *common.ZeroCopySource) (bool, error) {
 	by, eof := source.NextByte()
 	if eof {
@@ -360,7 +368,6 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		TxType:   types.Invoke,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),

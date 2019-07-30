@@ -93,22 +93,41 @@ func TestParsePayloadRandom(t *testing.T) {
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
 	assert.Nil(t, err)
 	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < 100000; i++ {
-		amount := rand.Uint64()
+	for i := 0; i < 1000000; i++ {
+		amount := rand.Intn(100)
 		state := &ont.State{
 			From:  acc.Address,
 			To:    acc.Address,
-			Value: amount,
+			Value: uint64(amount),
 		}
 		param := []*ont.State{state}
 		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{param})
 		res, err := ParsePayload(invokeCode)
 		assert.Nil(t, err)
 		if res["param"] == nil {
+			fmt.Println("amount:", amount)
 			fmt.Println(res["param"])
+			return
 		} else {
 			stateInfos := res["param"].([]common2.StateInfo)
-			assert.Equal(t, amount, stateInfos[0].Value)
+			assert.Equal(t, uint64(amount), stateInfos[0].Value)
+		}
+		tr := ont.TransferFrom{
+			Sender:acc.Address,
+			From:acc.Address,
+			To:acc.Address,
+			Value:uint64(amount),
+		}
+		invokeCode, err = utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transferFrom", []interface{}{tr})
+		res, err = ParsePayload(invokeCode)
+		assert.Nil(t, err)
+		if res["param"] == nil {
+			fmt.Println("amount:", amount)
+			fmt.Println(res["param"])
+			return
+		} else {
+			stateInfos := res["param"].(common2.TransferFromInfo)
+			assert.Equal(t, uint64(amount), stateInfos.Value)
 		}
 	}
 }

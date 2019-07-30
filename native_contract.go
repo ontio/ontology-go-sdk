@@ -33,7 +33,7 @@ var (
 	GOVERNANCE_CONTRACT_VERSION    = byte(0)
 )
 
-var OPCODE_IN_PAYLOAD = map[byte]bool{0x00: true, 0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
+var OPCODE_IN_PAYLOAD = map[byte]bool{0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
 	0x7c: true, 0xc1: true}
 
 type NativeContract struct {
