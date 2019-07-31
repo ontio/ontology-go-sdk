@@ -255,7 +255,7 @@ func getValue(source *common.ZeroCopySource) (uint64, error) {
 		return 0, io.ErrUnexpectedEOF
 	}
 
-	if common.ToHexString([]byte{zeroByte}) == "00" {
+	if zeroByte == 0 {
 		amount = 0
 	} else if zeroByte >= 0x51 && zeroByte <= 0x5f {
 		b := common.BigIntFromNeoBytes([]byte{zeroByte})
