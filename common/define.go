@@ -39,6 +39,19 @@ const (
 	WS_SUBSCRIBE_ACTION_BLOCK_TX_HASH = "BlockTxHash"
 )
 
+type StateInfo struct {
+	From  string
+	To    string
+	Value uint64
+}
+
+type TransferFromInfo struct {
+	Sender string
+	From   string
+	To     string
+	Value  uint64
+}
+
 type SmartContract payload.DeployCode
 
 type PreExecResult struct {

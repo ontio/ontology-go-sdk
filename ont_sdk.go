@@ -32,6 +32,7 @@ import (
 
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-go-sdk/client"
+	common3 "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
 	common2 "github.com/ontio/ontology/common"
@@ -88,147 +89,141 @@ func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
 }
 
 func ParsePayload(code []byte) (map[string]interface{}, error) {
-	codeHex := common.ToHexString(code)
 	l := len(code)
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
+		//46 = 22  "Ontology.Native.Invoke"
+		// +1   length
+		// +1   SYSCALL
+		// +1   version
+		// +20  address
+		// +1   length
+		//TODO if version>15, there will be bug
 		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
+			param := make([]common3.StateInfo, 0)
 			source := common.NewZeroCopySource(code)
+			for {
+				zeroByte, eof := source.NextByte()
+				if eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				if zeroByte != 0 {
+					break
+				}
+				err := ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				from, err := readAddress(source)
+				if err != nil {
+					return nil, err
+				}
+				err = ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				to, err := readAddress(source)
+				if err != nil {
+					return nil, err
+				}
+				err = ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				amount, err := getValue(source)
+				if err != nil {
+					return nil, err
+				}
+				state := common3.StateInfo{
+					From:  from.ToBase58(),
+					To:    to.ToBase58(),
+					Value: amount,
+				}
+				param = append(param, state)
+				err = ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				var isend bool
+				if isend, err = isEnd(source); err != nil {
+					return nil, err
+				}
+				if isend {
+					break
+				}
+			}
 			err := ignoreOpCode(source)
 			if err != nil {
 				return nil, err
 			}
-			source.BackUp(1)
-			from, err := readAddress(source)
+			//method name
+			_, _, irregular, eof := source.NextVarBytes()
+			if irregular || eof {
+				return nil, io.ErrUnexpectedEOF
+			}
+			//contract address
+			contractAddress, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
 			res := make(map[string]interface{})
 			res["functionName"] = "transfer"
-			res["from"] = from.ToBase58()
-			err = ignoreOpCode(source)
-			if err != nil {
-				return nil, err
-			}
-			source.BackUp(1)
-			to, err := readAddress(source)
-			if err != nil {
-				return nil, err
-			}
-			res["to"] = to.ToBase58()
-			err = ignoreOpCode(source)
-			if err != nil {
-				return nil, err
-			}
-			source.BackUp(1)
-			var amount = uint64(0)
-			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				data, eof := source.NextByte()
-				if eof {
-					return nil, io.ErrUnexpectedEOF
-				}
-				b := common.BigIntFromNeoBytes([]byte{data})
-				amount = b.Uint64() - 0x50
-			} else {
-				amountBytes, _, irregular, eof := source.NextVarBytes()
-				if irregular || eof {
-					return nil, io.ErrUnexpectedEOF
-				}
-				amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
-			}
-
-			res["amount"] = amount
-			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
-				res["asset"] = "ont"
-			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
-				res["asset"] = "ong"
-			} else {
-				return nil, fmt.Errorf("not ont or ong contractAddress")
-			}
-			err = ignoreOpCode(source)
-			if err != nil {
-				return nil, err
-			}
-			source.BackUp(1)
-			//method name
-			_, _, irregular, eof := source.NextVarBytes()
-			if irregular || eof {
-				return nil, io.ErrUnexpectedEOF
-			}
-			//contract address
-			contractAddress, err := readAddress(source)
-			if err != nil {
-				return nil, err
-			}
 			res["contractAddress"] = contractAddress
+			res["param"] = param
+			if contractAddress == ONT_CONTRACT_ADDRESS {
+				res["asset"] = "ont"
+			} else if contractAddress == ONG_CONTRACT_ADDRESS {
+				res["asset"] = "ong"
+			}
 			return res, nil
 		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
-			res := make(map[string]interface{})
-			res["functionName"] = "transferFrom"
 			source := common.NewZeroCopySource(code)
+			//ignore 00
+			_, eof := source.NextByte()
+			if eof {
+				return nil, io.ErrUnexpectedEOF
+			}
 			err := ignoreOpCode(source)
 			if err != nil {
 				return nil, err
 			}
-			source.BackUp(1)
 			sender, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
-			res["sender"] = sender.ToBase58()
-
 			err = ignoreOpCode(source)
 			if err != nil {
 				return nil, err
 			}
-			source.BackUp(1)
 			from, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
-			res["from"] = from.ToBase58()
 			err = ignoreOpCode(source)
 			if err != nil {
 				return nil, err
 			}
-			source.BackUp(1)
 			to, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
-			res["to"] = to.ToBase58()
 			err = ignoreOpCode(source)
 			if err != nil {
 				return nil, err
 			}
-			source.BackUp(1)
-			var amount = uint64(0)
-			if string(codeHex[source.Pos()*2]) == "5" || string(codeHex[source.Pos()*2]) == "6" {
-				//read amount
-				data, eof := source.NextByte()
-				if eof {
-					return nil, io.ErrUnexpectedEOF
-				}
-				b := common.BigIntFromNeoBytes([]byte{data})
-				amount = b.Uint64() - 0x50
-			} else {
-				amountBytes, _, irregular, eof := source.NextVarBytes()
-				if irregular || eof {
-					return nil, io.ErrUnexpectedEOF
-				}
-				amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
+			amount, err := getValue(source)
+			if err != nil {
+				return nil, err
 			}
-			res["amount"] = amount
-			if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONT_CONTRACT_ADDRESS.ToHexString() {
-				res["asset"] = "ont"
-			} else if common.ToHexString(common2.ToArrayReverse(code[l-25-20:l-25])) == ONG_CONTRACT_ADDRESS.ToHexString() {
-				res["asset"] = "ong"
-				res["amount"] = amount
+			tf := common3.TransferFromInfo{
+				Sender: sender.ToBase58(),
+				From:   from.ToBase58(),
+				To:     to.ToBase58(),
+				Value:  amount,
 			}
 			err = ignoreOpCode(source)
 			if err != nil {
 				return nil, err
 			}
-			source.BackUp(1)
 			//method name
 			_, _, irregular, eof := source.NextVarBytes()
 			if irregular || eof {
@@ -239,11 +234,61 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
+			res := make(map[string]interface{})
+			res["functionName"] = "transferFrom"
 			res["contractAddress"] = contractAddress
+			res["param"] = tf
+			if contractAddress == ONT_CONTRACT_ADDRESS {
+				res["asset"] = "ont"
+			} else if contractAddress == ONG_CONTRACT_ADDRESS {
+				res["asset"] = "ong"
+			}
 			return res, nil
 		}
 	}
 	return nil, fmt.Errorf("not native transfer and transferFrom transaction")
+}
+func getValue(source *common.ZeroCopySource) (uint64, error) {
+	var amount = uint64(0)
+	zeroByte, eof := source.NextByte()
+	if eof {
+		return 0, io.ErrUnexpectedEOF
+	}
+
+	if zeroByte == 0 {
+		amount = 0
+	} else if zeroByte >= 0x51 && zeroByte <= 0x5f {
+		b := common.BigIntFromNeoBytes([]byte{zeroByte})
+		amount = b.Uint64() - 0x50
+	} else {
+		source.BackUp(1)
+		amountBytes, _, irregular, eof := source.NextVarBytes()
+		if irregular || eof {
+			return 0, io.ErrUnexpectedEOF
+		}
+		amount = common.BigIntFromNeoBytes(amountBytes).Uint64()
+	}
+	return amount, nil
+}
+func isEnd(source *common.ZeroCopySource) (bool, error) {
+	by, eof := source.NextByte()
+	if eof {
+		return true, io.EOF
+	}
+	if by == 0x00 || by >= 0x14 && by < 0x51 {
+		source.BackUp(1)
+		return false, nil
+	} else {
+		if by >= 0x51 && by <= 0x5f {
+			return true, nil
+		} else {
+			_, _, irregular, eof := source.NextVarUint()
+			if irregular || eof {
+				return true, io.ErrUnexpectedEOF
+			}
+			return true, nil
+		}
+	}
 }
 
 func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
@@ -259,6 +304,7 @@ func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
 }
 func ignoreOpCode(source *common.ZeroCopySource) error {
 	s := source.Size()
+	start := source.Pos()
 	for {
 		if source.Pos() >= s {
 			return nil
@@ -270,6 +316,9 @@ func ignoreOpCode(source *common.ZeroCopySource) error {
 		if OPCODE_IN_PAYLOAD[by] {
 			continue
 		} else {
+			if start < source.Pos() {
+				source.BackUp(1)
+			}
 			return nil
 		}
 	}
@@ -320,7 +369,6 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		TxType:   types.Invoke,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),

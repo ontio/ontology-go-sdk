@@ -23,12 +23,16 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/signature"
+	common2 "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/core/validation"
 	"github.com/ontio/ontology/smartcontract/event"
+	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -42,6 +46,129 @@ var (
 	testGasPrice = uint64(0)
 	testGasLimit = uint64(20000)
 )
+
+func TestOntId_NewRegIDWithAttributesTransaction(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+}
+func TestParseNativeTxPayload(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	assert.Nil(t, err)
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+	state := &ont.State{
+		From:  acc.Address,
+		To:    acc.Address,
+		Value: uint64(100),
+	}
+	transfers := make([]*ont.State, 0)
+	for i := 0; i < 1; i++ {
+		transfers = append(transfers, state)
+	}
+	_, err = testOntSdk.Native.Ont.NewMultiTransferTransaction(500, 20000, transfers)
+	assert.Nil(t, err)
+	_, err = testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc.Address, acc.Address, 20)
+	assert.Nil(t, err)
+}
+
+func TestParsePayload(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	//transferMulti
+	payloadHex := "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c0114c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	//one transfer
+	payloadHex = "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//one transferFrom
+	payloadHex = "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0114c86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	payloadBytes, err := common.HexToBytes(payloadHex)
+	assert.Nil(t, err)
+	_, err = ParsePayload(payloadBytes)
+	assert.Nil(t, err)
+}
+
+func TestParsePayloadRandom(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	assert.Nil(t, err)
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+	assert.Nil(t, err)
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 1000000; i++ {
+		amount := rand.Intn(1000000)
+		state := &ont.State{
+			From:  acc.Address,
+			To:    acc.Address,
+			Value: uint64(amount),
+		}
+		param := []*ont.State{state}
+		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{param})
+		res, err := ParsePayload(invokeCode)
+		assert.Nil(t, err)
+		if res["param"] == nil {
+			fmt.Println("amount:", amount)
+			fmt.Println(res["param"])
+			return
+		} else {
+			stateInfos := res["param"].([]common2.StateInfo)
+			assert.Equal(t, uint64(amount), stateInfos[0].Value)
+		}
+		tr := ont.TransferFrom{
+			Sender: acc.Address,
+			From:   acc.Address,
+			To:     acc.Address,
+			Value:  uint64(amount),
+		}
+		invokeCode, err = utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transferFrom", []interface{}{tr})
+		res, err = ParsePayload(invokeCode)
+		assert.Nil(t, err)
+		if res["param"] == nil {
+			fmt.Println("amount:", amount)
+			fmt.Println(res["param"])
+			return
+		} else {
+			stateInfos := res["param"].(common2.TransferFromInfo)
+			assert.Equal(t, uint64(amount), stateInfos.Value)
+		}
+	}
+}
+func TestParsePayloadRandomMulti(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
+	assert.Nil(t, err)
+	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+	assert.Nil(t, err)
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 100000; i++ {
+		amount := rand.Intn(10000000)
+		state := &ont.State{
+			From:  acc.Address,
+			To:    acc.Address,
+			Value: uint64(amount),
+		}
+		paramLen := rand.Intn(20)
+		if paramLen == 0 {
+			paramLen += 1
+		}
+		params := make([]*ont.State, 0)
+		for i := 0; i < paramLen; i++ {
+			params = append(params, state)
+		}
+		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{params})
+		res, err := ParsePayload(invokeCode)
+		assert.Nil(t, err)
+		if res["param"] == nil {
+			fmt.Println(res["param"])
+			fmt.Println(amount)
+			fmt.Println("invokeCode:", common.ToHexString(invokeCode))
+			return
+		} else {
+			stateInfos := res["param"].([]common2.StateInfo)
+			for i := 0; i < paramLen; i++ {
+				assert.Equal(t, uint64(amount), stateInfos[i].Value)
+			}
+		}
+	}
+}
 
 func TestOntologySdk_TrabsferFrom(t *testing.T) {
 	testOntSdk = NewOntologySdk()
