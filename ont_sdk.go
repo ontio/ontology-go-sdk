@@ -369,6 +369,7 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
+		TxType:   types.Invoke,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),
