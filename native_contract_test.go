@@ -303,7 +303,8 @@ func TestOntId_Recovery(t *testing.T) {
 		t.Errorf("TestOntId_Recovery GetSmartContractEvent:%s error:%s", txHash.ToHexString(), err)
 		return
 	}
-	if evt.State == 1 {
+
+	if evt != nil && evt.State == 1 {
 		t.Errorf("TestOntId_Recovery duplicate add recovery should failed")
 		return
 	}
