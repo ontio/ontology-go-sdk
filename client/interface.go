@@ -1,6 +1,9 @@
 package client
 
-import "github.com/ontio/ontology/core/types"
+import (
+	"github.com/ontio/ontology-go-sdk/client/oni"
+	"github.com/ontio/ontology/core/types"
+)
 
 type OntologyClient interface {
 	getCurrentBlockHeight(qid string) ([]byte, error)
@@ -25,5 +28,17 @@ type OntologyClient interface {
 }
 
 type OniClient interface {
-
+	oni.AccountMgr
+	oni.Transaction
+	oni.FileMgrCrypto
+	oni.FileMgrDelete
+	oni.FileMgrUserSpace
+	oni.FileMgrTransfer
+	oni.FileMgrDownload
+	oni.FileMgrUpload
+	oni.ChannelMgr
+	oni.Mine
+	oni.PeerMgr
+	oni.Configure
+	oni.Others
 }

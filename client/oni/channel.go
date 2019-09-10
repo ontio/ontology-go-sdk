@@ -1,5 +1,17 @@
 package oni
 
+type ChannelMgr interface {
+	CurrentChannel() (CurrentChannelResp, error)
+	SwitchChannel(req SwitchChannelReq) error
+	ChannelIsSyncing() (bool, error)
+	ChannelInitProgress() (ChannelInitProgressResp, error)
+	OpenChannel(req OpenChannelReq) error
+	CloseChannel(req CloseChannelReq) error
+	WithdrawChannel(req WithdrawChannelReq) error
+	DepositChannel(req DepositChannelReq) error
+	GetAllChannels() (GetAllChannelsResp, error)
+}
+
 const (
 	URL_CURRENT_CHANNEL       = "/api/v1/channel/current"
 	URL_SWITCH_CHANNEL        = "/api/v1/channel/switch"
@@ -52,11 +64,15 @@ type OpenChannelReq struct {
 	Amount string
 }
 
-type WithdrawChannel struct {
+type CloseChannelReq struct {
 	OpenChannelReq
 }
 
-type DepositChannel struct {
+type WithdrawChannelReq struct {
+	OpenChannelReq
+}
+
+type DepositChannelReq struct {
 	OpenChannelReq
 }
 

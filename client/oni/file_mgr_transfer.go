@@ -2,6 +2,12 @@ package oni
 
 import "fmt"
 
+type FileMgrTransfer interface {
+	GetTransferList(transferType TransferType, offset, limit uint64) (GetTransferListResp, error)
+	GetTransferDetail(transferType TransferType, transferId string) (GetTransferDetailResp, error)
+	DeleteCompleteTask(req DeleteCompleteTaskReq) (DeleteCompleteTaskResp, error)
+}
+
 type TransferType uint8
 
 const (

@@ -1,5 +1,11 @@
 package oni
 
+type PeerMgr interface {
+	ReconnectPeer(req ReconnectPeerReq) (ReconnectPeerResp, error)
+	GetAllDns() (GetAllDNSResp, error)
+	GetNodesInfo() (GetNodesInfoResp, error)
+}
+
 const (
 	URL_RECONNECT_PEER = "/api/v1/network/channel/reconnect"
 	URL_GET_ALL_DNS    = "/api/v1/dns"

@@ -1,5 +1,10 @@
 package oni
 
+type FileMgrCrypto interface {
+	Encrypt(req EncryptFileReq) error
+	Decrypt(req DecryptFileReq) error
+}
+
 const (
 	URL_ENCRYPT_FILE = "/api/v1/dsp/file/encrypt"
 	URL_DECRYPT_FILE = "/api/v1/dsp/file/decrypt"

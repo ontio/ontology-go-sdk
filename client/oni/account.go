@@ -1,6 +1,20 @@
 package oni
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/ontio/ontology-crypto/signature"
+)
+
+type AccountMgr interface {
+	NewAccount(req NewAccountReq) (NewAccountResp, error)
+	CurrentAccount() (CurrentAccountResp, error)
+	Logout(req LogoutReq) error
+	ExportPrivKey(password string) (ExportPrivKeyResp, error)
+	ExportWalletFile() (ExportWalletResp, error)
+	ImportAccountWithWalletFile(req ImportAccWithWalletReq) error
+	ImportAccountWithPrivKey(req ImportAccWithPrivKeyReq) error
+	Balance(base58Addr string) (BalanceResp, error)
+}
 
 const (
 	URL_NEW_ACCOUNT          = "/api/v1/account"
@@ -28,10 +42,23 @@ type NewAccountResp struct {
 	Label      string
 }
 
+type CurrentAccountResp struct {
+	PrivateKey string
+	PublicKey  string
+	Address    string
+	SigScheme  signature.SignatureScheme
+	Label      string
+	Wallet     string
+}
+
 type LogoutReq struct {
 }
 
-type ExportWallet struct {
+type ExportPrivKeyResp struct {
+	PrivateKey string
+}
+
+type ExportWalletResp struct {
 	Wallet string
 }
 

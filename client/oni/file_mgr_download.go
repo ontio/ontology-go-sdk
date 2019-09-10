@@ -2,6 +2,16 @@ package oni
 
 import "fmt"
 
+type FileMgrDownload interface {
+	CommitDownloadTask(req CommitDownloadTaskReq) error
+	DownloadPause(req DownloadPauseReq) (DownloadPauseResp, error)
+	DownloadResume(req DownloadResumeReq) (DownloadResumeResp, error)
+	DownloadFailedRetry(req DownloadFailedRetryReq) (DownloadFailedRetryResp, error)
+	DownloadCancel(req DownloadCancelReq) (DownloadCancelResp, error)
+	GetDownloadInfo(url string) (GetDownloadInfoResp, error)
+	GetDownloadFileList(fileType FileType, offset, limit uint64) (GetDownloadListResp, error)
+}
+
 type FileType uint8
 
 const (
@@ -63,7 +73,7 @@ type DownloadCancelResp struct {
 	DownloadPauseResp
 }
 
-type DownloadInfoResult struct {
+type GetDownloadInfoResp struct {
 	Hash        string
 	Name        string // file name
 	Ext         string // file type(suffix name)
@@ -74,7 +84,7 @@ type DownloadInfoResult struct {
 	DownloadDir string
 }
 
-type DownloadListResult struct {
+type GetDownloadListResp struct {
 	Hash          string
 	Name          string
 	Size          uint64
@@ -88,7 +98,6 @@ type DownloadListResult struct {
 func GenGetDownloadInfoUrl(hexUrl string) string {
 	return fmt.Sprintf(URL_GET_DOWNLOAD_INFO, hexUrl)
 }
-
 
 func GenGetDownloadFileListUrl(fileType FileType, offset, limit uint64) string {
 	return fmt.Sprintf(URL_GET_DOWNLOAD_FILE_LIST, fileType, offset, limit)

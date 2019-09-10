@@ -2,6 +2,21 @@ package oni
 
 import "fmt"
 
+type FileMgrUpload interface {
+	CommitUploadTask(req CommitUploadTaskReq) (CommitUploadTaskResp, error)
+	UploadPause(req UploadPauseReq) (UploadPauseResp, error)
+	UploadResume(req UploadResumeReq) (UploadResumeResp, error)
+	UploadFailedRetry(req UploadFailedRetryReq) (UploadFailedRetryResp, error)
+	UploadCancel(req UploadCancelReq) (UploadCancelResp, error)
+	UpdateFileWhiteList(req UpdateFileWhiteListReq) (UpdateFileWhiteListReq, error)
+	GetUploadFileInfo(fileHash string) (GetUploadFileInfoResp, error)
+	GetFSSetting() (GetFileStorageSettingResp, error)
+	GetFileWhiteList(fileHash string) ([]*WhiteListAddress, error)
+	GetUploadFileList(fileType FileType, offset, limit uint64) (GetUploadFileListResp, error)
+	GetUploadFileFee(filePath string, duration, proveInterval, copyNum, whiteListCount uint32,
+		storeType StorageType) (GetUploadFileFeeResp, error)
+}
+
 type FilePrivilege uint8
 
 const (
@@ -139,6 +154,17 @@ type UploadFileInfo struct {
 	ExpiredHeight uint64
 	StoreType     StorageType
 	RealFileSize  uint64 // file real size
+}
+
+type GetUploadFileListResp []*UploadFileInfo
+
+type GetUploadFileFeeResp struct {
+	TxFee            uint64
+	TxFeeFormat      string
+	StorageFee       uint64
+	StorageFeeFormat string
+	ValidFee         uint64
+	ValidFeeFormat   string
 }
 
 func GenGetUploadFileInfoUrl(fileHash string) string {

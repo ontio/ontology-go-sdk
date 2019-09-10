@@ -2,6 +2,13 @@ package oni
 
 import "fmt"
 
+type FileMgrUserSpace interface {
+	SetUserSpace(req SetUserSpaceReq) (SetUserSpaceResp, error)
+	CostSetUserSpace(req CostSetUserSpaceReq) (CostSetUserSpaceResp, error)
+	GetUserSpace(base58Addr string) (GetUserSpaceResp, error)
+	GetUserSpaceRecords(base58Addr string, offset, limit uint64) (GetUserSpaceRecordsResp, error)
+}
+
 type OperationType uint8
 
 const (
@@ -11,8 +18,8 @@ const (
 )
 
 const (
-	URL_USER_SPACE_SET         = "/api/v1/dsp/client/userspace/set"
-	URL_USER_SPACE_SET_COST    = "/api/v1/dsp/client/userspace/cost"
+	URL_SET_USER_SPACE         = "/api/v1/dsp/client/userspace/set"
+	URL_COST_SET_USER_SPACE    = "/api/v1/dsp/client/userspace/cost"
 	URL_GET_USER_SPACE         = "/api/v1/dsp/client/userspace/%s"
 	URL_GET_USER_SPACE_RECORDS = "/api/v1/dsp/client/userspacerecords/%s/%d/%d"
 )
@@ -33,23 +40,34 @@ type SetUserSpaceResp struct {
 	Tx string
 }
 
-type UserSpaceSetCostReq struct {
+type CostSetUserSpaceReq struct {
 	SetUserSpaceReq
 }
 
-type UserSpaceSetCostResp struct {
+type CostSetUserSpaceResp struct {
 	Fee          uint64
 	FeeFormat    string
 	TransferType TxType
 }
 
-type GetUserSpaceUrlResp struct {
+type GetUserSpaceResp struct {
 	Used          uint64
 	Remain        uint64
 	ExpiredAt     uint32
 	Balance       uint64
 	CurrentHeight uint64
 	ExpiredHeight uint64
+}
+
+type UserSpaceRecord struct {
+	Size       uint64
+	ExpiredAt  uint32
+	Cost       uint64
+	CostFormat string
+}
+
+type GetUserSpaceRecordsResp struct {
+	Records []*UserSpaceRecord
 }
 
 func GenGetUserSpaceUrlWithAddr(base58Addr string) string {

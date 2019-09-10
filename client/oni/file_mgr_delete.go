@@ -1,5 +1,10 @@
 package oni
 
+type FileMgrDelete interface {
+	DeleteFile(req DeleteFileReq) (DeleteFileResp, error)
+	DeleteFiles(req DeleteFilesReq) (DeleteFilesResp, error)
+}
+
 const (
 	URL_DELETE_FILE  = "/api/v1/dsp/file/delete"
 	URL_DELETE_FILEs = "/api/v1/dsp/files/delete"

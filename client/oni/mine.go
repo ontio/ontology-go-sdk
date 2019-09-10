@@ -2,6 +2,11 @@ package oni
 
 import "fmt"
 
+type Mine interface {
+	Revenue() (RevenueResp, error)
+	MinerGetShardIncome(begien, end uint32, offset, limit uint64) (MinerGetShardIncomeResp, error)
+}
+
 const (
 	URL_REVENUE                = "/api/v1/dsp/file/share/revenue"
 	URL_MINER_GET_SHARE_INCOME = "/api/v1/dsp/file/share/income/%d/%d/%d/%d"

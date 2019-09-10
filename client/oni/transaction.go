@@ -1,6 +1,19 @@
 package oni
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/ontio/ontology-go-sdk/common"
+)
+
+type Transaction interface {
+	Transfer(req TransferReq) (txHash string, err error)
+	GetTxRecords(base58Addr string, transferType TransferType, asset string, limit uint64,
+		height *uint64, skipTxCountFromBlock *string) (GetTxRecordsResp, error) // height and skipTxCountFromBlock could be nil
+	GetSCEventByTxHash(txHash string) ([]*common.SmartContactEvent, error)      // return tx event
+	GetSCEventByHeight(height uint64) ([]*common.SmartContactEvent, error)      // return  total event of every tx at block
+	PreExecSmartContract(req PreExecTxReq) (PreExecTxResp, error)
+	InvokeSmartContract(req InvokeSmartContractReq) (InvokeSmartContractResp, error)
+}
 
 type TxType uint8
 
@@ -18,6 +31,28 @@ const (
 	URL_PRE_EXEC_TX        = "/api/v1/smartcontract/preexec"
 	URL_INVOKE_SC          = "/api/v1/smartcontract/invoke"
 )
+
+type TransferReq struct {
+	To       string
+	Asset    string
+	Amount   string
+	Password string
+}
+
+type TxRecord struct {
+	Txid         string
+	Type         TransferType
+	From         string
+	To           string
+	Amount       uint64
+	AmountFormat string
+	FeeFormat    string
+	Asset        string
+	Timestamp    uint32
+	BlockHeight  uint64
+}
+
+type GetTxRecordsResp []*TxRecord
 
 type PreExecTxReq struct {
 	Version  string // should be hex string of number, example: 00, 01
