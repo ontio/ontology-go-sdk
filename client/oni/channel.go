@@ -5,6 +5,11 @@ const (
 	URL_SWITCH_CHANNEL        = "/api/v1/channel/switch"
 	URL_CHANNEL_IS_SYNCING    = "/api/v1/channel/syncing"
 	URL_CHANNEL_INIT_PROGRESS = "/api/v1/channel/init/progress"
+	URL_OPEN_CHANNEL          = "/api/v1/channel/open"
+	URL_CLOSE_CHANNEL         = "/api/v1/channel/close"
+	URL_WITHDRAW_CHANNEL      = "/api/v1/channel/withdraw"
+	URL_DEPOSIT_CHANNEL       = "/api/v1/channel/deposit"
+	URL_GET_ALL_CHANNELS      = "/api/v1/channel"
 )
 
 type Channel struct {
@@ -14,10 +19,12 @@ type Channel struct {
 	Address           string
 	HostAddr          string
 	TokenAddr         string
-	Participant1State uint8
-	Participant2State uint8
+	Participant1State uint8 // 0: closing or closed, 1: open
+	Participant2State uint8 // 0: closed, 1: open
+	IsOnline          bool
 	IsDNS             bool
 	Connected         bool
+	Selected          bool
 }
 
 type CurrentChannelResp struct {
@@ -38,4 +45,23 @@ type ChannelInitProgressResp struct {
 	Start    uint64 // sync-started block
 	End      uint64 // sync-ended block
 	Now      uint64 // current block
+}
+
+type OpenChannelReq struct {
+	SwitchChannelReq
+	Amount string
+}
+
+type WithdrawChannel struct {
+	OpenChannelReq
+}
+
+type DepositChannel struct {
+	OpenChannelReq
+}
+
+type GetAllChannelsResp struct {
+	Balance       uint64
+	BalanceFormat string
+	Channels      []*Channel
 }
