@@ -1,11 +1,11 @@
 package oni
 
 type Others interface {
-	NetworkState() (NetworkStateResp, error)
+	NetworkState() (*NetworkStateResp, error)
 	CurrentHeight() (uint64, error)
 	Version() (string, error)
 	ChainIdList() // TODO:
-	SwitchChainId(req SwitchChainIdReq) error
+	SwitchChainId(req *SwitchChainIdReq) error
 	ChainId() (string, error)
 }
 

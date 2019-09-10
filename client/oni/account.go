@@ -6,14 +6,14 @@ import (
 )
 
 type AccountMgr interface {
-	NewAccount(req NewAccountReq) (NewAccountResp, error)
-	CurrentAccount() (CurrentAccountResp, error)
-	Logout(req LogoutReq) error
-	ExportPrivKey(password string) (ExportPrivKeyResp, error)
-	ExportWalletFile() (ExportWalletResp, error)
-	ImportAccountWithWalletFile(req ImportAccWithWalletReq) error
-	ImportAccountWithPrivKey(req ImportAccWithPrivKeyReq) error
-	Balance(base58Addr string) (BalanceResp, error)
+	NewAccount(req *NewAccountReq) (*NewAccountResp, error)
+	CurrentAccount() (*CurrentAccountResp, error)
+	Logout(req *LogoutReq) error
+	ExportPrivKey(password string) (*ExportPrivKeyResp, error)
+	ExportWalletFile() (*ExportWalletResp, error)
+	ImportAccountWithWalletFile(req *ImportAccWithWalletReq) error
+	ImportAccountWithPrivKey(req *ImportAccWithPrivKeyReq) error
+	Balance(base58Addr string) (*BalanceResp, error)
 }
 
 const (
@@ -82,10 +82,10 @@ type Balance struct {
 
 type BalanceResp []*Balance
 
-func GenExportPrivKeyUrlWithPwd(pwd string) string {
+func GenExportPrivKeyUrl(pwd string) string {
 	return fmt.Sprintf(URL_EXPORT_PRIV_KEY, pwd)
 }
 
-func GenBalanceUrlWithAddress(base58Addr string) string {
+func GenBalanceUrl(base58Addr string) string {
 	return fmt.Sprintf(URL_ACCOUNT_BALANCE, base58Addr)
 }

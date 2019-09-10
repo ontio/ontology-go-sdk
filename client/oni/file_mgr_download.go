@@ -3,13 +3,13 @@ package oni
 import "fmt"
 
 type FileMgrDownload interface {
-	CommitDownloadTask(req CommitDownloadTaskReq) error
-	DownloadPause(req DownloadPauseReq) (DownloadPauseResp, error)
-	DownloadResume(req DownloadResumeReq) (DownloadResumeResp, error)
-	DownloadFailedRetry(req DownloadFailedRetryReq) (DownloadFailedRetryResp, error)
-	DownloadCancel(req DownloadCancelReq) (DownloadCancelResp, error)
-	GetDownloadInfo(url string) (GetDownloadInfoResp, error)
-	GetDownloadFileList(fileType FileType, offset, limit uint64) (GetDownloadListResp, error)
+	CommitDownloadTask(req *CommitDownloadTaskReq) error
+	DownloadPause(req *DownloadPauseReq) (*DownloadPauseResp, error)
+	DownloadResume(req *DownloadResumeReq) (*DownloadResumeResp, error)
+	DownloadFailedRetry(req *DownloadFailedRetryReq) (*DownloadFailedRetryResp, error)
+	DownloadCancel(req *DownloadCancelReq) (*DownloadCancelResp, error)
+	GetDownloadInfo(url string) (*GetDownloadInfoResp, error)
+	GetDownloadFileList(fileType FileType, offset, limit uint64) (*GetDownloadListResp, error)
 }
 
 type FileType uint8

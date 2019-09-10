@@ -3,10 +3,10 @@ package oni
 import "fmt"
 
 type FileMgrUserSpace interface {
-	SetUserSpace(req SetUserSpaceReq) (SetUserSpaceResp, error)
-	CostSetUserSpace(req CostSetUserSpaceReq) (CostSetUserSpaceResp, error)
-	GetUserSpace(base58Addr string) (GetUserSpaceResp, error)
-	GetUserSpaceRecords(base58Addr string, offset, limit uint64) (GetUserSpaceRecordsResp, error)
+	SetUserSpace(req *SetUserSpaceReq) (*SetUserSpaceResp, error)
+	CostSetUserSpace(req *CostSetUserSpaceReq) (*CostSetUserSpaceResp, error)
+	GetUserSpace(base58Addr string) (*GetUserSpaceResp, error)
+	GetUserSpaceRecords(base58Addr string, offset, limit uint64) (*GetUserSpaceRecordsResp, error)
 }
 
 type OperationType uint8
@@ -70,7 +70,7 @@ type GetUserSpaceRecordsResp struct {
 	Records []*UserSpaceRecord
 }
 
-func GenGetUserSpaceUrlWithAddr(base58Addr string) string {
+func GenGetUserSpaceUrl(base58Addr string) string {
 	return fmt.Sprintf(URL_GET_USER_SPACE, base58Addr)
 }
 

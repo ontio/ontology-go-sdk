@@ -1,15 +1,15 @@
 package oni
 
 type ChannelMgr interface {
-	CurrentChannel() (CurrentChannelResp, error)
-	SwitchChannel(req SwitchChannelReq) error
+	CurrentChannel() (*CurrentChannelResp, error)
+	SwitchChannel(req *SwitchChannelReq) error
 	ChannelIsSyncing() (bool, error)
-	ChannelInitProgress() (ChannelInitProgressResp, error)
-	OpenChannel(req OpenChannelReq) error
-	CloseChannel(req CloseChannelReq) error
-	WithdrawChannel(req WithdrawChannelReq) error
-	DepositChannel(req DepositChannelReq) error
-	GetAllChannels() (GetAllChannelsResp, error)
+	ChannelInitProgress() (*ChannelInitProgressResp, error)
+	OpenChannel(req *OpenChannelReq) error
+	CloseChannel(req *CloseChannelReq) error
+	WithdrawChannel(req *WithdrawChannelReq) error
+	DepositChannel(req *DepositChannelReq) error
+	GetAllChannels() (*GetAllChannelsResp, error)
 }
 
 const (

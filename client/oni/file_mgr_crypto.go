@@ -1,8 +1,8 @@
 package oni
 
 type FileMgrCrypto interface {
-	Encrypt(req EncryptFileReq) error
-	Decrypt(req DecryptFileReq) error
+	Encrypt(req *EncryptFileReq) error
+	Decrypt(req *DecryptFileReq) error
 }
 
 const (

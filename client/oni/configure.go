@@ -1,7 +1,7 @@
 package oni
 
 type Configure interface {
-	UpdateConfig(req UpdateConfigReq)error
+	UpdateConfig(req *UpdateConfigReq) error
 }
 
 const (

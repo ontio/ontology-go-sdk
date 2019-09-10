@@ -1,13 +1,13 @@
 package oni
 
 type FileMgrDelete interface {
-	DeleteFile(req DeleteFileReq) (DeleteFileResp, error)
-	DeleteFiles(req DeleteFilesReq) (DeleteFilesResp, error)
+	DeleteFile(req *DeleteFileReq) (*DeleteFileResp, error)
+	DeleteFiles(req *DeleteFilesReq) (*DeleteFilesResp, error)
 }
 
 const (
 	URL_DELETE_FILE  = "/api/v1/dsp/file/delete"
-	URL_DELETE_FILEs = "/api/v1/dsp/files/delete"
+	URL_DELETE_FILES = "/api/v1/dsp/files/delete"
 )
 
 // if uploaded file, delete it from saved node

@@ -1,9 +1,9 @@
 package oni
 
 type PeerMgr interface {
-	ReconnectPeer(req ReconnectPeerReq) (ReconnectPeerResp, error)
-	GetAllDns() (GetAllDNSResp, error)
-	GetNodesInfo() (GetNodesInfoResp, error)
+	ReconnectPeer(req *ReconnectPeerReq) (*ReconnectPeerResp, error)
+	GetAllDns() (*GetAllDNSResp, error)
+	GetNodesInfo() (*GetNodesInfoResp, error)
 }
 
 const (

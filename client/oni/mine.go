@@ -3,8 +3,8 @@ package oni
 import "fmt"
 
 type Mine interface {
-	Revenue() (RevenueResp, error)
-	MinerGetShardIncome(begien, end uint32, offset, limit uint64) (MinerGetShardIncomeResp, error)
+	Revenue() (*RevenueResp, error)
+	MinerGetShardIncome(begin, end uint32, offset, limit uint64) (*MinerGetShardIncomeResp, error)
 }
 
 const (

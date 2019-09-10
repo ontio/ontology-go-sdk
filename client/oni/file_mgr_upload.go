@@ -3,18 +3,18 @@ package oni
 import "fmt"
 
 type FileMgrUpload interface {
-	CommitUploadTask(req CommitUploadTaskReq) (CommitUploadTaskResp, error)
-	UploadPause(req UploadPauseReq) (UploadPauseResp, error)
-	UploadResume(req UploadResumeReq) (UploadResumeResp, error)
-	UploadFailedRetry(req UploadFailedRetryReq) (UploadFailedRetryResp, error)
-	UploadCancel(req UploadCancelReq) (UploadCancelResp, error)
-	UpdateFileWhiteList(req UpdateFileWhiteListReq) (UpdateFileWhiteListReq, error)
-	GetUploadFileInfo(fileHash string) (GetUploadFileInfoResp, error)
-	GetFSSetting() (GetFileStorageSettingResp, error)
+	CommitUploadTask(req *CommitUploadTaskReq) (*CommitUploadTaskResp, error)
+	UploadPause(req *UploadPauseReq) (*UploadPauseResp, error)
+	UploadResume(req *UploadResumeReq) (*UploadResumeResp, error)
+	UploadFailedRetry(req *UploadFailedRetryReq) (*UploadFailedRetryResp, error)
+	UploadCancel(req *UploadCancelReq) (*UploadCancelResp, error)
+	UpdateFileWhiteList(req *UpdateFileWhiteListReq) (txHash string, err error)
+	GetUploadFileInfo(fileHash string) (*GetUploadFileInfoResp, error)
+	GetFSSetting() (*GetFileStorageSettingResp, error)
 	GetFileWhiteList(fileHash string) ([]*WhiteListAddress, error)
-	GetUploadFileList(fileType FileType, offset, limit uint64) (GetUploadFileListResp, error)
+	GetUploadFileList(fileType FileType, offset, limit uint64) (*GetUploadFileListResp, error)
 	GetUploadFileFee(filePath string, duration, proveInterval, copyNum, whiteListCount uint32,
-		storeType StorageType) (GetUploadFileFeeResp, error)
+		storeType StorageType) (*GetUploadFileFeeResp, error)
 }
 
 type FilePrivilege uint8
@@ -36,7 +36,7 @@ const (
 	URL_COMMIT_UPLOAD_TASK       = "/api/v1/dsp/file/upload"
 	URL_UPLOAD_PAUSE             = "/api/v1/dsp/file/upload/pause"
 	URL_UPLOAD_RESUME            = "/api/v1/dsp/file/upload/resume"
-	URL_UPLOAD_FIALED_RETRY      = "/api/v1/dsp/file/upload/retry"
+	URL_UPLOAD_FAILED_RETRY      = "/api/v1/dsp/file/upload/retry"
 	URL_UPLOAD_CANCEL            = "/api/v1/dsp/file/upload/cancel"
 	URL_UPDATE_FILE_WHITE_LIST   = "/api/v1/dsp/file/updatewhitelist"
 	URL_GET_UPLOAD_FILE_INFO     = "/api/v1/dsp/file/upload/info/%s"
