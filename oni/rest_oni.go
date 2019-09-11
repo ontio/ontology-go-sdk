@@ -292,11 +292,11 @@ func (this *OniRestClient) DownloadCancel(req *types.DownloadCancelReq) (*types.
 	}
 }
 
-func (this *OniRestClient) GetDownloadInfo(url string) (*types.GetDownloadInfoResp, error) {
+func (this *OniRestClient) GetDownloadFileInfo(url string) (*types.GetDownloadInfoResp, error) {
 	result := &types.GetDownloadInfoResp{}
 	hexUrl := hex.EncodeToString([]byte(url))
 	if _, err := this.get(result, types.GenGetDownloadInfoUrl(hexUrl)); err != nil {
-		return nil, fmt.Errorf("GetDownloadInfo: failed, err: %s", err)
+		return nil, fmt.Errorf("GetDownloadFileInfo: failed, err: %s", err)
 	} else {
 		return result, nil
 	}
@@ -305,7 +305,7 @@ func (this *OniRestClient) GetDownloadInfo(url string) (*types.GetDownloadInfoRe
 func (this *OniRestClient) GetDownloadFileList(fileType types.FileType, offset, limit uint64) (*types.GetDownloadListResp, error) {
 	result := &types.GetDownloadListResp{}
 	if _, err := this.get(result, types.GenGetDownloadFileListUrl(fileType, offset, limit)); err != nil {
-		return nil, fmt.Errorf("GetDownloadInfo: failed, err: %s", err)
+		return nil, fmt.Errorf("GetDownloadFileList: failed, err: %s", err)
 	} else {
 		return result, nil
 	}

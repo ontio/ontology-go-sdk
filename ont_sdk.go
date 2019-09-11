@@ -48,7 +48,7 @@ func init() {
 //OntologySdk is the main struct for user
 type OntologySdk struct {
 	client.ClientMgr
-	*oni.Oni
+	*oni.ONI
 	Native *NativeContract
 	NeoVM  *NeoVMContract
 }
@@ -60,7 +60,7 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
-	ontSdk.Oni = oni.NewOni()
+	ontSdk.ONI = oni.NewOni()
 	return ontSdk
 }
 

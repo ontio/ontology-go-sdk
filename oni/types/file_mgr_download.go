@@ -8,7 +8,7 @@ type FileMgrDownload interface {
 	DownloadResume(req *DownloadResumeReq) (*DownloadResumeResp, error)
 	DownloadFailedRetry(req *DownloadFailedRetryReq) (*DownloadFailedRetryResp, error)
 	DownloadCancel(req *DownloadCancelReq) (*DownloadCancelResp, error)
-	GetDownloadInfo(url string) (*GetDownloadInfoResp, error)
+	GetDownloadFileInfo(url string) (*GetDownloadInfoResp, error)
 	GetDownloadFileList(fileType FileType, offset, limit uint64) (*GetDownloadListResp, error)
 }
 
@@ -28,7 +28,7 @@ const (
 	URL_DOWNLOAD_RESUME        = "/api/v1/dsp/file/download/resume"
 	URL_DOWNLOAD_FAILED_RETRY  = "/api/v1/dsp/file/download/retry"
 	URL_DOWNLOAD_CANCEL        = "/api/v1/dsp/file/download/cancel"
-	URL_GET_DOWNLOAD_INFO      = "/api/v1/dsp/file/downloadinfo/%s"
+	URL_GET_DOWNLOAD_FILE_INFO = "/api/v1/dsp/file/downloadinfo/%s"
 	URL_GET_DOWNLOAD_FILE_LIST = "/api/v1/dsp/file/downloadlist/%d/%d/%d"
 )
 
@@ -84,7 +84,7 @@ type GetDownloadInfoResp struct {
 	DownloadDir string
 }
 
-type GetDownloadListResp struct {
+type DownloadFile struct {
 	Hash          string
 	Name          string
 	Size          uint64
@@ -94,9 +94,11 @@ type GetDownloadListResp struct {
 	Profit        uint64
 }
 
+type GetDownloadListResp []*DownloadFile
+
 // hexUrl: hex string of file's download url. For example: hex(save://share/14f00b97) = 736176653A2F2F73686172652F3134663030623937
 func GenGetDownloadInfoUrl(hexUrl string) string {
-	return fmt.Sprintf(URL_GET_DOWNLOAD_INFO, hexUrl)
+	return fmt.Sprintf(URL_GET_DOWNLOAD_FILE_INFO, hexUrl)
 }
 
 func GenGetDownloadFileListUrl(fileType FileType, offset, limit uint64) string {

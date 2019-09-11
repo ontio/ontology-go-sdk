@@ -40,7 +40,7 @@ type Channel struct {
 }
 
 type CurrentChannelResp struct {
-	Channel
+	*Channel
 }
 
 type SwitchChannelReq struct {
@@ -65,7 +65,7 @@ type OpenChannelReq struct {
 }
 
 type CloseChannelReq struct {
-	OpenChannelReq
+	SwitchChannelReq
 }
 
 type WithdrawChannelReq struct {

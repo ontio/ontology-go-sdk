@@ -30,9 +30,7 @@ type Operation struct {
 }
 
 type SetUserSpaceReq struct {
-	Addr     string
-	Size     Operation
-	Second   Operation
+	CostSetUserSpaceReq
 	Password string
 }
 
@@ -41,7 +39,9 @@ type SetUserSpaceResp struct {
 }
 
 type CostSetUserSpaceReq struct {
-	SetUserSpaceReq
+	Addr   string
+	Size   *Operation
+	Second *Operation
 }
 
 type CostSetUserSpaceResp struct {
