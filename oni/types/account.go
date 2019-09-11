@@ -77,7 +77,7 @@ type Balance struct {
 	Name     string
 	Symbol   string
 	Decimals uint64
-	Balance  string
+	Balance  uint64
 }
 
 type BalanceResp []*Balance

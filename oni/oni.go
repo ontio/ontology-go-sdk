@@ -26,13 +26,13 @@ func NewOni() *ONI {
 func (this *ONI) SetRestAddr(restAddr string) {
 	rest, ok := this.oniClient.(*OniRestClient)
 	if ok {
-		rest.SetAddress(restAddr)
+		rest.SetAddr(restAddr)
 	}
 }
 
 func NewOniWithAddr(restAddr string) *ONI {
 	rest := NewOniRestClient()
-	rest.SetAddress(restAddr)
+	rest.SetAddr(restAddr)
 	return &ONI{oniClient: rest}
 }
 
@@ -60,25 +60,32 @@ func (this *ONI) NewAccount(pwd, label string, scheme signature.SignatureScheme,
 	return privKey, resp.Wallet, nil
 }
 
-func (this *ONI) GetCurrentAccount() (privKey keypair.PrivateKey, pubKey keypair.PublicKey, addr string,
+func (this *ONI) CurrentAccount() (privKey keypair.PrivateKey, pubKey keypair.PublicKey, addr common.Address,
 	scheme signature.SignatureScheme, err error) {
 	resp, err := this.oniClient.CurrentAccount()
 	if err != nil {
 		return
 	}
-	privKey, err = keypair.WIF2Key([]byte(resp.PrivateKey))
-	if err != nil {
-		err = fmt.Errorf("GetCurrentAccount: parse priv key failed, err: %s", err)
-		return
+	if resp.PrivateKey != "" {
+		privKey, err = keypair.WIF2Key([]byte(resp.PrivateKey))
+		if err != nil {
+			err = fmt.Errorf("CurrentAccount: parse priv key failed, err: %s", err)
+			return
+		}
 	}
 	pubKeyData, err := hex.DecodeString(resp.PublicKey)
 	if err != nil {
-		err = fmt.Errorf("GetCurrentAccount: decode pub key data failed, err: %s", err)
+		err = fmt.Errorf("CurrentAccount: decode pub key data failed, err: %s", err)
 		return
 	}
 	pubKey, err = keypair.DeserializePublicKey(pubKeyData)
 	if err != nil {
-		err = fmt.Errorf("GetCurrentAccount: deserialize pub key failed, err: %s", err)
+		err = fmt.Errorf("CurrentAccount: deserialize pub key failed, err: %s", err)
+		return
+	}
+	addr, err = common.AddressFromBase58(resp.Address)
+	if err != nil {
+		err = fmt.Errorf("CurrentAccount: decode addr failed, err: %s", err)
 		return
 	}
 	scheme = resp.SigScheme
@@ -149,11 +156,11 @@ func (this *ONI) SendAsset(to common.Address, amount, asset, password string) (s
 }
 
 func (this *ONI) GetTxRecords(base58Addr string, transferType types.TxType, asset string, limit uint64,
-	height *uint64, skipTxCountFromBlock *string) (*types.GetTxRecordsResp, error) {
+	height *uint64, skipTxCountFromBlock *string) (types.GetTxRecordsResp, error) {
 	return this.oniClient.GetTxRecords(base58Addr, transferType, asset, limit, height, skipTxCountFromBlock)
 }
 
-func (this *ONI) GetSCEventByTxHash(hash common.Uint256) ([]*sdkComm.SmartContactEvent, error) {
+func (this *ONI) GetSCEventByTxHash(hash common.Uint256) (*sdkComm.SmartContactEvent, error) {
 	return this.oniClient.GetSCEventByTxHash(hash.ToHexString())
 }
 

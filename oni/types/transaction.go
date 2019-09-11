@@ -8,8 +8,8 @@ import (
 type Transaction interface {
 	Transfer(req *TransferReq) (txHash string, err error)
 	GetTxRecords(base58Addr string, transferType TxType, asset string, limit uint64,
-		height *uint64, skipTxCountFromBlock *string) (*GetTxRecordsResp, error) // height and skipTxCountFromBlock could be nil
-	GetSCEventByTxHash(txHash string) ([]*common.SmartContactEvent, error)       // return tx event
+		height *uint64, skipTxCountFromBlock *string) (GetTxRecordsResp, error) // height and skipTxCountFromBlock could be nil
+	GetSCEventByTxHash(txHash string) (*common.SmartContactEvent, error)       // return tx event
 	GetSCEventByHeight(height uint64) ([]*common.SmartContactEvent, error)       // return  total event of every tx at block
 	PreExecSmartContract(req *PreExecTxReq) (*PreExecTxResp, error)
 	InvokeSmartContract(req *InvokeSmartContractReq) (*InvokeSmartContractResp, error)
@@ -75,7 +75,7 @@ type InvokeSmartContractResp struct {
 }
 
 func GenTxRecordsUrl(bas58Addr string, txType TxType) string {
-	return fmt.Sprintf(URL_TX_RECORDS, txType)
+	return fmt.Sprintf(URL_TX_RECORDS, bas58Addr, txType)
 }
 
 func GenSCEventByTxHashUrl(hash string) string {

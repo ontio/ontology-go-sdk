@@ -1,22 +1,49 @@
 package oni
 
 import (
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology-go-sdk/client"
 	"github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/oni/types"
+	"io/ioutil"
 	"math/big"
+	"net/http"
 	"net/url"
+	"strings"
+	"time"
 )
 
 type OniRestClient struct {
-	*client.RestClient
+	Addr       string
+	restClient *http.Client
 }
 
 func NewOniRestClient() *OniRestClient {
-	return &OniRestClient{RestClient: client.NewRestClient()}
+	return &OniRestClient{
+		restClient: &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost:   5,
+				DisableKeepAlives:     false,
+				IdleConnTimeout:       time.Second * 300,
+				ResponseHeaderTimeout: time.Second * 300,
+				TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+			},
+			Timeout: time.Second * 300,
+		},
+	}
+}
+
+func (self *OniRestClient) SetAddr(addr string) *OniRestClient {
+	self.Addr = addr
+	return self
+}
+
+func (self *OniRestClient) SetRestClient(restClient *http.Client) *OniRestClient {
+	self.restClient = restClient
+	return self
 }
 
 func (this *OniRestClient) NewAccount(req *types.NewAccountReq) (*types.NewAccountResp, error) {
@@ -97,7 +124,7 @@ func (this *OniRestClient) Transfer(req *types.TransferReq) (txHash string, err 
 }
 
 func (this *OniRestClient) GetTxRecords(base58Addr string, transferType types.TxType, asset string, limit uint64,
-	height *uint64, skipTxCountFromBlock *string) (*types.GetTxRecordsResp, error) {
+	height *uint64, skipTxCountFromBlock *string) (types.GetTxRecordsResp, error) {
 	result := &types.GetTxRecordsResp{}
 	reqValues := &url.Values{}
 	reqValues.Add("asset", asset)
@@ -111,12 +138,12 @@ func (this *OniRestClient) GetTxRecords(base58Addr string, transferType types.Tx
 	if _, err := this.get(result, types.GenTxRecordsUrl(base58Addr, transferType), reqValues); err != nil {
 		return nil, fmt.Errorf("GetTxRecords: failed, err: %s", err)
 	} else {
-		return result, nil
+		return *result, nil
 	}
 }
 
-func (this *OniRestClient) GetSCEventByTxHash(txHash string) ([]*common.SmartContactEvent, error) {
-	result := make([]*common.SmartContactEvent, 0)
+func (this *OniRestClient) GetSCEventByTxHash(txHash string) (*common.SmartContactEvent, error) {
+	result := &common.SmartContactEvent{}
 	if _, err := this.get(result, types.GenSCEventByTxHashUrl(txHash)); err != nil {
 		return nil, fmt.Errorf("GetSCEventByTxHash: failed, err: %s", err)
 	} else {
@@ -126,7 +153,7 @@ func (this *OniRestClient) GetSCEventByTxHash(txHash string) ([]*common.SmartCon
 
 func (this *OniRestClient) GetSCEventByHeight(height uint64) ([]*common.SmartContactEvent, error) {
 	result := make([]*common.SmartContactEvent, 0)
-	if _, err := this.get(result, types.GenSCEventByHeightUrl(height)); err != nil {
+	if _, err := this.get(&result, types.GenSCEventByHeightUrl(height)); err != nil {
 		return nil, fmt.Errorf("GetSCEventByHeight: failed, err: %s", err)
 	} else {
 		return result, nil
@@ -598,7 +625,7 @@ func (this *OniRestClient) post(result interface{}, req interface{}, url string)
 	if err != nil {
 		return nil, fmt.Errorf("post: marshal req failed, err: %s", err)
 	}
-	data, err := this.SendRestPostRequest(body, types.URL_NEW_ACCOUNT)
+	data, err := this.sendRestPostRequest(this.Addr+url, body)
 	if err != nil {
 		return nil, fmt.Errorf("post: send req failed, err: %s", err)
 	}
@@ -609,8 +636,21 @@ func (this *OniRestClient) post(result interface{}, req interface{}, url string)
 	}
 }
 
+func (self *OniRestClient) sendRestPostRequest(addr string, data []byte) ([]byte, error) {
+	resp, err := self.restClient.Post(addr, "application/json", strings.NewReader(string(data)))
+	if err != nil {
+		return nil, fmt.Errorf("http post request:%s error:%s", data, err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read rest response body error:%s", err)
+	}
+	return body, nil
+}
+
 func (this *OniRestClient) get(result interface{}, url string, reqValues ...*url.Values) ([]byte, error) {
-	data, err := this.SendRestGetRequest(url, reqValues...)
+	data, err := this.sendRestGetRequest(url, reqValues...)
 	if err != nil {
 		return nil, fmt.Errorf("get: send req failed, err: %s", err)
 	}
@@ -619,6 +659,39 @@ func (this *OniRestClient) get(result interface{}, url string, reqValues ...*url
 	} else {
 		return restResult, nil
 	}
+}
+
+func (this *OniRestClient) sendRestGetRequest(reqPath string, values ...*url.Values) ([]byte, error) {
+	reqUrl, err := this.getRequestUrl(reqPath, values...)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := this.restClient.Get(reqUrl)
+	if err != nil {
+		return nil, fmt.Errorf("send http get request error:%s", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read rest response body error:%s", err)
+	}
+	return body, nil
+}
+
+func (this *OniRestClient) getRequestUrl(reqPath string, values ...*url.Values) (string, error) {
+	addr := this.Addr
+	if !strings.HasPrefix(addr, "http") {
+		addr = "http://" + addr
+	}
+	reqUrl, err := new(url.URL).Parse(addr)
+	if err != nil {
+		return "", fmt.Errorf("Parse address:%s error:%s", addr, err)
+	}
+	reqUrl.Path = reqPath
+	if len(values) > 0 && values[0] != nil {
+		reqUrl.RawQuery = values[0].Encode()
+	}
+	return reqUrl.String(), nil
 }
 
 func handleRestResp(data []byte, result interface{}) ([]byte, error) {
@@ -630,7 +703,7 @@ func handleRestResp(data []byte, result interface{}) ([]byte, error) {
 	if restResp.Error != client.REST_SUCCESS_CODE {
 		return nil, fmt.Errorf("handleRestResp: resp failed, code %d, err: %s", restResp.Error, restResp.Desc)
 	}
-	if result != nil {
+	if result == nil {
 		return restResp.Result, nil
 	}
 	err = json.Unmarshal(restResp.Result, result)
