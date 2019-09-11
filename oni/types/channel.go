@@ -1,4 +1,4 @@
-package oni
+package types
 
 type ChannelMgr interface {
 	CurrentChannel() (*CurrentChannelResp, error)

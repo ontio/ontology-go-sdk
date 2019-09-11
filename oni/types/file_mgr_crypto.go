@@ -1,4 +1,4 @@
-package oni
+package types
 
 type FileMgrCrypto interface {
 	Encrypt(req *EncryptFileReq) error

@@ -1,4 +1,4 @@
-package oni
+package types
 
 import "fmt"
 

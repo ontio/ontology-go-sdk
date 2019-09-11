@@ -1,4 +1,4 @@
-package oni
+package types
 
 type FileMgrDelete interface {
 	DeleteFile(req *DeleteFileReq) (*DeleteFileResp, error)

@@ -1,4 +1,4 @@
-package oni
+package types
 
 type Others interface {
 	NetworkState() (*NetworkStateResp, error)

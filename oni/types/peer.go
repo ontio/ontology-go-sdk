@@ -1,4 +1,4 @@
-package oni
+package types
 
 type PeerMgr interface {
 	ReconnectPeer(req *ReconnectPeerReq) (*ReconnectPeerResp, error)

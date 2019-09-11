@@ -1,4 +1,4 @@
-package oni
+package types
 
 type Configure interface {
 	UpdateConfig(req *UpdateConfigReq) error

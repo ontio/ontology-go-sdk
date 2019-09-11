@@ -22,6 +22,7 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/ontio/ontology-go-sdk/oni"
 	"io"
 	"math/rand"
 	"time"
@@ -47,6 +48,7 @@ func init() {
 //OntologySdk is the main struct for user
 type OntologySdk struct {
 	client.ClientMgr
+	*oni.Oni
 	Native *NativeContract
 	NeoVM  *NeoVMContract
 }
@@ -58,6 +60,7 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
+	ontSdk.Oni = oni.NewOni()
 	return ontSdk
 }
 

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/ontio/ontology-go-sdk/client/oni"
 	"github.com/ontio/ontology/core/types"
 )
 
@@ -25,20 +24,4 @@ type OntologyClient interface {
 	getMemPoolTxState(qid, txHash string) ([]byte, error)
 	getMemPoolTxCount(qid string) ([]byte, error)
 	sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error)
-}
-
-type OniClient interface {
-	oni.AccountMgr
-	oni.Transaction
-	oni.FileMgrCrypto
-	oni.FileMgrDelete
-	oni.FileMgrUserSpace
-	oni.FileMgrTransfer
-	oni.FileMgrDownload
-	oni.FileMgrUpload
-	oni.ChannelMgr
-	oni.Mine
-	oni.PeerMgr
-	oni.Configure
-	oni.Others
 }

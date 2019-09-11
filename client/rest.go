@@ -67,38 +67,38 @@ func (this *RestClient) SetHttpClient(httpClient *http.Client) *RestClient {
 
 func (this *RestClient) getVersion(qid string) ([]byte, error) {
 	reqPath := GET_VERSION
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getNetworkId(qid string) ([]byte, error) {
 	reqPath := GET_NETWORK_ID
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getBlockByHash(qid, hash string) ([]byte, error) {
 	reqPath := GET_BLK_BY_HASH + hash
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
-	return this.sendRestGetRequest(reqPath, reqValues)
+	return this.SendRestGetRequest(reqPath, reqValues)
 }
 
 func (this *RestClient) getBlockByHeight(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_BY_HEIGHT, height)
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
-	return this.sendRestGetRequest(reqPath, reqValues)
+	return this.SendRestGetRequest(reqPath, reqValues)
 }
 
 func (this *RestClient) getBlockInfoByHeight(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_BY_HEIGHT, height)
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "0")
-	return this.sendRestGetRequest(reqPath, reqValues)
+	return this.SendRestGetRequest(reqPath, reqValues)
 }
 
 func (this *RestClient) getCurrentBlockHeight(qid string) ([]byte, error) {
 	reqPath := GET_BLK_HEIGHT
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getCurrentBlockHash(qid string) ([]byte, error) {
@@ -115,7 +115,7 @@ func (this *RestClient) getCurrentBlockHash(qid string) ([]byte, error) {
 
 func (this *RestClient) getBlockHash(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_HASH, height)
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 //GetRawTransaction return transaction by transaction hash in hex string code
@@ -123,55 +123,55 @@ func (this *RestClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 	reqPath := GET_TX + txHash
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
-	return this.sendRestGetRequest(reqPath, reqValues)
+	return this.SendRestGetRequest(reqPath, reqValues)
 }
 
 func (this *RestClient) getStorage(qid, contractAddress string, key []byte) ([]byte, error) {
 	reqPath := GET_STORAGE + contractAddress + "/" + hex.EncodeToString(key)
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 //GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
 func (this *RestClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	reqPath := GET_SMTCOCE_EVTS + txHash
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_SMTCOCE_EVT_TXS, blockHeight)
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getSmartContract(qid, contractAddress string) ([]byte, error) {
 	reqPath := GET_CONTRACT_STATE + contractAddress
 	reqValues := &url.Values{}
 	reqValues.Add("raw", "1")
-	return this.sendRestGetRequest(reqPath, reqValues)
+	return this.SendRestGetRequest(reqPath, reqValues)
 }
 
 func (this RestClient) getMerkleProof(qid, txHash string) ([]byte, error) {
 	reqPath := GET_MERKLE_PROOF + txHash
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getMemPoolTxState(qid, txHash string) ([]byte, error) {
 	reqPath := GET_MEMPOOL_TXSTATE + txHash
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getMemPoolTxCount(qid string) ([]byte, error) {
 	reqPath := GET_MEMPOOL_TXCOUNT
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getBlockHeightByTxHash(qid, txHash string) ([]byte, error) {
 	reqPath := GET_BLK_HGT_BY_TXHASH + txHash
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]byte, error) {
 	reqPath := fmt.Sprintf("%s%d", GET_BLK_TXS_BY_HEIGHT, height)
-	return this.sendRestGetRequest(reqPath)
+	return this.SendRestGetRequest(reqPath)
 }
 
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
@@ -186,7 +186,7 @@ func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, is
 		reqValues = &url.Values{}
 		reqValues.Add("preExec", "1")
 	}
-	return this.sendRestPostRequest(buffer.Bytes(), reqPath, reqValues)
+	return this.SendRestPostRequest(buffer.Bytes(), reqPath, reqValues)
 }
 
 func (this *RestClient) getAddress() (string, error) {
@@ -215,7 +215,7 @@ func (this *RestClient) getRequestUrl(reqPath string, values ...*url.Values) (st
 	return reqUrl.String(), nil
 }
 
-func (this *RestClient) sendRestGetRequest(reqPath string, values ...*url.Values) ([]byte, error) {
+func (this *RestClient) SendRestGetRequest(reqPath string, values ...*url.Values) ([]byte, error) {
 	reqUrl, err := this.getRequestUrl(reqPath, values...)
 	if err != nil {
 		return nil, err
@@ -228,7 +228,7 @@ func (this *RestClient) sendRestGetRequest(reqPath string, values ...*url.Values
 	return this.dealRestResponse(resp.Body)
 }
 
-func (this *RestClient) sendRestPostRequest(data []byte, reqPath string, values ...*url.Values) ([]byte, error) {
+func (this *RestClient) SendRestPostRequest(data []byte, reqPath string, values ...*url.Values) ([]byte, error) {
 	reqUrl, err := this.getRequestUrl(reqPath, values...)
 	if err != nil {
 		return nil, err
