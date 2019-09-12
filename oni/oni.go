@@ -574,3 +574,7 @@ func (this *ONI) SwitchChainId(chainId, config string) error {
 func (this *ONI) ChainId() (string, error) {
 	return this.oniClient.ChainId()
 }
+
+func (this *ONI) ChainIdList() (*types.ChainIdListResp, error) {
+	return this.oniClient.ChainIdList()
+}

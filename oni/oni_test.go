@@ -727,3 +727,12 @@ func TestONI_ChainId(t *testing.T) {
 	}
 	t.Log(chainId)
 }
+
+func TestONI_ChainIdList(t *testing.T) {
+	resp, err := oni.ChainIdList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, _ := json.MarshalIndent(resp, "", "	")
+	t.Log(string(jsonRes))
+}

@@ -21,7 +21,7 @@ type Others interface {
 	NetworkState() (*NetworkStateResp, error)
 	CurrentHeight() (uint64, error)
 	Version() (string, error)
-	ChainIdList() // TODO:
+	ChainIdList() (*ChainIdListResp, error)
 	SwitchChainId(req *SwitchChainIdReq) error
 	ChainId() (string, error)
 }
@@ -37,7 +37,7 @@ const (
 	URL_NETWORK_STATE   = "/api/v1/network/state"
 	URL_CURRENT_HEIGHT  = "/api/v1/block/height"
 	URL_VERSION         = "/api/v1/version"
-	URL_CHAIN_ID_LIST   = "/api/v1/chainid/list" // TODO: unimplemented
+	URL_CHAIN_ID_LIST   = "/api/v1/chainid/list"
 	URL_SWITCH_CHAIN_ID = "/api/v1/chainid/switch"
 	URL_CHAIN_ID        = "/api/v1/chainid"
 )
@@ -62,4 +62,9 @@ type SwitchChainIdReq struct {
 
 type ChainIdResp struct {
 	ChainId string
+}
+
+type ChainIdListResp struct {
+	CurrentId string
+	Ids       []string
 }

@@ -617,9 +617,13 @@ func (this *OniRestClient) Version() (string, error) {
 	}
 }
 
-// unimplemented
-func (this *OniRestClient) ChainIdList() {
-
+func (this *OniRestClient) ChainIdList() (*types.ChainIdListResp, error) {
+	result := &types.ChainIdListResp{}
+	if _, err := this.get(result, types.URL_CHAIN_ID_LIST); err != nil {
+		return nil, fmt.Errorf("ChainIdList: failed, err: %s", err)
+	} else {
+		return result, nil
+	}
 }
 
 func (this *OniRestClient) SwitchChainId(req *types.SwitchChainIdReq) error {
