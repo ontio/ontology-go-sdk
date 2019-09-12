@@ -11,7 +11,7 @@ type FileMgrTransfer interface {
 type TransferType uint8
 
 const (
-	TRANSFER_TYPE_COMPLETING TransferType = iota
+	TRANSFER_TYPE_COMPLETED TransferType = iota
 	TRANSFER_TYPE_UPLOADING
 	TRANSFER_TYPE_DOWNLOADING
 )
@@ -126,7 +126,9 @@ type Task struct {
 	Error  string
 }
 
-type DeleteCompleteTaskResp []*Task
+type DeleteCompleteTaskResp struct {
+	Tasks []*Task
+}
 
 // offset and limit equal 0 represents all data
 func GenGetTransferListUrl(transferType TransferType, offset, limit uint64) string {

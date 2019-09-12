@@ -267,6 +267,7 @@ func (this *ONI) GetUserSpace(account common.Address) (*types.GetUserSpaceResp, 
 	return this.oniClient.GetUserSpace(account.ToBase58())
 }
 
+// the records existed in sync node local store, not at the chain
 func (this *ONI) GetUserSpaceRecords(account common.Address, offset, limit uint64) ([]*types.UserSpaceRecord, error) {
 	resp, err := this.oniClient.GetUserSpaceRecords(account.ToBase58(), offset, limit)
 	if err != nil {
@@ -283,13 +284,13 @@ func (this *ONI) GetTransferDetail(transferType types.TransferType, transferId s
 	return this.oniClient.GetTransferDetail(transferType, transferId)
 }
 
-func (this *ONI) DeleteCompleteTask(taskIds []string) (*types.DeleteCompleteTaskResp, error) {
+func (this *ONI) DeleteCompleteTask(taskIds []string) ([]*types.Task, error) {
 	req := &types.DeleteCompleteTaskReq{Ids: taskIds}
 	resp, err := this.oniClient.DeleteCompleteTask(req)
 	if err != nil {
 		return nil, err
 	}
-	return resp, err
+	return resp.Tasks, err
 }
 
 // download file to sync node
@@ -429,6 +430,7 @@ func (this *ONI) GetCurrentChannel() (*types.Channel, error) {
 	return resp.Channel, nil
 }
 
+// switch a existed channel
 func (this *ONI) SwitchChannel(partner common.Address, password string) error {
 	req := &types.SwitchChannelReq{
 		Partner:  partner.ToBase58(),
@@ -445,6 +447,8 @@ func (this *ONI) ChannelInitProgress() (*types.ChannelInitProgressResp, error) {
 	return this.oniClient.ChannelInitProgress()
 }
 
+// will open a new channel if not construct channel with this partner before
+// otherwise return err
 func (this *ONI) OpenChannel(partner common.Address, password string, amount string) error {
 	req := &types.OpenChannelReq{
 		SwitchChannelReq: types.SwitchChannelReq{
@@ -456,7 +460,7 @@ func (this *ONI) OpenChannel(partner common.Address, password string, amount str
 	return this.oniClient.OpenChannel(req)
 }
 
-func (this *ONI) CloseChannel(partner common.Address, password string, amount string) error {
+func (this *ONI) CloseChannel(partner common.Address, password string) error {
 	req := &types.CloseChannelReq{
 		SwitchChannelReq: types.SwitchChannelReq{
 			Password: password,
@@ -504,6 +508,7 @@ func (this *ONI) MinerGetShardIncome(begin, end uint32, offset, limit uint64) (*
 	return this.oniClient.MinerGetShardIncome(begin, end, offset, limit)
 }
 
+//  ["tcp://127.0.0.1:10338"]
 func (this *ONI) ReconnectPeer(peers []string) ([]*types.Node, error) {
 	req := &types.ReconnectPeerReq{Peers: peers}
 	resp, err := this.oniClient.ReconnectPeer(req)

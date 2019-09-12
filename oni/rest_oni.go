@@ -411,7 +411,7 @@ func (this *OniRestClient) GetFSSetting() (*types.GetFileStorageSettingResp, err
 
 func (this *OniRestClient) GetFileWhiteList(fileHash string) ([]*types.WhiteListAddress, error) {
 	result := make([]*types.WhiteListAddress, 0)
-	if _, err := this.get(result, types.URL_GET_FILE_WHITE_LIST); err != nil {
+	if _, err := this.get(&result, types.GenGetFileWhiteListUrl(fileHash)); err != nil {
 		return nil, fmt.Errorf("GetFileWhiteList: failed, err: %s", err)
 	} else {
 		return result, nil
@@ -420,7 +420,7 @@ func (this *OniRestClient) GetFileWhiteList(fileHash string) ([]*types.WhiteList
 
 func (this *OniRestClient) GetUploadFileList(fileType types.FileType, offset, limit uint64) (*types.GetUploadFileListResp, error) {
 	result := &types.GetUploadFileListResp{}
-	if _, err := this.get(result, types.URL_GET_UPLOAD_FILE_LIST); err != nil {
+	if _, err := this.get(result, types.GenGetUploadFileListUrl(fileType, offset, limit)); err != nil {
 		return nil, fmt.Errorf("GetUploadFileList: failed, err: %s", err)
 	} else {
 		return result, nil
@@ -531,7 +531,7 @@ func (this *OniRestClient) Revenue() (*types.RevenueResp, error) {
 
 func (this *OniRestClient) MinerGetShardIncome(begin, end uint32, offset, limit uint64) (*types.MinerGetShardIncomeResp, error) {
 	result := &types.MinerGetShardIncomeResp{}
-	if _, err := this.get(result, types.URL_MINER_GET_SHARE_INCOME); err != nil {
+	if _, err := this.get(result, types.GenMinerGetShareIncomeUrl(begin, end, offset, limit)); err != nil {
 		return nil, fmt.Errorf("MinerGetShardIncome: failed, err: %s", err)
 	} else {
 		return result, nil
@@ -585,14 +585,15 @@ func (this *OniRestClient) NetworkState() (*types.NetworkStateResp, error) {
 func (this *OniRestClient) CurrentHeight() (uint64, error) {
 	if restResult, err := this.get(nil, types.URL_CURRENT_HEIGHT); err != nil {
 		return 0, fmt.Errorf("CurrentHeight: failed, err: %s", err)
-	} else {
-		height := new(big.Int).SetBytes(restResult)
+	} else if height, ok := new(big.Int).SetString(string(restResult), 10); ok {
 		return height.Uint64(), nil
+	} else {
+		return 0, fmt.Errorf("CurrentHeight: parse result %s failed", restResult)
 	}
 }
 
 func (this *OniRestClient) Version() (string, error) {
-	if restResult, err := this.get(nil, types.URL_CURRENT_HEIGHT); err != nil {
+	if restResult, err := this.get(nil, types.URL_VERSION); err != nil {
 		return "", fmt.Errorf("Version: failed, err: %s", err)
 	} else {
 		return string(restResult), nil
@@ -605,7 +606,7 @@ func (this *OniRestClient) ChainIdList() {
 }
 
 func (this *OniRestClient) SwitchChainId(req *types.SwitchChainIdReq) error {
-	if _, err := this.post(nil, req, types.URL_UPDATE_CONFIG); err != nil {
+	if _, err := this.post(nil, req, types.URL_SWITCH_CHAIN_ID); err != nil {
 		return fmt.Errorf("SwitchChainId: failed, err: %s", err)
 	} else {
 		return nil
@@ -613,10 +614,11 @@ func (this *OniRestClient) SwitchChainId(req *types.SwitchChainIdReq) error {
 }
 
 func (this *OniRestClient) ChainId() (string, error) {
-	if restResult, err := this.get(nil, types.URL_CURRENT_HEIGHT); err != nil {
+	chainIdResp := &types.ChainIdResp{}
+	if _, err := this.get(chainIdResp, types.URL_CHAIN_ID); err != nil {
 		return "", fmt.Errorf("ChainId: failed, err: %s", err)
 	} else {
-		return string(restResult), nil
+		return chainIdResp.ChainId, nil
 	}
 }
 

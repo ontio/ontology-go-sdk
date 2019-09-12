@@ -18,9 +18,9 @@ type Transaction interface {
 type TxType uint8
 
 const (
-	TRANSFER_TYPE_ALL TxType = iota
-	TRANSFER_TYPE_OUT
-	TRANSFER_TYPE_IN
+	TX_TYPE_ALL TxType = iota
+	TX_TYPE_OUT
+	TX_TYPE_IN
 )
 
 const (
