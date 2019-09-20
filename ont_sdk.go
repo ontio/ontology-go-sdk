@@ -22,23 +22,23 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ontio/go-bip32"
-	"github.com/ontio/ontology-go-sdk/bip44"
-	"github.com/ontio/ontology/smartcontract/event"
-	"github.com/tyler-smith/go-bip39"
+	"github.com/ontio/ontology-go-sdk/oni"
 	"io"
 	"math/rand"
 	"time"
 
+	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/ontio/ontology-go-sdk/bip44"
 	"github.com/ontio/ontology-go-sdk/client"
-	common3 "github.com/ontio/ontology-go-sdk/common"
+	sdkComm "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
-	common2 "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	"github.com/ontio/ontology/smartcontract/event"
+	"github.com/tyler-smith/go-bip39"
 )
 
 func init() {
@@ -48,6 +48,7 @@ func init() {
 //OntologySdk is the main struct for user
 type OntologySdk struct {
 	client.ClientMgr
+	*oni.ONI
 	Native *NativeContract
 	NeoVM  *NeoVMContract
 }
@@ -59,6 +60,7 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
 	ontSdk.NeoVM = neoVM
+	ontSdk.ONI = oni.NewOni()
 	return ontSdk
 }
 
@@ -99,7 +101,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 		// +1   length
 		//TODO if version>15, there will be bug
 		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
-			param := make([]common3.StateInfo, 0)
+			param := make([]sdkComm.StateInfo, 0)
 			source := common.NewZeroCopySource(code)
 			for {
 				zeroByte, eof := source.NextByte()
@@ -133,7 +135,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 				if err != nil {
 					return nil, err
 				}
-				state := common3.StateInfo{
+				state := sdkComm.StateInfo{
 					From:  from.ToBase58(),
 					To:    to.ToBase58(),
 					Value: amount,
@@ -214,7 +216,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			tf := common3.TransferFromInfo{
+			tf := sdkComm.TransferFromInfo{
 				Sender: sender.ToBase58(),
 				From:   from.ToBase58(),
 				To:     to.ToBase58(),
@@ -291,7 +293,7 @@ func isEnd(source *common.ZeroCopySource) (bool, error) {
 	}
 }
 
-func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
+func readAddress(source *common.ZeroCopySource) (common.Address, error) {
 	senderBytes, _, irregular, eof := source.NextVarBytes()
 	if irregular || eof {
 		return common.ADDRESS_EMPTY, io.ErrUnexpectedEOF
@@ -463,7 +465,7 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
 	}
-	sink := common2.ZeroCopySink{}
+	sink := common.ZeroCopySink{}
 	txData.Serialization(&sink)
 	rawtx := hex.EncodeToString(sink.Bytes())
 	return rawtx, nil

@@ -102,6 +102,8 @@ const (
 
 const REST_VERSION = "1.0.0"
 
+const REST_SUCCESS_CODE = 0
+
 type RestfulReq struct {
 	Action  string
 	Version string
