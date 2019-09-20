@@ -28,7 +28,7 @@ Firstly, [open a channel](oni_test.go#L598) with partner(testnet partner is AcJd
 
 After using channel, you can [deposit ONI to channel](oni_test.go#L624) and [withdraw ONI from it](oni_test.go#L615). If you don't want to use channel anymore, you can [close it](oni_test.go#L607).
 
-### Downloading file
+### Download file
 
 You can [download file](oni_test.go#L355) that other people shared to your synchronization node by using file link, hash, or share url. Note that the downloading is submit a downloading task to your synchronization node, there need some time to download complete file. You can get the [file info by using file url](oni_test.go#L402), and you can [get all download file info](oni_test.go#L412). Before downloading, you can set the download path by [updating config](oni_test.go#L687).
 
