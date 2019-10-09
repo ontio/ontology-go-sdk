@@ -12,6 +12,7 @@ import (
 	"github.com/ontio/ontology/common/serialization"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	"github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/smartcontract/states"
 )
 
@@ -149,18 +150,11 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	methodName string,
 	params []interface{}) (common.Uint256, error) {
 
-	contract := &states.WasmContractParam{}
-	contract.Address = smartcodeAddress
-	argbytes, err := buildWasmContractParam(methodName, params)
-
+	tx, err := utils.NewWasmVMInvokeTransaction(gasPrice, gasLimit, smartcodeAddress, []interface{}{methodName, params})
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("build wasm contract param failed:%s", err)
+		return common.UINT256_EMPTY, err
 	}
-	contract.Args = argbytes
-	sink := common.NewZeroCopySink(nil)
-	contract.Serialization(sink)
 
-	tx := this.ontSdk.NewInvokeWasmTransaction(gasPrice, gasLimit, sink.Bytes())
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.Uint256{}, nil
