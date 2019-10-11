@@ -13,7 +13,6 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/core/utils"
-	"github.com/ontio/ontology/smartcontract/states"
 )
 
 type WasmVMContract struct {
@@ -149,8 +148,10 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	smartcodeAddress common.Address,
 	methodName string,
 	params []interface{}) (common.Uint256, error) {
-
-	tx, err := utils.NewWasmVMInvokeTransaction(gasPrice, gasLimit, smartcodeAddress, []interface{}{methodName, params})
+	args := make([]interface{}, 1+len(params))
+	args[0] = methodName
+	copy(args[1:], params[:])
+	tx, err := utils.NewWasmVMInvokeTransaction(gasPrice, gasLimit, smartcodeAddress, args)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -166,20 +167,10 @@ func (this *WasmVMContract) PreExecInvokeWasmVMContract(
 	contractAddress common.Address,
 	methodName string,
 	params []interface{}) (*sdkcom.PreExecResult, error) {
-
-	contract := &states.WasmContractParam{}
-	contract.Address = contractAddress
-
-	argbytes, err := buildWasmContractParam(methodName, params)
-
-	if err != nil {
-		return nil, fmt.Errorf("build wasm contract param failed:%s", err)
-	}
-	contract.Args = argbytes
-	sink := common.NewZeroCopySink(nil)
-	contract.Serialization(sink)
-
-	tx := this.ontSdk.NewInvokeWasmTransaction(0, 0, sink.Bytes())
+	args := make([]interface{}, 1+len(params))
+	args[0] = methodName
+	copy(args[1:], params[:])
+	tx, err := utils.NewWasmVMInvokeTransaction(0, 0, contractAddress, args)
 	if err != nil {
 		return nil, err
 	}
