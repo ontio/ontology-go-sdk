@@ -18,7 +18,6 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -156,9 +155,9 @@ func GetSmartContract(data []byte) (*payload.DeployCode, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	buf := bytes.NewReader(hexData)
+	source := common.NewZeroCopySource(hexData)
 	deploy := &payload.DeployCode{}
-	err = deploy.Deserialize(buf)
+	err = deploy.Deserialization(source)
 	if err != nil {
 		return nil, err
 	}

@@ -4,11 +4,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	httpcom "github.com/ontio/ontology/http/base/common"
-	"time"
 )
 
 type NeoVMContract struct {
@@ -19,28 +19,6 @@ func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
 	return &NeoVMContract{
 		ontSdk: ontSdk,
 	}
-}
-
-func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
-	deployPayload := &payload.DeployCode{
-		Code:        contract.Code,
-		VmType:      contract.VmType,
-		Name:        contract.Name,
-		Version:     contract.Version,
-		Author:      contract.Author,
-		Email:       contract.Email,
-		Description: contract.Description,
-	}
-	tx := &types.MutableTransaction{
-		Version:  sdkcom.VERSION_TRANSACTION,
-		TxType:   types.Deploy,
-		Nonce:    uint32(time.Now().Unix()),
-		Payload:  deployPayload,
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-		Sigs:     make([]types.Sig, 0, 0),
-	}
-	return tx
 }
 
 //DeploySmartContract Deploy smart contract to ontology
@@ -60,15 +38,7 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
 	}
-	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
-		Code:        invokeCode,
-		VmType:      payload.NEOVM_TYPE,
-		Name:        name,
-		Version:     version,
-		Author:      author,
-		Email:       email,
-		Description: desc,
-	})
+	tx, err := utils.NewDeployCodeTransaction(gasPrice, gasLimit, invokeCode, payload.NEOVM_TYPE, name, version, author, email, desc)
 	err = this.ontSdk.SignToTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err

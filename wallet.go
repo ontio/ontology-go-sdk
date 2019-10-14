@@ -406,7 +406,7 @@ func (this *Wallet) ImportAccounts(accountDatas []*AccountData, passwds [][]byte
 		}
 		err = this.AddAccountData(newAccData)
 		if err != nil {
-			return fmt.Errorf("import account: error:%s", accData.Address, err)
+			return fmt.Errorf("import account:%s, error:%s", accData.Address, err)
 		}
 	}
 	return nil
