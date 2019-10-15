@@ -7,6 +7,7 @@ import (
 	utils2 "github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
+	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/core/utils"
 )
 
@@ -48,6 +49,21 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 	return txHash, nil
 }
 
+func (this *WasmVMContract) NewInvokeWasmVmTransaction(gasPrice,
+	gasLimit uint64,
+	smartcodeAddress common.Address,
+	methodName string,
+	params []interface{}) (*types.MutableTransaction, error) {
+	args := make([]interface{}, 1+len(params))
+	args[0] = methodName
+	copy(args[1:], params[:])
+	tx, err := utils.NewWasmVMInvokeTransaction(gasPrice, gasLimit, smartcodeAddress, args)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
 //Invoke wasm smart contract
 //methodName is wasm contract action name
 //paramType  is Json or Raw format
@@ -59,10 +75,7 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	smartcodeAddress common.Address,
 	methodName string,
 	params []interface{}) (common.Uint256, error) {
-	args := make([]interface{}, 1+len(params))
-	args[0] = methodName
-	copy(args[1:], params[:])
-	tx, err := utils.NewWasmVMInvokeTransaction(gasPrice, gasLimit, smartcodeAddress, args)
+	tx, err := this.NewInvokeWasmVmTransaction(gasPrice, gasLimit, smartcodeAddress, methodName, params)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
