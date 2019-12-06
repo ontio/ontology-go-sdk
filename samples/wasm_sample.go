@@ -4,49 +4,49 @@ import (
 	"fmt"
 	sdk "github.com/ontio/ontology-go-sdk"
 
-	"time"
-	"io/ioutil"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology-go-sdk/utils"
 	"encoding/binary"
+	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
+	"io/ioutil"
+	"time"
 )
 
-func main(){
+func main() {
 	fmt.Println("==========================start============================")
-
+	testUrl := "http://127.0.0.1:20336"
+	testUrl = "http://polaris1.ont.io:20336"
 	//initialize ontsdk
 	ontSdk := sdk.NewOntologySdk()
 	//suppose you already start up a local wasm ontology node
-	ontSdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
+	ontSdk.NewRpcClient().SetAddress(testUrl)
 	//your wallet file
 	wallet, err := ontSdk.OpenWallet("./wallet.dat")
-	if err != nil{
-		fmt.Printf("error in OpenWallet:%s\n",err)
+	if err != nil {
+		fmt.Printf("error in OpenWallet:%s\n", err)
 		return
 	}
 
 	//modify me
-	walletpassword:="<pass word of your wallet>"
+	walletpassword := "123456"
 
 	//we get the first account of the wallet by your password
-	signer,err := wallet.GetDefaultAccount([]byte(walletpassword))
-	if err != nil{
-		fmt.Printf("error in GetDefaultAccount:%s\n",err)
+	signer, err := wallet.GetAccountByAddress("AVBzcUtgdgS94SpBmw4rDMhYA4KDq1YTzy", []byte(walletpassword))
+	if err != nil {
+		fmt.Printf("error in GetDefaultAccount:%s\n", err)
 		return
 	}
-	fmt.Printf("===signer address is %s\n",signer.Address.ToBase58())
+	fmt.Printf("===signer address is %s\n", signer.Address.ToBase58())
 	//get a compiled wasm file from ont_cpp
 	wasmfile := "./OEP4.wasm"
 
 	//set timeout
 	timeoutSec := 30 * time.Second
-	address1 := "<other address in your wallet>"
-
+	address1 := "AX8opZCQBpEpYsFPKpZHNguWz2s3xpT7Wk"
 
 	// read wasm file and get the Hex fmt string
 	code, err := ioutil.ReadFile(wasmfile)
 	if err != nil {
-		fmt.Printf("error in ReadFile:%s\n",err)
+		fmt.Printf("error in ReadFile:%s\n", err)
 
 		return
 	}
@@ -54,7 +54,7 @@ func main(){
 	codeHash := common.ToHexString(code)
 
 	//===========================================
-	gasprice := uint64(0)
+	gasprice := uint64(500)
 	invokegaslimit := uint64(200000)
 	deploygaslimit := uint64(200000000)
 	// deploy the wasm contract
@@ -70,45 +70,45 @@ func main(){
 		"email",
 		"desc",
 	)
-	if err != nil{
-		fmt.Printf("error in DeployWasmVMSmartContract:%s\n",err)
+	if err != nil {
+		fmt.Printf("error in DeployWasmVMSmartContract:%s\n", err)
 
 		return
 	}
 	_, err = ontSdk.WaitForGenerateBlock(timeoutSec)
 	if err != nil {
-		fmt.Printf("error in WaitForGenerateBlock:%s\n",err)
+		fmt.Printf("error in WaitForGenerateBlock:%s\n", err)
 
 		return
 	}
-	fmt.Printf("the deploy contract txhash is %s\n",txHash.ToHexString())
+	fmt.Printf("the deploy contract txhash is %s\n", txHash.ToHexString())
 
 	//calculate the contract address from code
 	contractAddr, err := utils.GetContractAddress(codeHash)
 	if err != nil {
-		fmt.Printf("error in GetContractAddress:%s\n",err)
+		fmt.Printf("error in GetContractAddress:%s\n", err)
 
 		return
 	}
-	fmt.Printf("the contractAddr is %s\n",contractAddr.ToBase58())
+	fmt.Printf("the contractAddr is %s\n", contractAddr.ToBase58())
 
 	fmt.Println("======InvokeWasmVMSmartContract init==========")
 
 	//============================================
 	//invoke wasm method
 	//we invoke "init" method first
-	txHash, err  = ontSdk.WasmVM.InvokeWasmVMSmartContract(
-		gasprice,invokegaslimit,signer,contractAddr,"init",[]interface{}{})
+	txHash, err = ontSdk.WasmVM.InvokeWasmVMSmartContract(
+		gasprice, invokegaslimit, signer, contractAddr, "init", []interface{}{})
 	_, err = ontSdk.WaitForGenerateBlock(timeoutSec)
 	if err != nil {
-		fmt.Printf("error in WaitForGenerateBlock:%s\n",err)
+		fmt.Printf("error in WaitForGenerateBlock:%s\n", err)
 		return
 	}
-	fmt.Printf("init txhash is :%s\n",txHash.ToHexString())
+	fmt.Printf("init txhash is :%s\n", txHash.ToHexString())
 	//get smartcontract event by txhash
 	events, err := ontSdk.GetSmartContractEvent(txHash.ToHexString())
 	if err != nil {
-		fmt.Printf("error in GetSmartContractEvent:%s\n",err)
+		fmt.Printf("error in GetSmartContractEvent:%s\n", err)
 
 		return
 	}
@@ -126,27 +126,27 @@ func main(){
 
 	//next we test transfer method
 	//1.  we get another address from wallet,suppose you have created in the wallet
-	account2, err := wallet.GetAccountByAddress(address1,[]byte(walletpassword))
+	account2, err := wallet.GetAccountByAddress(address1, []byte(walletpassword))
 	if err != nil {
-		fmt.Printf("error in GetAccountByAddress:%s\n",err)
+		fmt.Printf("error in GetAccountByAddress:%s\n", err)
 
 		return
 	}
 	fmt.Println("======InvokeWasmVMSmartContract transfer==========")
 
 	//2. we construct a tx transfer 500 token from signer account to account2
-	txHash, err  = ontSdk.WasmVM.InvokeWasmVMSmartContract(
-		gasprice,invokegaslimit,signer,contractAddr,"transfer",[]interface{}{signer.Address,account2.Address,uint64(500)})
+	txHash, err = ontSdk.WasmVM.InvokeWasmVMSmartContract(
+		gasprice, invokegaslimit, signer, contractAddr, "transfer", []interface{}{signer.Address, account2.Address, uint64(500)})
 	_, err = ontSdk.WaitForGenerateBlock(timeoutSec)
 	if err != nil {
-		fmt.Printf("error in WaitForGenerateBlock:%s\n",err)
+		fmt.Printf("error in WaitForGenerateBlock:%s\n", err)
 
 		return
 	}
 	//get smartcontract event by txhash
 	events, err = ontSdk.GetSmartContractEvent(txHash.ToHexString())
 	if err != nil {
-		fmt.Printf("error in GetSmartContractEvent:%s\n",err)
+		fmt.Printf("error in GetSmartContractEvent:%s\n", err)
 		return
 	}
 	fmt.Printf("event is %v\n", events)
@@ -163,15 +163,15 @@ func main(){
 	}
 
 	//we will query the balance using pre-execuse method
-	res,err := ontSdk.WasmVM.PreExecInvokeWasmVMContract(contractAddr, "balanceOf", []interface{}{signer.Address})
+	res, err := ontSdk.WasmVM.PreExecInvokeWasmVMContract(contractAddr, "balanceOf", []interface{}{signer.Address})
 	if err != nil {
-		fmt.Printf("error in PreExecInvokeWasmVMContract:%s\n",err)
+		fmt.Printf("error in PreExecInvokeWasmVMContract:%s\n", err)
 
 		return
 	}
 	bs, err := res.Result.ToByteArray()
 	if err != nil {
-		fmt.Printf("error in ToByteArray:%s\n",err)
+		fmt.Printf("error in ToByteArray:%s\n", err)
 
 		return
 	}
