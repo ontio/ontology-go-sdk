@@ -47,6 +47,21 @@ var (
 	testGasLimit = uint64(20000)
 )
 
+func init() {
+	var err error
+	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
+	if err != nil {
+		fmt.Printf("OpenWallet err: %s\n", err)
+		return
+	}
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
+	testDefAcc, err = testWallet.GetDefaultAccount(testPasswd)
+	if err != nil {
+		fmt.Printf("GetDefaultAccount err: %s\n", err)
+		return
+	}
+}
 func TestOntId_NewRegIDWithAttributesTransaction(t *testing.T) {
 	testOntSdk = NewOntologySdk()
 }
@@ -206,7 +221,6 @@ func TestOntologySdk_TrabsferFrom(t *testing.T) {
 
 //transferFrom
 func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
-	testOntSdk = NewOntologySdk()
 	var err error
 	assert.Nil(t, err)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
@@ -232,9 +246,10 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	code := invokeCode.Code
 	res, err := ParsePayload(code)
 	assert.Nil(t, err)
-	assert.Equal(t, acc.Address.ToBase58(), res["sender"].(string))
-	assert.Equal(t, acc2.Address.ToBase58(), res["from"].(string))
-	assert.Equal(t, uint64(amount), res["amount"].(uint64))
+	rp := res["param"].(common2.TransferFromInfo)
+	assert.Equal(t, acc.Address.ToBase58(), rp.Sender)
+	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
+	assert.Equal(t, uint64(amount), rp.Value)
 	assert.Equal(t, "transferFrom", res["functionName"].(string))
 	fmt.Println("res:", res)
 }
@@ -269,9 +284,10 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	res, err := ParseNativeTxPayload(tx2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
-	assert.Equal(t, acc.Address.ToBase58(), res["from"].(string))
-	assert.Equal(t, acc2.Address.ToBase58(), res["to"].(string))
-	assert.Equal(t, amount, res["amount"].(uint64))
+	states := res["param"].([]common2.StateInfo)
+	assert.Equal(t, acc.Address.ToBase58(), states[0].From)
+	assert.Equal(t, acc2.Address.ToBase58(), states[0].To)
+	assert.Equal(t, amount, states[0].Value)
 	assert.Equal(t, "transfer", res["functionName"].(string))
 
 	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
@@ -279,10 +295,10 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	r, err := ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", r)
-	assert.Equal(t, r["sender"], acc.Address.ToBase58())
-	assert.Equal(t, r["from"], acc2.Address.ToBase58())
-	assert.Equal(t, r["to"], acc3.Address.ToBase58())
-	assert.Equal(t, r["amount"], uint64(10))
+	rp := r["param"].(common2.TransferFromInfo)
+	assert.Equal(t, acc.Address.ToBase58(), rp.Sender)
+	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
+	assert.Equal(t, uint64(10), rp.Value)
 
 	ongTransfer, err := testOntSdk.Native.Ong.NewTransferTransaction(uint64(500), uint64(20000), acc.Address, acc2.Address, 100000000)
 	assert.Nil(t, err)
@@ -345,9 +361,12 @@ func TestGenerateMemory(t *testing.T) {
 }
 
 func TestOntologySdk_CreateWallet(t *testing.T) {
-	testOntSdk := NewOntologySdk()
+
 	wal, err := testOntSdk.CreateWallet("./wallet2.dat")
 	assert.Nil(t, err)
+	if err != nil {
+		return
+	}
 	_, err = wal.NewDefaultSettingAccount(testPasswd)
 	assert.Nil(t, err)
 	wal.Save()
