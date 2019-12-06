@@ -18,7 +18,6 @@
 package client
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -29,6 +28,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"github.com/ontio/ontology/common"
 )
 
 type WSSubscribeStatus struct {
@@ -605,12 +605,7 @@ func (this *WSClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 }
 
 func (this *WSClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("serialize error:%s", err)
-	}
-	txData := hex.EncodeToString(buffer.Bytes())
+	txData := hex.EncodeToString(common.SerializeToBytes(tx))
 	params := map[string]interface{}{"Data": txData}
 	if isPreExec {
 		params["PreExec"] = "1"
@@ -675,12 +670,7 @@ func (this *WSClient) GetActionCh() chan *WSAction {
 }
 
 func (this *WSClient) sendAsyncRawTransaction(qid string, tx *types.Transaction, isPreExec bool) (*WSRequest, error) {
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("serialize error:%s", err)
-	}
-	txData := hex.EncodeToString(buffer.Bytes())
+	txData := hex.EncodeToString(common.SerializeToBytes(tx))
 	params := map[string]interface{}{"Data": txData}
 	if isPreExec {
 		params["PreExec"] = "1"

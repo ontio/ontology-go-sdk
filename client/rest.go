@@ -30,6 +30,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"github.com/ontio/ontology/common"
 )
 
 //RpcClient for ontology rpc api
@@ -176,17 +177,14 @@ func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]b
 
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("Serialize error:%s", err)
-	}
+	sink := common.NewZeroCopySink(nil)
+	tx.Serialization(sink)
 	var reqValues *url.Values
 	if isPreExec {
 		reqValues = &url.Values{}
 		reqValues.Add("preExec", "1")
 	}
-	return this.sendRestPostRequest(buffer.Bytes(), reqPath, reqValues)
+	return this.sendRestPostRequest(sink.Bytes(), reqPath, reqValues)
 }
 
 func (this *RestClient) getAddress() (string, error) {

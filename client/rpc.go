@@ -29,6 +29,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	"github.com/ontio/ontology/common"
 )
 
 //RpcClient for ontology rpc api
@@ -162,12 +163,7 @@ func (this *RpcClient) getBlockTxHashesByHeight(qid string, height uint32) ([]by
 }
 
 func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("serialize error:%s", err)
-	}
-	txData := hex.EncodeToString(buffer.Bytes())
+	txData := hex.EncodeToString(common.SerializeToBytes(tx))
 	params := []interface{}{txData}
 	if isPreExec {
 		params = append(params, 1)

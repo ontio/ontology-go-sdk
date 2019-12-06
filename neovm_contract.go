@@ -9,6 +9,7 @@ import (
 	"github.com/ontio/ontology/core/types"
 	httpcom "github.com/ontio/ontology/http/base/common"
 	"time"
+	"github.com/ontio/ontology/cmd/utils"
 )
 
 type NeoVMContract struct {
@@ -56,28 +57,11 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	email,
 	desc string) (common.Uint256, error) {
 
-	invokeCode, err := hex.DecodeString(code)
+	txhash, err := utils.DeployContract(gasPrice,gasLimit,singer,payload.NEOVM_TYPE,code,name,version,author,email,desc)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
+		return common.UINT256_EMPTY, err
 	}
-	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
-		Code:        invokeCode,
-		NeedStorage: needStorage,
-		Name:        name,
-		Version:     version,
-		Author:      author,
-		Email:       email,
-		Description: desc,
-	})
-	err = this.ontSdk.SignToTransaction(tx, singer)
-	if err != nil {
-		return common.Uint256{}, err
-	}
-	txHash, err := this.ontSdk.SendTransaction(tx)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("SendRawTransaction error:%s", err)
-	}
-	return txHash, nil
+	return common.Uint256FromHexString(txhash)
 }
 
 func (this *NeoVMContract) NewNeoVMInvokeTransaction(
