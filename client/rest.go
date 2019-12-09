@@ -177,14 +177,12 @@ func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]b
 
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
-	sink := common.NewZeroCopySink(nil)
-	tx.Serialization(sink)
 	var reqValues *url.Values
 	if isPreExec {
 		reqValues = &url.Values{}
 		reqValues.Add("preExec", "1")
 	}
-	return this.sendRestPostRequest(sink.Bytes(), reqPath, reqValues)
+	return this.sendRestPostRequest(common.SerializeToBytes(tx), reqPath, reqValues)
 }
 
 func (this *RestClient) getAddress() (string, error) {
