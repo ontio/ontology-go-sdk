@@ -62,12 +62,20 @@ func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 func (this *NeoVMContract) InvokeNeoVMContract(
 	gasPrice,
 	gasLimit uint64,
+	payer,
 	signer *Account,
 	contractAddress common.Address,
 	params []interface{}) (common.Uint256, error) {
 	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
+	}
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToTransaction(tx, payer)
+		if err != nil {
+			return common.UINT256_EMPTY, err
+		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {

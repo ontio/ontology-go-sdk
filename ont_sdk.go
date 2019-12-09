@@ -377,6 +377,10 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	return tx
 }
 
+func (this *OntologySdk) SetPayer(tx *types.MutableTransaction, payer common.Address) {
+	tx.Payer = payer
+}
+
 func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
 	if tx.Payer == common.ADDRESS_EMPTY {
 		account, ok := signer.(*Account)
