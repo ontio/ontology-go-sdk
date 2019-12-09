@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/types"
 	"io"
 	"io/ioutil"
@@ -30,7 +31,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-	"github.com/ontio/ontology/common"
 )
 
 //RpcClient for ontology rpc api

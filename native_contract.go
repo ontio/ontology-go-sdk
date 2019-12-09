@@ -1050,7 +1050,7 @@ func (this *GlobalParam) GetGlobalParams(params []string) (map[string]string, er
 		return nil, err
 	}
 	queryParams := new(global_params.Params)
-	err = queryParams.Deserialize(bytes.NewBuffer(results))
+	err = queryParams.Deserialization(common.NewZeroCopySource(results))
 	if err != nil {
 		return nil, err
 	}

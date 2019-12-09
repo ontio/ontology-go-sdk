@@ -7,8 +7,8 @@ import (
 	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"github.com/ontio/ontology/core/types"
 	"github.com/ontio/ontology/account"
+	"github.com/ontio/ontology/core/types"
 )
 
 type Signer interface {
@@ -19,7 +19,6 @@ type Signer interface {
 }
 
 type Account account.Account
-
 
 func NewAccountFromPrivateKey(privateKey []byte, signatureScheme s.SignatureScheme) (*Account, error) {
 	if privateKey == nil {

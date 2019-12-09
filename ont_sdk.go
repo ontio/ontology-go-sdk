@@ -543,3 +543,7 @@ func (this *OntologySdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
 	address := types.AddressFromPubKey(pubKey)
 	return address.ToBase58()
 }
+
+func (this *OntologySdk) SendTransaction(tx *types.MutableTransaction) (common.Uint256, error) {
+	return this.ClientMgr.SendTransaction(tx)
+}

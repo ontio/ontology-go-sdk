@@ -19,7 +19,6 @@
 package ontology_go_sdk
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/signature"
@@ -391,9 +390,9 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
 	testOntSdk.SignToTransaction(tx, acc)
 	tx2, _ := tx.IntoImmutable()
-	var buffer bytes.Buffer
-	tx2.Serialize(&buffer)
-	txData := hex.EncodeToString(buffer.Bytes())
+	sink := common.NewZeroCopySink(nil)
+	tx2.Serialization(sink)
+	txData := hex.EncodeToString(sink.Bytes())
 	tx3, _ := testOntSdk.GetMutableTx(txData)
 	assert.Equal(t, tx, tx3)
 }
