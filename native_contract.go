@@ -756,7 +756,7 @@ func (this *OntId) NewAddKeyTransaction(gasPrice, gasLimit uint64, ontId string,
 		})
 }
 
-func (this *OntId) AddKey(gasPrice, gasLimit uint64, ontId string, payer, signer *Account, newPubKey keypair.PublicKey, controller *Controller) (common.Uint256, error) {
+func (this *OntId) AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string, signer *Account, newPubKey keypair.PublicKey, controller *Controller) (common.Uint256, error) {
 	tx, err := this.NewAddKeyTransaction(gasPrice, gasLimit, ontId, newPubKey, controller.PublicKey)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -801,7 +801,7 @@ func (this *OntId) NewRevokeKeyTransaction(gasPrice, gasLimit uint64, ontId stri
 	)
 }
 
-func (this *OntId) RevokeKey(gasPrice, gasLimit uint64, ontId string, payer, signer *Account, removedPubKey keypair.PublicKey, controller *Controller) (common.Uint256, error) {
+func (this *OntId) RevokeKey(gasPrice, gasLimit uint64, payer *Account, ontId string, signer *Account, removedPubKey keypair.PublicKey, controller *Controller) (common.Uint256, error) {
 	tx, err := this.NewRevokeKeyTransaction(gasPrice, gasLimit, ontId, removedPubKey, controller.PublicKey)
 	if err != nil {
 		return common.UINT256_EMPTY, err

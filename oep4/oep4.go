@@ -86,9 +86,9 @@ func (this *Oep4) BalanceOf(account common.Address) (*big.Int, error) {
 	return preResult.Result.ToInteger()
 }
 
-func (this *Oep4) Transfer(from *ontology_go_sdk.Account, to common.Address, amount *big.Int, gasPrice,
+func (this *Oep4) Transfer(from *ontology_go_sdk.Account, to common.Address, amount *big.Int, payer *ontology_go_sdk.Account, gasPrice,
 	gasLimit uint64) (common.Uint256, error) {
-	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, from, this.ContractAddress,
+	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, from, this.ContractAddress,
 		[]interface{}{"transfer", []interface{}{from.Address, to, amount}})
 }
 
@@ -144,9 +144,9 @@ func (this *Oep4) TransferMulti(fromAccounts []*ontology_go_sdk.Account, to []co
 	return this.sdk.SendTransaction(mutableTx)
 }
 
-func (this *Oep4) Approve(owner *ontology_go_sdk.Account, spender common.Address, amount *big.Int, gasPrice,
+func (this *Oep4) Approve(owner *ontology_go_sdk.Account, spender common.Address, amount *big.Int, payer *ontology_go_sdk.Account, gasPrice,
 	gasLimit uint64) (common.Uint256, error) {
-	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, owner, this.ContractAddress,
+	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, owner, this.ContractAddress,
 		[]interface{}{"approve", []interface{}{owner.Address, spender, amount}})
 }
 
@@ -174,9 +174,9 @@ func (this *Oep4) MultiSignApprove(ownerAccounts []*ontology_go_sdk.Account, m i
 	return this.sdk.SendTransaction(mutableTx)
 }
 
-func (this *Oep4) TransferFrom(spender *ontology_go_sdk.Account, from, to common.Address, amount *big.Int, gasPrice,
+func (this *Oep4) TransferFrom(spender *ontology_go_sdk.Account, from, to common.Address, amount *big.Int, payer *ontology_go_sdk.Account, gasPrice,
 	gasLimit uint64) (common.Uint256, error) {
-	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, spender, this.ContractAddress,
+	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, spender, this.ContractAddress,
 		[]interface{}{"transferFrom", []interface{}{spender.Address, from, to, amount}})
 }
 
