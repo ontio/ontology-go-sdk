@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/types"
 	"io"
 	"io/ioutil"
@@ -176,17 +177,12 @@ func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]b
 
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("Serialize error:%s", err)
-	}
 	var reqValues *url.Values
 	if isPreExec {
 		reqValues = &url.Values{}
 		reqValues.Add("preExec", "1")
 	}
-	return this.sendRestPostRequest(buffer.Bytes(), reqPath, reqValues)
+	return this.sendRestPostRequest(common.SerializeToBytes(tx), reqPath, reqValues)
 }
 
 func (this *RestClient) getAddress() (string, error) {

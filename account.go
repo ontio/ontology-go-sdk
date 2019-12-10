@@ -7,7 +7,7 @@ import (
 	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/core/types"
 )
 
@@ -18,13 +18,7 @@ type Signer interface {
 	GetSigScheme() s.SignatureScheme
 }
 
-/* crypto object */
-type Account struct {
-	PrivateKey keypair.PrivateKey
-	PublicKey  keypair.PublicKey
-	Address    common.Address
-	SigScheme  s.SignatureScheme
-}
+type Account account.Account
 
 func NewAccountFromPrivateKey(privateKey []byte, signatureScheme s.SignatureScheme) (*Account, error) {
 	if privateKey == nil {

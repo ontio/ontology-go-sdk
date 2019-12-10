@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/payload"
 	"math/big"
 )
 
@@ -51,8 +50,6 @@ type TransferFromInfo struct {
 	To     string
 	Value  uint64
 }
-
-type SmartContract payload.DeployCode
 
 type PreExecResult struct {
 	State  byte

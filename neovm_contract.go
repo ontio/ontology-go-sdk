@@ -1,14 +1,14 @@
 package ontology_go_sdk
 
 import (
-	"encoding/hex"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology/account"
+	"github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	httpcom "github.com/ontio/ontology/http/base/common"
-	"time"
 )
 
 type NeoVMContract struct {
@@ -21,33 +21,17 @@ func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
 	}
 }
 
-func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
-	deployPayload := &payload.DeployCode{
-		Code:        contract.Code,
-		NeedStorage: contract.NeedStorage,
-		Name:        contract.Name,
-		Version:     contract.Version,
-		Author:      contract.Author,
-		Email:       contract.Email,
-		Description: contract.Description,
-	}
-	tx := &types.MutableTransaction{
-		Version:  sdkcom.VERSION_TRANSACTION,
-		TxType:   types.Deploy,
-		Nonce:    uint32(time.Now().Unix()),
-		Payload:  deployPayload,
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-		Sigs:     make([]types.Sig, 0, 0),
-	}
-	return tx
+func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract payload.DeployCode) (*types.MutableTransaction, error) {
+
+	return utils.NewDeployCodeTransaction(gasPrice, gasLimit, contract.GetRawCode(), payload.NEOVM_TYPE, contract.Name,
+		contract.Version, contract.Author, contract.Email, contract.Description)
 }
 
 //DeploySmartContract Deploy smart contract to ontology
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
-	singer *Account,
+	singer *account.Account,
 	needStorage bool,
 	code,
 	name,
@@ -55,29 +39,11 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	author,
 	email,
 	desc string) (common.Uint256, error) {
-
-	invokeCode, err := hex.DecodeString(code)
+	txhash, err := utils.DeployContract(gasPrice, gasLimit, singer, payload.NEOVM_TYPE, code, name, version, author, email, desc)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
+		return common.UINT256_EMPTY, err
 	}
-	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
-		Code:        invokeCode,
-		NeedStorage: needStorage,
-		Name:        name,
-		Version:     version,
-		Author:      author,
-		Email:       email,
-		Description: desc,
-	})
-	err = this.ontSdk.SignToTransaction(tx, singer)
-	if err != nil {
-		return common.Uint256{}, err
-	}
-	txHash, err := this.ontSdk.SendTransaction(tx)
-	if err != nil {
-		return common.Uint256{}, fmt.Errorf("SendRawTransaction error:%s", err)
-	}
-	return txHash, nil
+	return common.Uint256FromHexString(txhash)
 }
 
 func (this *NeoVMContract) NewNeoVMInvokeTransaction(
@@ -96,12 +62,20 @@ func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 func (this *NeoVMContract) InvokeNeoVMContract(
 	gasPrice,
 	gasLimit uint64,
+	payer,
 	signer *Account,
 	contractAddress common.Address,
 	params []interface{}) (common.Uint256, error) {
 	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
+	}
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToTransaction(tx, payer)
+		if err != nil {
+			return common.UINT256_EMPTY, err
+		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {

@@ -369,12 +369,16 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		TxType:   types.Invoke,
+		TxType:   types.InvokeNeo,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),
 	}
 	return tx
+}
+
+func (this *OntologySdk) SetPayer(tx *types.MutableTransaction, payer common.Address) {
+	tx.Payer = payer
 }
 
 func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
@@ -542,4 +546,8 @@ func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (strin
 func (this *OntologySdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
 	address := types.AddressFromPubKey(pubKey)
 	return address.ToBase58()
+}
+
+func (this *OntologySdk) SendTransaction(tx *types.MutableTransaction) (common.Uint256, error) {
+	return this.ClientMgr.SendTransaction(tx)
 }

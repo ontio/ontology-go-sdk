@@ -19,7 +19,6 @@
 package ontology_go_sdk
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/signature"
@@ -391,9 +390,9 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
 	testOntSdk.SignToTransaction(tx, acc)
 	tx2, _ := tx.IntoImmutable()
-	var buffer bytes.Buffer
-	tx2.Serialize(&buffer)
-	txData := hex.EncodeToString(buffer.Bytes())
+	sink := common.NewZeroCopySink(nil)
+	tx2.Serialization(sink)
+	txData := hex.EncodeToString(sink.Bytes())
 	tx3, _ := testOntSdk.GetMutableTx(txData)
 	assert.Equal(t, tx, tx3)
 }
@@ -445,7 +444,7 @@ func Init() {
 func TestOnt_Transfer(t *testing.T) {
 	testOntSdk = NewOntologySdk()
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
-	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
+	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, nil, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
 		return
@@ -473,7 +472,7 @@ func TestOng_WithDrawONG(t *testing.T) {
 		return
 	}
 	fmt.Printf("Address:%s UnboundONG:%d\n", testDefAcc.Address.ToBase58(), unboundONG)
-	_, err = testOntSdk.Native.Ong.WithdrawONG(0, 20000, testDefAcc, unboundONG)
+	_, err = testOntSdk.Native.Ong.WithdrawONG(0, 20000, nil, testDefAcc, unboundONG)
 	if err != nil {
 		t.Errorf("WithDrawONG error:%s", err)
 		return
@@ -506,7 +505,7 @@ func TestGlobalParam_SetGlobalParams(t *testing.T) {
 		t.Errorf("Get prama value error:%s", err)
 		return
 	}
-	_, err = testOntSdk.Native.GlobalParams.SetGlobalParams(testGasPrice, testGasLimit, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
+	_, err = testOntSdk.Native.GlobalParams.SetGlobalParams(testGasPrice, testGasLimit, nil, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
 	if err != nil {
 		t.Errorf("SetGlobalParams error:%s", err)
 		return
@@ -552,7 +551,7 @@ func TestWsTransfer(t *testing.T) {
 	Init()
 	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
 	testOntSdk.ClientMgr.SetDefaultClient(wsClient)
-	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
+	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, nil, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
 		return

@@ -6,6 +6,7 @@ import (
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	"sync/atomic"
 	"time"
@@ -171,7 +172,7 @@ func (this *ClientMgr) GetStorage(contractAddress string, key []byte) ([]byte, e
 	return utils.GetStorage(data)
 }
 
-func (this *ClientMgr) GetSmartContract(contractAddress string) (*sdkcom.SmartContract, error) {
+func (this *ClientMgr) GetSmartContract(contractAddress string) (*payload.DeployCode, error) {
 	client := this.getClient()
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
@@ -180,12 +181,7 @@ func (this *ClientMgr) GetSmartContract(contractAddress string) (*sdkcom.SmartCo
 	if err != nil {
 		return nil, err
 	}
-	deployCode, err := utils.GetSmartContract(data)
-	if err != nil {
-		return nil, err
-	}
-	sm := sdkcom.SmartContract(*deployCode)
-	return &sm, nil
+	return utils.GetSmartContract(data)
 }
 
 func (this *ClientMgr) GetSmartContractEvent(txHash string) (*sdkcom.SmartContactEvent, error) {
