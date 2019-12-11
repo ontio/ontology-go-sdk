@@ -13,8 +13,8 @@ import (
 
 func main() {
 	fmt.Println("==========================start============================")
-	testUrl := "http://127.0.0.1:20336"
-	testUrl = "http://polaris1.ont.io:20336"
+	//testUrl := "http://127.0.0.1:20336"
+	testUrl := "http://polaris1.ont.io:20336"
 	//initialize ontsdk
 	ontSdk := sdk.NewOntologySdk()
 	//suppose you already start up a local wasm ontology node
@@ -98,7 +98,11 @@ func main() {
 	//invoke wasm method
 	//we invoke "init" method first
 	txHash, err = ontSdk.WasmVM.InvokeWasmVMSmartContract(
-		gasprice, invokegaslimit, signer, contractAddr, "init", []interface{}{})
+		gasprice, invokegaslimit, nil, signer, contractAddr, "init", []interface{}{})
+	if err != nil {
+		fmt.Printf("error in InvokeWasmVMSmartContract:%s\n", err)
+		return
+	}
 	_, err = ontSdk.WaitForGenerateBlock(timeoutSec)
 	if err != nil {
 		fmt.Printf("error in WaitForGenerateBlock:%s\n", err)
@@ -129,14 +133,17 @@ func main() {
 	account2, err := wallet.GetAccountByAddress(address1, []byte(walletpassword))
 	if err != nil {
 		fmt.Printf("error in GetAccountByAddress:%s\n", err)
-
 		return
 	}
 	fmt.Println("======InvokeWasmVMSmartContract transfer==========")
 
 	//2. we construct a tx transfer 500 token from signer account to account2
 	txHash, err = ontSdk.WasmVM.InvokeWasmVMSmartContract(
-		gasprice, invokegaslimit, signer, contractAddr, "transfer", []interface{}{signer.Address, account2.Address, uint64(500)})
+		gasprice, invokegaslimit, nil, signer, contractAddr, "transfer", []interface{}{signer.Address, account2.Address, uint64(500)})
+	if err != nil {
+		fmt.Printf("error in InvokeWasmVMSmartContract:%s\n", err)
+		return
+	}
 	_, err = ontSdk.WaitForGenerateBlock(timeoutSec)
 	if err != nil {
 		fmt.Printf("error in WaitForGenerateBlock:%s\n", err)

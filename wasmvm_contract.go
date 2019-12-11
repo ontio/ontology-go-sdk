@@ -71,6 +71,7 @@ func (this *WasmVMContract) NewInvokeWasmVmTransaction(gasPrice,
 func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
+	payer,
 	signer *Account,
 	smartcodeAddress common.Address,
 	methodName string,
@@ -79,10 +80,16 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToTransaction(tx, signer)
+		if err != nil {
+			return common.Uint256{}, fmt.Errorf("payer sign tx error: %s", err)
+		}
+	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
 	if err != nil {
-		return common.Uint256{}, nil
+		return common.Uint256{}, err
 	}
 	return this.ontSdk.SendTransaction(tx)
 }
