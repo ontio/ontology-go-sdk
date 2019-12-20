@@ -18,9 +18,11 @@
 package oep4
 
 import (
+	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/types"
 	"math/big"
 	"testing"
@@ -84,7 +86,7 @@ func TestOep4(t *testing.T) {
 	amount := big.NewInt(1000)
 	gasPrice := uint64(500)
 	gasLimit := uint64(500000)
-	transferTx, err := oep4.Transfer(acc, multiSignAddr, amount, gasPrice, gasLimit)
+	transferTx, err := oep4.Transfer(acc, multiSignAddr, amount, nil, gasPrice, gasLimit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +99,7 @@ func TestOep4(t *testing.T) {
 	}
 	t.Logf("transferMultiSignTx %s: from %s to multi-sign addr %s, amount %d", transferMultiSignTx.ToHexString(),
 		multiSignAddr.ToBase58(), acc.Address.ToBase58(), amount)
-	approveTx, err := oep4.Approve(acc, multiSignAddr, amount, gasPrice, gasLimit)
+	approveTx, err := oep4.Approve(acc, multiSignAddr, amount, nil, gasPrice, gasLimit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +119,7 @@ func TestOep4(t *testing.T) {
 	}
 	t.Logf("multiSignApproveTx %s: multi-sign owner %s approve to spender addr %s, amount %d",
 		multiSignApproveTx.ToHexString(), multiSignAddr.ToBase58(), acc.Address.ToBase58(), amount)
-	transferFromTx, err := oep4.TransferFrom(acc, multiSignAddr, acc.Address, amount, gasPrice, gasLimit)
+	transferFromTx, err := oep4.TransferFrom(acc, multiSignAddr, acc.Address, amount, nil, gasPrice, gasLimit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,4 +143,20 @@ func TestOep4(t *testing.T) {
 	for _, evt := range eventsFromBlock {
 		t.Logf("block %d transfer event: %s", height, evt.String())
 	}
+}
+
+func TestOep4_FetchTxTransferEvent(t *testing.T) {
+	contractAddr, err := utils.AddressFromHexString(scriptHash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//from address
+	bs, _ := common.HexToBytes("83c12e967885ba0a1285a0c628acbfb1185af8bc")
+	addr, _ := common.AddressParseFromBytes(bs)
+	fmt.Println(addr.ToBase58())
+	ontSdk := ontology_go_sdk.NewOntologySdk()
+	ontSdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
+	oep4 := NewOep4(contractAddr, ontSdk)
+	res, _ := oep4.FetchTxTransferEvent("8074fabad95400c6705478593f2b2fce865aa356c166e63214d8a9af036ee739")
+	fmt.Println(res)
 }

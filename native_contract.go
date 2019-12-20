@@ -80,6 +80,7 @@ func (this *NativeContract) NewNativeInvokeTransaction(
 func (this *NativeContract) InvokeNativeContract(
 	gasPrice,
 	gasLimit uint64,
+	payer,
 	singer *Account,
 	version byte,
 	contractAddress common.Address,
@@ -89,6 +90,13 @@ func (this *NativeContract) InvokeNativeContract(
 	tx, err := this.NewNativeInvokeTransaction(gasPrice, gasLimit, version, contractAddress, method, params)
 	if err != nil {
 		return common.UINT256_EMPTY, err
+	}
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToTransaction(tx, payer)
+		if err != nil {
+			return common.UINT256_EMPTY, err
+		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, singer)
 	if err != nil {

@@ -268,11 +268,19 @@ func parseOep4TransferEvent(notify *scomm.NotifyEventInfo) (*Oep4TransferEvent, 
 	if err != nil {
 		return nil, fmt.Errorf("decode event name failed, err: %s", err)
 	}
-	fromAddr, err := utils.AddressFromHexString(from)
+	fr, err := common.HexToBytes(from)
+	if err != nil {
+		return nil, fmt.Errorf("HexToBytes, err: %s", err)
+	}
+	fromAddr, err := utils.AddressParseFromBytes(fr)
 	if err != nil {
 		return nil, fmt.Errorf("decode from failed, err: %s", err)
 	}
-	toAddr, err := utils.AddressFromHexString(to)
+	toBs, err := common.HexToBytes(to)
+	if err != nil {
+		return nil, fmt.Errorf("HexToBytes, err: %s", err)
+	}
+	toAddr, err := utils.AddressParseFromBytes(toBs)
 	if err != nil {
 		return nil, fmt.Errorf("decode to failed, err: %s", err)
 	}
