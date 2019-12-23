@@ -1,6 +1,7 @@
 package ontology_go_sdk
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -679,7 +680,8 @@ func (this *WalletData) Load(path string) error {
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(msh, this)
+	body := bytes.TrimPrefix(msh, []byte("\xef\xbb\xbf")) // Or []byte{239, 187, 191}
+	return json.Unmarshal(body, this)
 }
 
 func ScryptEqual(s1, s2 *keypair.ScryptParam) bool {

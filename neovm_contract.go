@@ -3,7 +3,6 @@ package ontology_go_sdk
 import (
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
@@ -31,7 +30,7 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
-	singer *account.Account,
+	singer *Account,
 	needStorage bool,
 	code,
 	name,
@@ -39,11 +38,16 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	author,
 	email,
 	desc string) (common.Uint256, error) {
-	txhash, err := utils.DeployContract(gasPrice, gasLimit, singer, payload.NEOVM_TYPE, code, name, version, author, email, desc)
+	codeBs, err := common.HexToBytes(code)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return common.Uint256FromHexString(txhash)
+	tx, err := utils.NewDeployCodeTransaction(gasPrice, gasLimit, codeBs, payload.NEOVM_TYPE, name, version, author, email, desc)
+	err = this.ontSdk.SignToTransaction(tx, singer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
 }
 
 func (this *NeoVMContract) NewNeoVMInvokeTransaction(
