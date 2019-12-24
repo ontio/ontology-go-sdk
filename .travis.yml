@@ -11,6 +11,7 @@ go:
   - 1.12.x
 
 script:
+  - env GO111MODULE=on make
   - env GO111MODULE=on go mod vendor
   - bash ./.travis.check-license.sh
   - bash ./.travis.gofmt.sh
