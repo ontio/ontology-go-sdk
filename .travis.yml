@@ -1,0 +1,18 @@
+dist: bionic
+
+language: go
+
+go_import_path: github.com/ontio/ontology-go-sdk
+
+os:
+  - linux
+
+go:
+  - 1.12.x
+
+script:
+  - env GO111MODULE=on make
+  - env GO111MODULE=on go mod vendor
+  - bash ./.travis.check-license.sh
+  - bash ./.travis.gofmt.sh
+  - bash ./.travis.gotest.sh
