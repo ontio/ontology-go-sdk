@@ -434,6 +434,7 @@ func Init() {
 		return
 	}
 
+	return
 	ws := testOntSdk.NewWebSocketClient()
 	err = ws.Connect("ws://localhost:20335")
 	if err != nil {
