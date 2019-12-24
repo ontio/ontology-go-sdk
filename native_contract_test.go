@@ -26,6 +26,7 @@ import (
 )
 
 func TestOntId_RegIDWithPublicKey(t *testing.T) {
+	Init()
 	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey NewDefaultSettingIdentity error:%s", err)
@@ -48,7 +49,7 @@ func TestOntId_RegIDWithPublicKey(t *testing.T) {
 		return
 	}
 	fmt.Printf("TestOntId_RegIDWithPublicKey Event: %+v\n", event)
-
+	fmt.Println("testIdentity.ID:", testIdentity.ID)
 	ddo, err := testOntSdk.Native.OntId.GetDDO(testIdentity.ID)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey GetDDO error:%s", err)
