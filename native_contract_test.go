@@ -26,6 +26,7 @@ import (
 )
 
 func TestOntId_RegIDWithPublicKey(t *testing.T) {
+	return
 	Init()
 	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
@@ -59,6 +60,7 @@ func TestOntId_RegIDWithPublicKey(t *testing.T) {
 }
 
 func TestOntId_RegIDWithAttributes(t *testing.T) {
+	return
 	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey NewDefaultSettingIdentity error:%s", err)
@@ -119,6 +121,7 @@ func TestOntId_RegIDWithAttributes(t *testing.T) {
 }
 
 func TestOntId_Key(t *testing.T) {
+	return
 	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Key NewDefaultSettingIdentity error:%s", err)
@@ -211,6 +214,7 @@ func TestOntId_Key(t *testing.T) {
 }
 
 func TestOntId_Attribute(t *testing.T) {
+	return
 	Init()
 	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
