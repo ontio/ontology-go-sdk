@@ -13,3 +13,5 @@ require (
 	github.com/tyler-smith/go-bip39 v1.0.2
 	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
 )
+
+replace github.com/go-interpreter/wagon => github.com/ontio/wagon v0.3.1-0.20191012103353-ef8d35ecd300
