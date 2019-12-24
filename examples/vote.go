@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2018 The ontology Authors
+ * This file is part of The ontology library.
+ *
+ * The ontology is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The ontology is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package main
 
 import (
@@ -7,7 +24,7 @@ import (
 	"time"
 )
 
-func main() {
+func main2() {
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
 	sdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
@@ -106,7 +123,7 @@ func (v *Vote) invoke(method string, args []interface{}) {
 		fmt.Printf("GetSmartContractEvent error: %s", err)
 		return
 	}
-	fmt.Println("Event notify:",event)
+	fmt.Println("Event notify:", event)
 	if method == "createTopic" {
 		for _, notify := range event.Notify {
 			addr, _ := common.AddressFromHexString(notify.ContractAddress)
@@ -115,7 +132,7 @@ func (v *Vote) invoke(method string, args []interface{}) {
 				t := temp[1].(string)
 				tbs, _ := common.HexToBytes(t)
 				v.TopicHash = tbs
-				fmt.Println("Event notify:",temp)
+				fmt.Println("Event notify:", temp)
 			}
 		}
 	}
@@ -130,7 +147,7 @@ func (v *Vote) preInvoke(method string, args []interface{}) {
 	}
 	if method == "getTopicStatus" {
 		r, _ := res.Result.ToString()
-		fmt.Println("PreExecInvokeNeoVMContract result:",r)
+		fmt.Println("PreExecInvokeNeoVMContract result:", r)
 	} else {
 		fmt.Println("PreExecInvokeNeoVMContract result:", res.Result)
 	}
