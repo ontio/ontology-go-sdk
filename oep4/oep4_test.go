@@ -58,6 +58,8 @@ func TestOep4(t *testing.T) {
 
 	wallet, err := ontSdk.OpenWallet("../../wallet.json")
 	if err != nil {
+		fmt.Println("OpenWallet error:", err)
+		return
 		t.Fatal(err)
 	}
 	if wallet.GetAccountCount() < 2 {
