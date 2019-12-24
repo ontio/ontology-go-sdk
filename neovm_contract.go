@@ -85,6 +85,8 @@ func (this *NeoVMContract) InvokeNeoVMContract(
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
+	hash := tx.Hash()
+	fmt.Println("txhash:", hash.ToHexString())
 	return this.ontSdk.SendTransaction(tx)
 }
 
