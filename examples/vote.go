@@ -20,30 +20,58 @@ package main
 import (
 	"fmt"
 	"github.com/ontio/ontology-go-sdk"
+	"github.com/ontio/ontology/cmd"
+	common2 "github.com/ontio/ontology/cmd/common"
+	"github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"
+	"github.com/urfave/cli"
+	"os"
 	"time"
 )
 
 var GasPrice = uint64(500)
 
 func main() {
+	if err := setupAPP().Run(os.Args); err != nil {
+		cmd.PrintErrorMsg(err.Error())
+		os.Exit(1)
+	}
+}
+
+func setupAPP() *cli.App {
+	app := cli.NewApp()
+	app.Usage = "Ontology CLI"
+	app.Action = main2
+	app.Flags = []cli.Flag{
+		utils.WalletFileFlag,
+	}
+
+	return app
+}
+
+func main2(ctx *cli.Context) {
+
+	acc, err := common2.GetAccount(ctx)
+	if err != nil {
+		fmt.Println("GetAccount err:", err)
+		return
+	}
+	acc1 := &ontology_go_sdk.Account{
+		PrivateKey: acc.PrivateKey,
+		PublicKey:  acc.PublicKey,
+		Address:    acc.Address,
+		SigScheme:  acc.SigScheme,
+	}
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode1.ont.io:20336")
-	//sdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
 
-
-	wallet, err := sdk.OpenWallet("./wallet3.dat")
-	if err != nil {
-		fmt.Println("OpenWallet error:", err)
-		return
-	}
-	acc1, err := wallet.GetAccountByAddress("AUis5bkN19QyRBZuV5tayZc1onSX17pWEi", []byte("111111"))
-	if err != nil {
-		fmt.Printf("OpenWallet error: %s", err)
-		return
-	}
+	//acc1, err := wallet.GetAccountByAddress("AbtTQJYKfQxq4UdygDsbLVjE8uRrJ2H3tP", pwd)
+	//if err != nil {
+	//	fmt.Printf("OpenWallet error: %s", err)
+	//	return
+	//}
 	address := []string{"AGgCp8dKedjJXaWDoU4qfnSAU6pgLKhxVx",
-	    "AUis5bkN19QyRBZuV5tayZc1onSX17pWEi",
+		"AUis5bkN19QyRBZuV5tayZc1onSX17pWEi",
 		"AbPsjYENUywQDDNdMq8iCGHXLduP1zbqaZ",
 		"AJ6exTNyr8joCkBEbz6DpHbe357EoBX1Tf",
 		"AUEAGG1pWTg2nAMsoR4x6EvSN2wb2wdZHx",
@@ -93,12 +121,11 @@ func main() {
 		"AX9MxQSbQPKKA4cP9VzTwE8o6MXC3pC9Nw",
 		"AJEAVCJpa7JmpDZsJ9vPA1r9fPZAvjec8D"}
 	addr := make([]common.Address, 0)
-	for _,item := range address {
+	for _, item := range address {
 		add, _ := common.AddressFromBase58(item)
 		addr = append(addr, add)
 	}
-	contractAddr,_ := common.AddressFromHexString("c0df752ca786a99755b2e8950060ade9fa3d4e1b")
-
+	contractAddr, _ := common.AddressFromHexString("c0df752ca786a99755b2e8950060ade9fa3d4e1b")
 
 	vote := &Vote{
 		Sdk:          sdk,

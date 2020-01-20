@@ -31,7 +31,6 @@ func main() {
 	sdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
 	//sdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
 
-
 	wallet, err := sdk.OpenWallet("./wallet3.dat")
 	if err != nil {
 		fmt.Println("OpenWallet error:", err)
@@ -83,7 +82,7 @@ func main() {
 		Acc2:         acc2,
 	}
 
-	vote.ContractAddr,_ = common.AddressFromHexString("2d2e4909b44eafaa1bfca78e51e31dc523caf4f8")
+	vote.ContractAddr, _ = common.AddressFromHexString("2d2e4909b44eafaa1bfca78e51e31dc523caf4f8")
 
 	fmt.Println("")
 	fmt.Println("******init****")
@@ -91,10 +90,7 @@ func main() {
 
 	fmt.Println("")
 	fmt.Println("******setAdmin****")
-	vote.invoke("setAdmin", []interface{}{[]interface{}{acc1.Address,acc2.Address}})
-
-
-
+	vote.invoke("setAdmin", []interface{}{[]interface{}{acc1.Address, acc2.Address}})
 
 	fmt.Println("")
 	fmt.Println("******listAdmins****")
@@ -102,9 +98,8 @@ func main() {
 
 	fmt.Println("")
 	fmt.Println("******createTopic****")
-	vote.invoke("createTopic", []interface{}{acc1.Address,"16",1577947303,1602259200})
+	vote.invoke("createTopic", []interface{}{acc1.Address, "16", 1577947303, 1602259200})
 	fmt.Println("TopicHash:", common.ToHexString(vote.TopicHash))
-
 
 	fmt.Println("")
 	fmt.Println("******setVoterForTopic****")
@@ -115,11 +110,9 @@ func main() {
 	fmt.Println("******getVoters****")
 	vote.preInvoke("getVoters", []interface{}{vote.TopicHash})
 
-
 	fmt.Println("")
 	fmt.Println("******voteTopic****")
 	vote.invoke("voteTopic", []interface{}{vote.TopicHash, acc1.Address, true})
-
 
 	//fmt.Println("")
 	//fmt.Println("******listTopics****")
@@ -140,7 +133,6 @@ func main() {
 	fmt.Println("")
 	fmt.Println("******getTopicInfo****")
 	vote.preInvoke("getTopicInfo", []interface{}{vote.TopicHash})
-
 
 	//fmt.Println("")
 	//fmt.Println("******listTopics****")
