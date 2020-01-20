@@ -44,6 +44,7 @@ func setupAPP() *cli.App {
 	app.Action = main2
 	app.Flags = []cli.Flag{
 		utils.WalletFileFlag,
+		utils.AccountPassFlag,
 	}
 
 	return app
