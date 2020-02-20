@@ -34,7 +34,7 @@ import (
 const (
 	SCHEME = "did"
 	METHOD = "ont"
-	VER    = 0x41
+	VER    = 23
 )
 
 type Controller struct {
