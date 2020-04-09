@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -348,4 +349,41 @@ func TestOntId_Recovery(t *testing.T) {
 		t.Errorf("TestOntId_Recovery recovery address:%s != %s", ddo.Recovery, acc1.Address.ToBase58())
 		return
 	}
+}
+
+func TestOntId_CreateOntIdClaim(t *testing.T) {
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	assert.Nil(t, err)
+	testIdentity2, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	assert.Nil(t, err)
+	payer, err := testWallet.NewDefaultSettingAccount(testPasswd)
+	assert.Nil(t, err)
+
+	testOntSdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
+
+	controller, err := testIdentity.controllers[0].GetController(testPasswd)
+	_, err = testOntSdk.Native.OntId.RegIDWithPublicKey(0, 20000, payer, payer, testIdentity.ID, controller)
+	controller2, err := testIdentity2.controllers[0].GetController(testPasswd)
+	_, err = testOntSdk.Native.OntId.RegIDWithPublicKey(0, 20000, payer, payer, testIdentity.ID, controller2)
+	assert.Nil(t, err)
+	time.Sleep(6 * time.Second)
+	ddo, err := testOntSdk.Native.OntId.GetDDO(testIdentity.ID)
+	assert.NotNil(t, ddo)
+	assert.Nil(t, err)
+	ddo, err = testOntSdk.Native.OntId.GetDDO(testIdentity.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, ddo)
+	metaData := map[string]string{
+		"Issuer":  testIdentity.ID,
+		"Subject": testIdentity2.ID,
+	}
+	clmRevMap := map[string]interface{}{
+		"typ":  "AttestContract",
+		"addr": testIdentity.ID,
+	}
+	claim, err := testOntSdk.Native.OntId.CreateOntIdClaim(controller, "claim:context", metaData, clmRevMap, clmRevMap, time.Now().Unix()+1000)
+	assert.Nil(t, err)
+	boo, err := testOntSdk.Native.OntId.VerifyOntIdClaim(claim)
+	assert.Nil(t, err)
+	assert.True(t, boo)
 }
