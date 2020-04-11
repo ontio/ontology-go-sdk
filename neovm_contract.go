@@ -19,6 +19,7 @@ package ontology_go_sdk
 
 import (
 	"fmt"
+	"github.com/ontio/ontology-go-sdk/claim_record"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"
@@ -28,12 +29,14 @@ import (
 )
 
 type NeoVMContract struct {
-	ontSdk *OntologySdk
+	ontSdk      *OntologySdk
+	ClaimRecord *claim_record.ClaimRecord
 }
 
 func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
 	return &NeoVMContract{
-		ontSdk: ontSdk,
+		ontSdk:      ontSdk,
+		ClaimRecord: claim_record.NewClaimRecord(ontSdk),
 	}
 }
 
