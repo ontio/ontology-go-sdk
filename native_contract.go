@@ -19,9 +19,12 @@ package ontology_go_sdk
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/ontio/ontology-crypto/signature"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
@@ -30,6 +33,9 @@ import (
 	cutils "github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/smartcontract/service/native/global_params"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
@@ -663,6 +669,125 @@ func (this *OntId) RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account,
 		return common.UINT256_EMPTY, err
 	}
 	return this.ontSdk.SendTransaction(tx)
+}
+
+func (this *OntId) CreateOntIdClaim(ontidController *Controller, context string,
+	metaData map[string]string, claimMap, clmRevMap map[string]interface{}, expire int64) (string, error) {
+	if ontidController == nil || context == "" || claimMap == nil || metaData == nil ||
+		clmRevMap == nil || expire < 0 {
+		return "", fmt.Errorf("[CreateOntIdClaim] param should not be nil")
+	}
+	curr := time.Now().Unix()
+	if expire < curr {
+		return "", fmt.Errorf("[CreateOntIdClaim] expire:%d should not be less than current time: %d", expire, curr)
+	}
+	issuerDid := metaData["Issuer"]
+	receiverDid := metaData["Subject"]
+	if issuerDid == "" || receiverDid == "" {
+		return "", fmt.Errorf("issuer ontid and receiver ontid should not be nil")
+	}
+	issuerDdo, err := this.GetDDO(issuerDid)
+	if err != nil {
+		return "", fmt.Errorf("[CreateOntIdClaim] GetDDO issuerDid failed: %s, ontid: %s", err, issuerDid)
+	}
+	owners := issuerDdo.Owners
+	if owners == nil {
+		return "", fmt.Errorf("[CreateOntIdClaim] not exist cliam issuer")
+	}
+	pk := common.ToHexString(keypair.SerializePublicKey(ontidController.PublicKey))
+	pubkeyId := ""
+	for _, owner := range owners {
+		if owner.Value == pk {
+			pubkeyId = owner.PubKeyId
+			break
+		}
+	}
+	if pubkeyId == "" {
+		return "", fmt.Errorf("not found publickeyid")
+	}
+	receiverDidStr := strings.Split(receiverDid, ":")
+	if len(receiverDidStr) != 3 {
+		return "", fmt.Errorf("[CreateOntIdClaim]receiverDid is wrong")
+	}
+	clai, err := NewClaim(ontidController, context, claimMap, metaData, clmRevMap, pubkeyId, expire)
+	if err != nil {
+		return "", fmt.Errorf("[CreateOntIdClaim] NewClaim failed: %s", err)
+	}
+	return clai.GetClaimStr(), nil
+}
+
+func (this *OntId) VerifyOntIdClaim(claimStr string) (bool, error) {
+	if claimStr == "" {
+		return false, fmt.Errorf("[VerifyOntIdClaim]param is nil")
+	}
+	arr := strings.Split(claimStr, ".")
+	if len(arr) != 3 {
+		return false, fmt.Errorf("[VerifyOntIdClaim] param is wrong")
+	}
+	payloadBytes, err := base64.StdEncoding.DecodeString(arr[1])
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] base64 decode failed: %s", err)
+	}
+	payload := &Payload{}
+	err = json.Unmarshal(payloadBytes, payload)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] Unmarshal payload failed: %s", err)
+	}
+	issuerDid := payload.Iss
+	issArr := strings.Split(issuerDid, ":")
+	if len(issArr) != 3 {
+		return false, fmt.Errorf("[VerifyOntIdClaim] payload iss is wrong")
+	}
+	issuerDdo, err := this.GetDDO(issuerDid)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] GetDDO failed: %s", err)
+	}
+	owners := issuerDdo.Owners
+	if owners == nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] owners is nil, issuerDid: %s", issuerDid)
+	}
+	signatureBytes, err := base64.StdEncoding.DecodeString(arr[2])
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] sig base64 decode failed: %s, sig: %s", err, arr[2])
+	}
+	headerBytes, err := base64.StdEncoding.DecodeString(arr[0])
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] header base64 decode failed: %s, header: %s", err, arr[0])
+	}
+	header := &Header{}
+	err = json.Unmarshal(headerBytes, header)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] header Unmarshal failed: %s, header: %s", err, arr[0])
+	}
+	kid := header.Kid
+	idArr := strings.Split(kid, "#keys-")
+	if len(idArr) < 2 {
+		return false, fmt.Errorf("[VerifyOntIdClaim] header kid is wrong: %s", kid)
+	}
+	idStr := idArr[1]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] Atoi is failed: %s, id: %s", err, idStr)
+	}
+	id -= 1
+	if id < 0 || id >= len(owners) {
+		return false, fmt.Errorf("[VerifyOntIdClaim] error id: %d", id)
+	}
+	pubkeyStr := owners[id].Value
+	data := arr[0] + "." + arr[1]
+	pkBs, err := common.HexToBytes(pubkeyStr)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] publickey error: %s", err)
+	}
+	pk, err := keypair.DeserializePublicKey(pkBs)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] DeserializePublicKey failed: %s", err)
+	}
+	sig, err := signature.Deserialize(signatureBytes)
+	if err != nil {
+		return false, fmt.Errorf("[VerifyOntIdClaim] sig Deserialize failed: %s", err)
+	}
+	return signature.Verify(pk, []byte(data), sig), nil
 }
 
 func (this *OntId) NewRegIDWithAttributesTransaction(gasPrice, gasLimit uint64, ontId string, pubKey keypair.PublicKey, attributes []*DDOAttribute) (*types.MutableTransaction, error) {
