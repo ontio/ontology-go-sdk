@@ -39,7 +39,7 @@ func TestNewClaim(t *testing.T) {
 	clmRevMap := map[string]interface{}{
 		"333": "333",
 	}
-	con,err := acct.controllers[0].GetController(pwd)
+	con, err := acct.controllers[0].GetController(pwd)
 	assert.Nil(t, err)
 	claim, err := NewClaim(con, "", clmMap, metadata, clmRevMap, "", time.Now().Unix()+20)
 	assert.Nil(t, err)
