@@ -450,8 +450,8 @@ func (this *DDOOwner) GetIndex() uint32 {
 
 type DDOAttribute struct {
 	Key       []byte
-	ValueType []byte
 	Value     []byte
+	ValueType []byte
 }
 
 type DDO struct {
