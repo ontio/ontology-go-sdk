@@ -645,20 +645,14 @@ func (this *OntId) NewRegIDWithPublicKeyTransaction(gasPrice, gasLimit uint64, o
 	)
 }
 
-func (this *OntId) RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	access string, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRegIDWithPublicKeyTransaction(gasPrice, gasLimit, ontId, access, proof, pk.PublicKey)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -694,20 +688,14 @@ func (this *OntId) NewRegIDWithSingleControllerTransaction(gasPrice, gasLimit ui
 	)
 }
 
-func (this *OntId) RegIDWithSingleController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RegIDWithSingleController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	controller string, index uint32, proof []byte, controllerSigner *Account) (common.Uint256, error) {
 	tx, err := this.NewRegIDWithSingleControllerTransaction(gasPrice, gasLimit, ontId, controller, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -742,20 +730,14 @@ func (this *OntId) NewRegIDWithMultiControllerTransaction(gasPrice, gasLimit uin
 	)
 }
 
-func (this *OntId) RegIDWithMultiController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RegIDWithMultiController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	controller *ontid.Group, proof []byte, controllerSigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewRegIDWithMultiControllerTransaction(gasPrice, gasLimit, ontId, controller, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -788,20 +770,14 @@ func (this *OntId) NewRevokeIDTransaction(gasPrice, gasLimit uint64, ontId strin
 	)
 }
 
-func (this *OntId) RevokeID(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RevokeID(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	index uint32, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRevokeIDTransaction(gasPrice, gasLimit, ontId, index)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -832,20 +808,14 @@ func (this *OntId) NewRevokeIDBySingleControllerTransaction(gasPrice, gasLimit u
 	)
 }
 
-func (this *OntId) RevokeIDBySingleController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RevokeIDBySingleController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	index uint32, controllerSigner *Account) (common.Uint256, error) {
 	tx, err := this.NewRevokeIDBySingleControllerTransaction(gasPrice, gasLimit, ontId, index)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -877,20 +847,14 @@ func (this *OntId) NewRevokeIDByMultiControllerTransaction(gasPrice, gasLimit ui
 	)
 }
 
-func (this *OntId) RevokeIDByMultiController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RevokeIDByMultiController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewRevokeIDByMultiControllerTransaction(gasPrice, gasLimit, ontId, signers)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -926,20 +890,14 @@ func (this *OntId) NewRemoveControllerTransaction(gasPrice, gasLimit uint64, ont
 	)
 }
 
-func (this *OntId) RemoveController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RemoveController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	index uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveControllerTransaction(gasPrice, gasLimit, ontId, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -977,20 +935,14 @@ func (this *OntId) NewRegIDWithAttributesTransaction(gasPrice, gasLimit uint64, 
 	)
 }
 
-func (this *OntId) RegIDWithAttributes(gasPrice, gasLimit uint64, payer, signer *Account, ontId string,
+func (this *OntId) RegIDWithAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	attributes []*DDOAttribute, access string, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRegIDWithAttributesTransaction(gasPrice, gasLimit, ontId, pk.PublicKey, attributes, access, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1029,20 +981,14 @@ func (this *OntId) NewAddKeyTransaction(gasPrice, gasLimit uint64, ontId string,
 		})
 }
 
-func (this *OntId) AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string, signer *Account,
+func (this *OntId) AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	newPubKey []byte, controller, access string, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewAddKeyTransaction(gasPrice, gasLimit, ontId, newPubKey, pk.PublicKey, controller, access, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1053,7 +999,7 @@ func (this *OntId) AddKey(gasPrice, gasLimit uint64, payer *Account, ontId strin
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *OntId) NewRevokeKeyTransaction(gasPrice, gasLimit uint64, ontId string, removedPubKey []byte,
+func (this *OntId) NewRemoveKeyTransaction(gasPrice, gasLimit uint64, ontId string, removedPubKey []byte,
 	pubKey keypair.PublicKey, proof []byte) (*types.MutableTransaction, error) {
 	type removeKey struct {
 		OntId      string
@@ -1078,20 +1024,14 @@ func (this *OntId) NewRevokeKeyTransaction(gasPrice, gasLimit uint64, ontId stri
 	)
 }
 
-func (this *OntId) RevokeKey(gasPrice, gasLimit uint64, payer *Account, ontId string, signer *Account,
+func (this *OntId) RemoveKey(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	removedPubKey []byte, proof []byte, pk *Account) (common.Uint256, error) {
-	tx, err := this.NewRevokeKeyTransaction(gasPrice, gasLimit, ontId, removedPubKey, pk.PublicKey, proof)
+	tx, err := this.NewRemoveKeyTransaction(gasPrice, gasLimit, ontId, removedPubKey, pk.PublicKey, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1127,20 +1067,14 @@ func (this *OntId) NewSetRecoveryTransaction(gasPrice, gasLimit uint64, ontId st
 		})
 }
 
-func (this *OntId) SetRecovery(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, recovery *ontid.Group,
+func (this *OntId) SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, recovery *ontid.Group,
 	index uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewSetRecoveryTransaction(gasPrice, gasLimit, ontId, recovery, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1178,20 +1112,14 @@ func (this *OntId) NewUpdateRecoveryTransaction(gasPrice, gasLimit uint64, ontId
 	)
 }
 
-func (this *OntId) UpdateRecovery(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) UpdateRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	newRecovery *ontid.Group, signers []ontid.Signer, proof []byte, recoverySigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewUpdateRecoveryTransaction(gasPrice, gasLimit, ontId, newRecovery, signers, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1233,20 +1161,14 @@ func (this *OntId) NewAddKeyBySingleControllerTransaction(gasPrice, gasLimit uin
 	)
 }
 
-func (this *OntId) AddKeyBySingleController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) AddKeyBySingleController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	publicKey []byte, index uint32, controller, access string, proof []byte, controllerSigner *Account) (common.Uint256, error) {
 	tx, err := this.NewAddKeyBySingleControllerTransaction(gasPrice, gasLimit, ontId, publicKey, index, controller, access, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1287,20 +1209,14 @@ func (this *OntId) NewAddKeyByMultiControllerTransaction(gasPrice, gasLimit uint
 	)
 }
 
-func (this *OntId) AddKeyByMultiController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) AddKeyByMultiController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	publicKey []byte, signers []ontid.Signer, controller, access string, proof []byte, controllerSigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewAddKeyByMultiControllerTransaction(gasPrice, gasLimit, ontId, publicKey, signers, controller, access, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1338,20 +1254,14 @@ func (this *OntId) NewRemoveKeyBySingleControllerTransaction(gasPrice, gasLimit 
 	)
 }
 
-func (this *OntId) RemoveKeyBySingleController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RemoveKeyBySingleController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	publicKeyIndex uint32, controllerIndex uint32, proof []byte, controllerSigner *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveKeyBySingleControllerTransaction(gasPrice, gasLimit, ontId, publicKeyIndex, controllerIndex, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1388,20 +1298,14 @@ func (this *OntId) NewRemoveKeyByMultiControllerTransaction(gasPrice, gasLimit u
 	)
 }
 
-func (this *OntId) RemoveKeyByMultiController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RemoveKeyByMultiController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	publicKeyIndex []byte, signers []ontid.Signer, proof []byte, controllerSigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveKeyByMultiControllerTransaction(gasPrice, gasLimit, ontId, publicKeyIndex, signers, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1440,20 +1344,14 @@ func (this *OntId) NewAddKeyByRecoveryTransaction(gasPrice, gasLimit uint64, ont
 	)
 }
 
-func (this *OntId) AddKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) AddKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	publicKey []byte, signers []ontid.Signer, proof []byte, recoverySigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewAddKeyByRecoveryTransaction(gasPrice, gasLimit, ontId, publicKey, signers, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1492,20 +1390,14 @@ func (this *OntId) NewRemoveKeyByRecoveryTransaction(gasPrice, gasLimit uint64, 
 	)
 }
 
-func (this *OntId) RemoveKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RemoveKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	publicKeyIndex uint32, signers []ontid.Signer, proof []byte, recoverySigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveKeyByRecoveryTransaction(gasPrice, gasLimit, ontId, publicKeyIndex, signers, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1542,20 +1434,14 @@ func (this *OntId) NewAddAttributesTransaction(gasPrice, gasLimit uint64, ontId 
 		})
 }
 
-func (this *OntId) AddAttributes(gasPrice, gasLimit uint64, payer, signer *Account, ontId string,
+func (this *OntId) AddAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	attributes []*DDOAttribute, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewAddAttributesTransaction(gasPrice, gasLimit, ontId, attributes, pk.PublicKey, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1588,20 +1474,14 @@ func (this *OntId) NewRemoveAttributeTransaction(gasPrice, gasLimit uint64, ontI
 		})
 }
 
-func (this *OntId) RemoveAttribute(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, removeKey []byte,
+func (this *OntId) RemoveAttribute(gasPrice, gasLimit uint64, payer *Account, ontId string, removeKey []byte,
 	pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveAttributeTransaction(gasPrice, gasLimit, ontId, removeKey, pk.PublicKey)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1638,20 +1518,14 @@ func (this *OntId) NewAddAttributesBySingleControllerTransaction(gasPrice, gasLi
 	)
 }
 
-func (this *OntId) AddAttributesBySingleController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) AddAttributesBySingleController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	attributes []*DDOAttribute, index uint32, proof []byte, controllerSigner *Account) (common.Uint256, error) {
 	tx, err := this.NewAddAttributesBySingleControllerTransaction(gasPrice, gasLimit, ontId, attributes, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1688,20 +1562,14 @@ func (this *OntId) NewAddAttributesByMultiControllerTransaction(gasPrice, gasLim
 	)
 }
 
-func (this *OntId) AddAttributesByMultiController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) AddAttributesByMultiController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	attributes []*DDOAttribute, signers []ontid.Signer, proof []byte, controllerSigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewAddAttributesByMultiControllerTransaction(gasPrice, gasLimit, ontId, attributes, signers, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1739,20 +1607,14 @@ func (this *OntId) NewRemoveAttributesBySingleControllerTransaction(gasPrice, ga
 	)
 }
 
-func (this *OntId) RemoveAttributesBySingleController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RemoveAttributesBySingleController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	key []byte, index uint32, proof []byte, controllerSigner *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveAttributesBySingleControllerTransaction(gasPrice, gasLimit, ontId, key, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1789,20 +1651,14 @@ func (this *OntId) NewRemoveAttributesByMultiControllerTransaction(gasPrice, gas
 	)
 }
 
-func (this *OntId) RemoveAttributesByMultiController(gasPrice, gasLimit uint64, payer *Account, signer *Account, ontId string,
+func (this *OntId) RemoveAttributesByMultiController(gasPrice, gasLimit uint64, payer *Account, ontId string,
 	key []byte, signers []ontid.Signer, proof []byte, controllerSigners []*Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveAttributesByMultiControllerTransaction(gasPrice, gasLimit, ontId, key, signers, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1851,20 +1707,14 @@ func (this *OntId) NewAddAuthKeyTransaction(gasPrice, gasLimit uint64, ontId str
 		})
 }
 
-func (this *OntId) AddAuthKey(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, ifNewPublicKey bool,
+func (this *OntId) AddAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, ifNewPublicKey bool,
 	index uint32, publicKey []byte, controller string, signIndex uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewAddAuthKeyTransaction(gasPrice, gasLimit, ontId, ifNewPublicKey, index, publicKey, controller, signIndex, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1901,20 +1751,14 @@ func (this *OntId) NewRemoveAuthKeyTransaction(gasPrice, gasLimit uint64, ontId 
 		})
 }
 
-func (this *OntId) RemoveAuthKey(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, index uint32,
+func (this *OntId) RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32,
 	signIndex uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveAuthKeyTransaction(gasPrice, gasLimit, ontId, index, signIndex, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1955,20 +1799,14 @@ func (this *OntId) NewAddServiceTransaction(gasPrice, gasLimit uint64, ontId str
 		})
 }
 
-func (this *OntId) AddService(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, serviceId, type_, serviceEndpint []byte,
+func (this *OntId) AddService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte,
 	index uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewAddServiceTransaction(gasPrice, gasLimit, ontId, serviceId, type_, serviceEndpint, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -2009,20 +1847,14 @@ func (this *OntId) NewUpdateServiceTransaction(gasPrice, gasLimit uint64, ontId 
 		})
 }
 
-func (this *OntId) UpdateService(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, serviceId, type_, serviceEndpint []byte,
+func (this *OntId) UpdateService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte,
 	index uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewUpdateServiceTransaction(gasPrice, gasLimit, ontId, serviceId, type_, serviceEndpint, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -2059,20 +1891,14 @@ func (this *OntId) NewRemoveServiceTransaction(gasPrice, gasLimit uint64, ontId 
 		})
 }
 
-func (this *OntId) RemoveService(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, serviceId []byte, index uint32,
+func (this *OntId) RemoveService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId []byte, index uint32,
 	proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveServiceTransaction(gasPrice, gasLimit, ontId, serviceId, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -2109,20 +1935,14 @@ func (this *OntId) NewAddContextTransaction(gasPrice, gasLimit uint64, ontId str
 		})
 }
 
-func (this *OntId) AddContext(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, contexts [][]byte,
+func (this *OntId) AddContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte,
 	index uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewAddContextTransaction(gasPrice, gasLimit, ontId, contexts, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -2159,20 +1979,14 @@ func (this *OntId) NewRemoveContextTransaction(gasPrice, gasLimit uint64, ontId 
 		})
 }
 
-func (this *OntId) RemoveContext(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, contexts [][]byte,
+func (this *OntId) RemoveContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte,
 	index uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewRemoveContextTransaction(gasPrice, gasLimit, ontId, contexts, index, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -2211,20 +2025,14 @@ func (this *OntId) NewSetKeyAccessTransaction(gasPrice, gasLimit uint64, ontId s
 		})
 }
 
-func (this *OntId) SetKeyAccess(gasPrice, gasLimit uint64, payer, signer *Account, ontId string, setIndex uint32,
+func (this *OntId) SetKeyAccess(gasPrice, gasLimit uint64, payer *Account, ontId string, setIndex uint32,
 	access string, signIndex uint32, proof []byte, pk *Account) (common.Uint256, error) {
 	tx, err := this.NewSetKeyAccessTransaction(gasPrice, gasLimit, ontId, setIndex, access, signIndex, proof)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	this.ontSdk.SetPayer(tx, payer.Address)
+	err = this.ontSdk.SignToTransaction(tx, payer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
