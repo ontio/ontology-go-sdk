@@ -99,7 +99,7 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	}
 	if payer != nil {
 		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, signer)
+		err = this.ontSdk.SignToTransaction(tx, payer)
 		if err != nil {
 			return common.Uint256{}, fmt.Errorf("payer sign tx error: %s", err)
 		}
