@@ -18,25 +18,48 @@
 package ontology_go_sdk
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
-func TestOntId_RegIDWithPublicKey(t *testing.T) {
-	return
-}
-
-func TestOntId_RegIDWithAttributes(t *testing.T) {
-	return
-}
-
-func TestOntId_Key(t *testing.T) {
-	return
-}
-
-func TestOntId_Attribute(t *testing.T) {
-	return
-}
-
-func TestOntId_Recovery(t *testing.T) {
+func TestOntId(t *testing.T) {
+	Init()
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	if err != nil {
+		t.Errorf("TestOntId NewDefaultSettingIdentity error:%s", err)
+		return
+	}
+	_, err = testOntSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefAcc)
+	if err != nil {
+		t.Errorf("TestOntId RegIDWithPublicKey error:%s", err)
+		return
+	}
+	testOntSdk.WaitForGenerateBlock(30 * time.Second)
+	attributes := []*DDOAttribute{
+		&DDOAttribute{
+			Key:       []byte("1"),
+			Value:     []byte("2"),
+			ValueType: []byte("3"),
+		},
+	}
+	_, err = testOntSdk.Native.OntId.AddAttributesByIndex(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, attributes, 1, testDefAcc)
+	if err != nil {
+		t.Errorf("TestOntId AddAttributesByIndex error:%s", err)
+		return
+	}
+	testOntSdk.WaitForGenerateBlock(30 * time.Second)
+	attribute, err := testOntSdk.Native.OntId.GetAttributeByKey(testIdentity.ID, "1")
+	if err != nil {
+		t.Errorf("TestOntId GetAttributeByKey error:%s", err)
+		return
+	}
+	fmt.Printf("TestOntId GetAttributeByKey:%+v\n", attribute)
+	document, err := testOntSdk.Native.OntId.GetDocumentJson(testIdentity.ID)
+	if err != nil {
+		t.Errorf("TestOntId GetDocumentJson error:%s", err)
+		return
+	}
+	fmt.Printf("TestOntId GetDocumentJson:%+v\n", string(document))
 	return
 }

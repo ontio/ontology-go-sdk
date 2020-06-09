@@ -2227,13 +2227,22 @@ func (this *OntId) RemoveContext(gasPrice, gasLimit uint64, payer *Account, ontI
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *OntId) VerifySignature(ontId string, keyIndex int, account *Account) (bool, error) {
+func (this *OntId) VerifySignature(ontId string, keyIndex uint64, account *Account) (bool, error) {
+	type verifySignatureParam struct {
+		OntId    string
+		KeyIndex uint64
+	}
 	tx, err := this.native.NewNativeInvokeTransaction(
 		0, 0,
 		ONT_ID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"verifySignature",
-		[]interface{}{ontId, keyIndex})
+		[]interface{}{
+			verifySignatureParam{
+				ontId,
+				keyIndex,
+			},
+		})
 	if err != nil {
 		return false, err
 	}
@@ -2249,13 +2258,22 @@ func (this *OntId) VerifySignature(ontId string, keyIndex int, account *Account)
 }
 
 func (this *OntId) VerifyController(ontId string, signers []ontid.Signer, accounts []*Account) (bool, error) {
+	type verifyControllerParam struct {
+		OntId   string
+		Signers []byte
+	}
 	s := ontid.SerializeSigners(signers)
 	tx, err := this.native.NewNativeInvokeTransaction(
 		0, 0,
 		ONT_ID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"verifyController",
-		[]interface{}{ontId, s})
+		[]interface{}{
+			verifyControllerParam{
+				ontId,
+				s,
+			},
+		})
 	if err != nil {
 		return false, err
 	}
@@ -2327,13 +2345,19 @@ func (this *OntId) GetAttributes(ontId string) ([]byte, error) {
 }
 
 func (this *OntId) GetAttributeByKey(ontId, key string) ([]byte, error) {
+	type getAttributeByKeyParam struct {
+		OntId string
+		Key   string
+	}
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONT_ID_CONTRACT_ADDRESS,
 		ONT_ID_CONTRACT_VERSION,
 		"getAttributeByKey",
 		[]interface{}{
-			ontId,
-			key,
+			getAttributeByKeyParam{
+				ontId,
+				key,
+			},
 		})
 	if err != nil {
 		return nil, err
@@ -2345,14 +2369,20 @@ func (this *OntId) GetAttributeByKey(ontId, key string) ([]byte, error) {
 	return data, nil
 }
 
-func (this *OntId) GetServiceJson(ontId string, serviceId []byte) ([]byte, error) {
+func (this *OntId) GetServiceJson(ontId string, serviceId string) ([]byte, error) {
+	type getServiceJsonParam struct {
+		OntId     string
+		ServiceId string
+	}
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONT_ID_CONTRACT_ADDRESS,
 		ONT_ID_CONTRACT_VERSION,
 		"getServiceJson",
 		[]interface{}{
-			[]byte(ontId),
-			serviceId,
+			getServiceJsonParam{
+				ontId,
+				serviceId,
+			},
 		})
 	if err != nil {
 		return nil, err
@@ -2391,7 +2421,7 @@ func (this *OntId) GetControllerJson(ontId string) ([]byte, error) {
 		ONT_ID_CONTRACT_VERSION,
 		"getControllerJson",
 		[]interface{}{
-			[]byte(ontId),
+			ontId,
 		})
 	if err != nil {
 		return nil, err
@@ -2409,7 +2439,7 @@ func (this *OntId) GetDocumentJson(ontId string) ([]byte, error) {
 		ONT_ID_CONTRACT_VERSION,
 		"getDocumentJson",
 		[]interface{}{
-			[]byte(ontId),
+			ontId,
 		})
 	if err != nil {
 		return nil, err
