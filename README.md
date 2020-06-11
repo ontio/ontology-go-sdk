@@ -439,6 +439,574 @@ ontSdk.Native.Ong.WithdrawONG(gasPrice, gasLimit uint64, address *Account, amoun
 ontSdk.Native.Ong.UnboundONG(address common.Address) (uint64, error)
 ```
 
+### 2.5 ONT ID API
+
+#### 2.5.1 RegIDWithPublicKey
+
+```
+ontSdk.Native.OntId.RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account, ontId string, pk *Account) (common.Uint256, error)
+```
+`ontId`: registered ONT ID
+
+`pk`: public key of ONT ID and signer account
+
+#### 2.5.2 RegIDWithController
+
+```
+ontSdk.Native.OntId.RegIDWithController(gasPrice, gasLimit uint64, payer *Account, ontId string, controller *ontid.Group, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: registered ONT ID
+
+`controller`:a group of ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.3 RevokeID
+
+```
+ontSdk.Native.OntId.RevokeID(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: revoked ONT ID
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.4 RevokeIDByController
+
+```
+ontSdk.Native.OntId.RevokeIDByController(gasPrice, gasLimit uint64, payer *Account, ontId string, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: revoked ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts 
+
+#### 2.5.5 RemoveController
+
+```
+ontSdk.Native.OntId.RemoveController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.6 RegIDWithAttributes
+
+```
+ontSdk.Native.OntId.RegIDWithAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, pk *Account) (common.Uint256, error)
+```
+`ontId`: registered ONT ID
+
+`attributes`: attributes of ONT ID
+
+`pk`: public key of ONT ID and signer account
+
+#### 2.5.7 AddKey
+
+```
+ontSdk.Native.OntId.AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, controller string, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`newPubKey`: new public key added
+
+`controller`: controller ONT ID of this public key
+
+`pk`: public key of ONT ID and signer account
+
+#### 2.5.8 AddKeyByIndex
+
+```
+ontSdk.Native.OntId.AddKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, index uint32, controller string, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`newPubKey`: new public key added
+
+`index`: key index of ONT ID
+
+`controller`: controller ONT ID of this public key
+
+`pk`: signer account
+
+#### 2.5.9 RemoveKey
+
+```
+ontSdk.Native.OntId.RemoveKey(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`removedPubKey`: public key removed
+
+`pk`: public key of ONT ID and signer account
+
+#### 2.5.10 RemoveKeyByIndex
+
+```
+ontSdk.Native.OntId.RemoveKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`removedPubKey`: public key removed
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.11 SetRecovery
+
+```
+ontSdk.Native.OntId.SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, recovery *ontid.Group, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`recovery`: group of recovery of ONT ID
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.12 UpdateRecovery
+
+```
+ontSdk.Native.OntId.UpdateRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, newRecovery *ontid.Group, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`newRecovery`: new group of recovery of ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`recoverySigners`: signer accounts
+
+#### 2.5.13 RemoveRecovery
+
+```
+ontSdk.Native.OntId.RemoveRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.14 AddKeyByController
+
+```
+ontSdk.Native.OntId.AddKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, signers []ontid.Signer, controller string, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`publicKey`: new public key of ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`controller`: controller ONT ID of this public key
+
+`controllerSigners`: signer accounts
+
+#### 2.5.15 RemoveKeyByController
+
+```
+ontSdk.Native.OntId.RemoveKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKeyIndex []byte, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`publicKeyIndex`: public key index of ONT ID removed
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.16 AddKeyByRecovery
+
+```
+ontSdk.Native.OntId.AddKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, signers []ontid.Signer, controller string, recoverySigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`publicKey`: new public key of ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`controller`: controller ONT ID of this public key
+
+`recoverySigners`: signer accounts
+
+#### 2.5.17 RemoveKeyByRecovery
+
+```
+ontSdk.Native.OntId.RemoveKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKeyIndex uint32, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`publicKeyIndex`: public key index of ONT ID removed
+
+`signers`: signer ONT IDs and its key index
+
+`recoverySigners`: signer accounts
+
+#### 2.5.18 AddAttributes
+
+```
+ontSdk.Native.OntId.AddAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, pk *Account) (common.Uint256, error)
+``` 
+`ontId`: ONT ID
+
+`attributes`: attributes of ONT ID
+
+`pk`: public key of ONT ID and signer account
+
+#### 2.5.19 AddAttributesByIndex
+
+```
+ontSdk.Native.OntId.AddAttributesByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`attributes`: attributes of ONT ID
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.20 RemoveAttribute
+
+```
+ontSdk.Native.OntId.RemoveAttribute(gasPrice, gasLimit uint64, payer *Account, ontId string, removeKey []byte, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`removeKey`: key of attribute want to remove
+
+`pk`: public key of ONT ID and signer account
+
+#### 2.5.21 RemoveAttributeByIndex
+
+```
+ontSdk.Native.OntId.RemoveAttributeByIndex(gasPrice, gasLimit uint64, payer *Account, ontId, removeKey []byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`removeKey`: key of attribute want to remove
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.22 AddAttributesByController
+
+```
+ontSdk.Native.OntId.AddAttributesByController(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`attributes`: attributes of ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.23 RemoveAttributesByController
+
+```
+ontSdk.Native.OntId.RemoveAttributesByController(gasPrice, gasLimit uint64, payer *Account, ontId string, key []byte, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`key`: key of attribute want to remove
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.24 AddNewAuthKey
+
+```
+ontSdk.Native.OntId.AddNewAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signIndex uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`publicKey`:  public key of ONT ID
+
+`controller`: controller ONT ID of this public key
+
+`signIndex`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.25 AddNewAuthKeyByRecovery
+
+```
+ontSdk.Native.OntId.AddNewAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`publicKey`:  public key of ONT ID
+
+`controller`: controller ONT ID of this public key
+
+`signers`: signer ONT IDs and its key index
+
+`recoverySigners`: signer accounts
+
+#### 2.5.26 AddNewAuthKeyByController
+
+```
+ontSdk.Native.OntId.AddNewAuthKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+
+```
+`ontId`: ONT ID
+
+`publicKey`:  public key of ONT ID
+
+`controller`: controller ONT ID of this public key
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.27 SetAuthKey
+
+```
+ontSdk.Native.OntId.SetAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index, signIndex uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`:  key index of public key want to set to auth
+
+`signIndex`: key index of ONT ID of signer
+
+`pk`: signer account
+
+#### 2.5.28 SetAuthKeyByRecovery
+
+```
+ontSdk.Native.OntId.SetAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`:  key index of public key want to set to auth
+
+`signers`: signer ONT IDs and its key index
+
+`recoverySigners`: signer accounts
+
+#### 2.5.29 SetAuthKeyByController
+
+```
+ontSdk.Native.OntId.SetAuthKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`:  key index of public key want to set to auth
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.30 RemoveAuthKey
+
+```
+ontSdk.Native.OntId.RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signIndex uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`:  key index of public key want to remove from auth
+
+`signIndex`: key index of ONT ID of signer
+
+`pk`: signer account
+
+#### 2.5.31 RemoveAuthKeyByRecovery
+
+```
+ontSdk.Native.OntId.RemoveAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`:  key index of public key want to remove from auth
+
+`signers`: signer ONT IDs and its key index
+
+`recoverySigners`: signer accounts
+
+#### 2.5.32 RemoveAuthKeyByController
+
+```
+ontSdk.Native.OntId.RemoveAuthKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`index`:  key index of public key want to remove from auth
+
+`signers`: signer ONT IDs and its key index
+
+`controllerSigners`: signer accounts
+
+#### 2.5.33 AddService
+
+```
+ontSdk.Native.OntId.AddService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`serviceId`:  service Id
+
+`type_`: service type
+
+`serviceEndpint`: service endpint
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.34 UpdateService
+
+```
+ontSdk.Native.OntId.UpdateService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`serviceId`:  service Id
+
+`type_`: service type
+
+`serviceEndpint`: service endpint
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.35 RemoveService
+
+```
+ontSdk.Native.OntId.RemoveService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId []byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`serviceId`:  service Id want to remove
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.36 AddContext
+
+```
+ontSdk.Native.OntId.AddContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`contexts`:  contexts want to add
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.37 RemoveContext
+
+```
+ontSdk.Native.OntId.RemoveContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, pk *Account) (common.Uint256, error)
+```
+`ontId`: ONT ID
+
+`contexts`:  contexts want to remove
+
+`index`: key index of ONT ID
+
+`pk`: signer account
+
+#### 2.5.38 VerifySignature
+
+```
+ontSdk.Native.OntId.VerifySignature(ontId string, keyIndex uint64, account *Account) (bool, error)
+```
+`ontId`: ONT ID
+
+`keyIndex`: key index of ONT ID
+
+`account`: signer account
+
+#### 2.5.39 VerifyController
+
+```
+ontSdk.Native.OntId.VerifyController(ontId string, signers []ontid.Signer, accounts []*Account) (bool, error)
+```
+`ontId`: ONT ID
+
+`signers`: signer ONT IDs and its key index
+
+`accounts`: signer accounts
+
+#### 2.5.40 GetPublicKeysJson
+
+```
+ontSdk.Native.OntId.GetPublicKeysJson(ontId string) ([]byte, error)
+```
+`ontId`: ONT ID
+
+#### 2.5.41 GetAttributesJson
+
+```
+ontSdk.Native.OntId.GetAttributesJson(ontId string) ([]byte, error)
+```
+`ontId`: ONT ID
+
+#### 2.5.42 GetAttributes
+
+```
+ontSdk.Native.OntId.GetAttributes(ontId string) ([]byte, error)
+```
+`ontId`: ONT ID
+
+#### 2.5.43 GetAttributeByKey
+
+```
+ontSdk.Native.OntId.GetAttributeByKey(ontId, key string) ([]byte, error)
+```
+`ontId`: ONT ID
+
+`key`: key of attribute want to query
+
+#### 2.5.44 GetServiceJson
+
+```
+ontSdk.Native.OntId.GetServiceJson(ontId string, serviceId string) ([]byte, error)
+```
+`ontId`: ONT ID
+
+`serviceId`: service Id want to query
+
+#### 2.5.45 GetKeyState
+
+```
+ontSdk.Native.OntId.GetKeyState(ontId string, keyIndex int) (string, error)
+```
+`ontId`: ONT ID
+
+`keyIndex`: key index of ONT ID
+
+##### 2.5.46 GetControllerJson
+
+```
+ontSdk.Native.OntId.GetControllerJson(ontId string) ([]byte, error)
+```
+`ontId`: ONT ID
+
+#### 2.5.47 GetDocumentJson
+
+```
+ontSdk.Native.OntId.GetDocumentJson(ontId string) ([]byte, error)
+```
+`ontId`: ONT ID
+
 # Contributing
 
 Can I contribute patches to the Ontology project?
