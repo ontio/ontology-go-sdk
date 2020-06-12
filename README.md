@@ -444,11 +444,11 @@ ontSdk.Native.Ong.UnboundONG(address common.Address) (uint64, error)
 #### 2.5.1 RegIDWithPublicKey
 
 ```
-ontSdk.Native.OntId.RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account, ontId string, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account, ontId string, signer *Account) (common.Uint256, error)
 ```
 `ontId`: registered ONT ID
 
-`pk`: public key of ONT ID and signer account
+`signer`: public key of ONT ID and signer account
 
 #### 2.5.2 RegIDWithController
 
@@ -466,13 +466,13 @@ ontSdk.Native.OntId.RegIDWithController(gasPrice, gasLimit uint64, payer *Accoun
 #### 2.5.3 RevokeID
 
 ```
-ontSdk.Native.OntId.RevokeID(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RevokeID(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: revoked ONT ID
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.4 RevokeIDByController
 
@@ -488,29 +488,29 @@ ontSdk.Native.OntId.RevokeIDByController(gasPrice, gasLimit uint64, payer *Accou
 #### 2.5.5 RemoveController
 
 ```
-ontSdk.Native.OntId.RemoveController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.6 RegIDWithAttributes
 
 ```
-ontSdk.Native.OntId.RegIDWithAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RegIDWithAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, signer *Account) (common.Uint256, error)
 ```
 `ontId`: registered ONT ID
 
 `attributes`: attributes of ONT ID
 
-`pk`: public key of ONT ID and signer account
+`signer`: public key of ONT ID and signer account
 
 #### 2.5.7 AddKey
 
 ```
-ontSdk.Native.OntId.AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, controller string, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, controller string, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -518,12 +518,12 @@ ontSdk.Native.OntId.AddKey(gasPrice, gasLimit uint64, payer *Account, ontId stri
 
 `controller`: controller ONT ID of this public key
 
-`pk`: public key of ONT ID and signer account
+`signer`: public key of ONT ID and signer account
 
 #### 2.5.8 AddKeyByIndex
 
 ```
-ontSdk.Native.OntId.AddKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, index uint32, controller string, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, index uint32, controller string, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -533,23 +533,23 @@ ontSdk.Native.OntId.AddKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ont
 
 `controller`: controller ONT ID of this public key
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.9 RemoveKey
 
 ```
-ontSdk.Native.OntId.RemoveKey(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveKey(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
 `removedPubKey`: public key removed
 
-`pk`: public key of ONT ID and signer account
+`signer`: public key of ONT ID and signer account
 
 #### 2.5.10 RemoveKeyByIndex
 
 ```
-ontSdk.Native.OntId.RemoveKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -557,12 +557,12 @@ ontSdk.Native.OntId.RemoveKeyByIndex(gasPrice, gasLimit uint64, payer *Account, 
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.11 SetRecovery
 
 ```
-ontSdk.Native.OntId.SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, recovery *ontid.Group, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, recovery *ontid.Group, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -570,7 +570,7 @@ ontSdk.Native.OntId.SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.12 UpdateRecovery
 
@@ -588,13 +588,13 @@ ontSdk.Native.OntId.UpdateRecovery(gasPrice, gasLimit uint64, payer *Account, on
 #### 2.5.13 RemoveRecovery
 
 ```
-ontSdk.Native.OntId.RemoveRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.14 AddKeyByController
 
@@ -655,18 +655,18 @@ ontSdk.Native.OntId.RemoveKeyByRecovery(gasPrice, gasLimit uint64, payer *Accoun
 #### 2.5.18 AddAttributes
 
 ```
-ontSdk.Native.OntId.AddAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, signer *Account) (common.Uint256, error)
 ``` 
 `ontId`: ONT ID
 
 `attributes`: attributes of ONT ID
 
-`pk`: public key of ONT ID and signer account
+`signer`: public key of ONT ID and signer account
 
 #### 2.5.19 AddAttributesByIndex
 
 ```
-ontSdk.Native.OntId.AddAttributesByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddAttributesByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -674,23 +674,23 @@ ontSdk.Native.OntId.AddAttributesByIndex(gasPrice, gasLimit uint64, payer *Accou
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.20 RemoveAttribute
 
 ```
-ontSdk.Native.OntId.RemoveAttribute(gasPrice, gasLimit uint64, payer *Account, ontId string, removeKey []byte, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveAttribute(gasPrice, gasLimit uint64, payer *Account, ontId string, removeKey []byte, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
 `removeKey`: key of attribute want to remove
 
-`pk`: public key of ONT ID and signer account
+`signer`: public key of ONT ID and signer account
 
 #### 2.5.21 RemoveAttributeByIndex
 
 ```
-ontSdk.Native.OntId.RemoveAttributeByIndex(gasPrice, gasLimit uint64, payer *Account, ontId, removeKey []byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveAttributeByIndex(gasPrice, gasLimit uint64, payer *Account, ontId, removeKey []byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -698,7 +698,7 @@ ontSdk.Native.OntId.RemoveAttributeByIndex(gasPrice, gasLimit uint64, payer *Acc
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.22 AddAttributesByController
 
@@ -729,7 +729,7 @@ ontSdk.Native.OntId.RemoveAttributesByController(gasPrice, gasLimit uint64, paye
 #### 2.5.24 AddNewAuthKey
 
 ```
-ontSdk.Native.OntId.AddNewAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signIndex uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddNewAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signIndex uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -739,7 +739,7 @@ ontSdk.Native.OntId.AddNewAuthKey(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signIndex`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.25 AddNewAuthKeyByRecovery
 
@@ -775,7 +775,7 @@ ontSdk.Native.OntId.AddNewAuthKeyByController(gasPrice, gasLimit uint64, payer *
 #### 2.5.27 SetAuthKey
 
 ```
-ontSdk.Native.OntId.SetAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index, signIndex uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.SetAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index, signIndex uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -783,7 +783,7 @@ ontSdk.Native.OntId.SetAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId 
 
 `signIndex`: key index of ONT ID of signer
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.28 SetAuthKeyByRecovery
 
@@ -814,7 +814,7 @@ ontSdk.Native.OntId.SetAuthKeyByController(gasPrice, gasLimit uint64, payer *Acc
 #### 2.5.30 RemoveAuthKey
 
 ```
-ontSdk.Native.OntId.RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signIndex uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signIndex uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -822,7 +822,7 @@ ontSdk.Native.OntId.RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signIndex`: key index of ONT ID of signer
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.31 RemoveAuthKeyByRecovery
 
@@ -853,7 +853,7 @@ ontSdk.Native.OntId.RemoveAuthKeyByController(gasPrice, gasLimit uint64, payer *
 #### 2.5.33 AddService
 
 ```
-ontSdk.Native.OntId.AddService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -865,12 +865,12 @@ ontSdk.Native.OntId.AddService(gasPrice, gasLimit uint64, payer *Account, ontId 
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.34 UpdateService
 
 ```
-ontSdk.Native.OntId.UpdateService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.UpdateService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -882,12 +882,12 @@ ontSdk.Native.OntId.UpdateService(gasPrice, gasLimit uint64, payer *Account, ont
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.35 RemoveService
 
 ```
-ontSdk.Native.OntId.RemoveService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId []byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId []byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -895,12 +895,12 @@ ontSdk.Native.OntId.RemoveService(gasPrice, gasLimit uint64, payer *Account, ont
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.36 AddContext
 
 ```
-ontSdk.Native.OntId.AddContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.AddContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -908,12 +908,12 @@ ontSdk.Native.OntId.AddContext(gasPrice, gasLimit uint64, payer *Account, ontId 
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.37 RemoveContext
 
 ```
-ontSdk.Native.OntId.RemoveContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, pk *Account) (common.Uint256, error)
+ontSdk.Native.OntId.RemoveContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, signer *Account) (common.Uint256, error)
 ```
 `ontId`: ONT ID
 
@@ -921,7 +921,7 @@ ontSdk.Native.OntId.RemoveContext(gasPrice, gasLimit uint64, payer *Account, ont
 
 `index`: key index of ONT ID
 
-`pk`: signer account
+`signer`: signer account
 
 #### 2.5.38 VerifySignature
 
