@@ -1055,6 +1055,112 @@ ontSdk.Native.OntId.GetDocumentJson(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
+### 2.6 Claim API
+
+#### 2.6.1 GenSignReq
+
+```
+ontSdk.Claim.GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error)
+```
+`credentialSubject`: [credentialSubject of claim](https://www.w3.org/TR/vc-data-model/#credential-subject)
+
+`ontId`: holder ONT ID
+
+`signer`: signer account
+
+#### 2.6.2 VerifySignReq
+
+```
+ontSdk.Claim.VerifySignReq(request *Request) error
+```
+`request`: result of GenSignReq
+
+#### 2.6.3 CreateClaim
+
+```
+ontSdk.Claim.CreateClaim(contexts []string, types []string, credentialSubject interface{}, issuerId string, expirationDateTimestamp int64, signer *Account) (*VerifiableCredential, uint32, error)
+```
+`contexts`: [definition](https://www.w3.org/TR/vc-data-model/#contexts)
+
+`types`: [definition](https://www.w3.org/TR/vc-data-model/#types)
+
+`credentialSubject`: [credentialSubject of claim](https://www.w3.org/TR/vc-data-model/#credential-subject)
+
+`issuerId`: ONT ID of issuer
+
+`expirationDateTimestamp`: unix of expiration date timestamp
+
+`signer`: signer account
+
+#### 2.6.4 CommitClaim
+
+```
+ontSdk.Claim.CommitClaim(gasPrice, gasLimit uint64, claimId, issuerId, holderId string, index uint32, signer, payer *Account) (common.Uint256, error)
+```
+`claimId`: Id of claim
+
+`issuerId`: ONT ID of issuer
+
+`holderId`: ONT ID of holder
+
+`index`: key index of issuer used to sign tx
+
+`signer`: signer account
+
+#### 2.6.5 VerifyCredibleOntId
+
+```
+ontSdk.Claim.VerifyCredibleOntId(credibleOntIds []string, claim *VerifiableCredential) error
+```
+`credibleOntIds`: credible ONT ID list
+
+`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.6 VerifyNotExpired
+
+```
+ontSdk.Claim.VerifyNotExpired(claim *VerifiableCredential) error
+```
+`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.7 VerifyIssuerSignature
+
+```
+ontSdk.Claim.VerifyIssuerSignature(claim *VerifiableCredential) error
+```
+`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.8 VerifyStatus
+
+```
+ontSdk.Claim.VerifyStatus(claim *VerifiableCredential) error
+```
+`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.9 CreatePresentation
+
+```
+ontSdk.Claim.CreatePresentation(claims []*VerifiableCredential, contexts, types []string, holder string, signers []*Account) (*Presentation, error)
+```
+`claims`: claim list
+
+`contexts`: [definition](https://www.w3.org/TR/vc-data-model/#contexts)
+
+`types`: [definition](https://www.w3.org/TR/vc-data-model/#types)
+
+`holder`: ONTID of holder
+
+`signers`: signer accounts
+
+#### 2.6.10 VerifyPresentation
+
+```
+ontSdk.Claim.VerifyPresentation(presentation *Presentation, credibleOntIds []string) error
+```
+`presentation`: [definition](https://www.w3.org/TR/vc-data-model/#presentations-0)
+
+`credibleOntIds`: credible ONT ID list
+
 # Contributing
 
 Can I contribute patches to the Ontology project?

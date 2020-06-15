@@ -51,6 +51,7 @@ type OntologySdk struct {
 	Native *NativeContract
 	NeoVM  *NeoVMContract
 	WasmVM *WasmVMContract
+	Claim  *Claim
 }
 
 //NewOntologySdk return OntologySdk.
@@ -62,6 +63,8 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.NeoVM = neoVM
 	wasmVM := newWasmVMContract(ontSdk)
 	ontSdk.WasmVM = wasmVM
+	Claim := newClaim(ontSdk)
+	ontSdk.Claim = Claim
 	return ontSdk
 }
 
@@ -76,6 +79,16 @@ func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 //OpenWallet return a wallet instance
 func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
+}
+
+//OpenWallet return a wallet instance
+func (this *OntologySdk) SetClaimContractAddress(addr string) error {
+	address, err := common.AddressFromHexString(addr)
+	if err != nil {
+		return fmt.Errorf("SetClaimContractAddress error: %s", err)
+	}
+	this.Claim.claimContractAddress = address
+	return nil
 }
 
 func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
