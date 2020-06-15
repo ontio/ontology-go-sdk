@@ -1,1 +1,0 @@
-package ontology_go_sdk
