@@ -21,6 +21,7 @@ package ontology_go_sdk
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ontio/ontology/common"
 	"testing"
 	"time"
 )
@@ -80,7 +81,7 @@ func TestClaim(t *testing.T) {
 	contexts := []string{"context1", "context2"}
 	types := []string{"RelationshipCredential"}
 	expirationDate := time.Now().Unix() + 300
-	claim, index, err := testOntSdk.Claim.CreateClaim(contexts, types, credentialSubject, issuer.ID, expirationDate, testDefAcc)
+	claim, err := testOntSdk.Claim.CreateClaim(contexts, types, credentialSubject, issuer.ID, expirationDate, testDefAcc)
 	if err != nil {
 		t.Errorf("TestClaim testOntSdk.Claim.CreateClaim error:%s", err)
 		return
@@ -92,12 +93,17 @@ func TestClaim(t *testing.T) {
 	}
 	fmt.Println("claim is: ", string(claimJson))
 
-	txHash, err := testOntSdk.Claim.CommitClaim(500, 20000, claim.Id, issuer.ID, holder.ID, index, testDefAcc, testDefAcc)
+	contractAddress, err := common.AddressFromHexString(claim.CredentialStatus.Id)
+	if err != nil {
+		t.Errorf("TestClaim common.AddressFromHexString:%s", err)
+		return
+	}
+	txHash, err := testOntSdk.Claim.CommitClaim(contractAddress, 500, 20000, claim.Id, issuer.ID, holder.ID, testDefAcc, testDefAcc)
 	if err != nil {
 		t.Errorf("TestClaim testOntSdk.Claim.CommitClaim error:%s", err)
 		return
 	}
-	fmt.Println("txHash is: ", txHash.ToHexString())
+	fmt.Println("txHash 1 is: ", txHash.ToHexString())
 	testOntSdk.WaitForGenerateBlock(30 * time.Second)
 
 	err = testOntSdk.Claim.VerifyCredibleOntId([]string{issuer.ID}, claim)
@@ -121,7 +127,8 @@ func TestClaim(t *testing.T) {
 		return
 	}
 
-	presentation, err := testOntSdk.Claim.CreatePresentation([]*VerifiableCredential{claim}, contexts, types, holder.ID, []*Account{testDefAcc})
+	presentation, err := testOntSdk.Claim.CreatePresentation([]*VerifiableCredential{claim}, contexts, types, holder.ID,
+		[]string{issuer.ID}, []*Account{testDefAcc})
 	if err != nil {
 		t.Errorf("TestClaim testOntSdk.Claim.CreatePresentation error:%s", err)
 		return
@@ -133,9 +140,26 @@ func TestClaim(t *testing.T) {
 	}
 	fmt.Println("presentation is: ", string(presentationJson))
 
-	err = testOntSdk.Claim.VerifyPresentation(presentation, []string{issuer.ID})
+	for i := range presentation.Proof {
+		_, err = testOntSdk.Claim.VerifyPresentationProof(presentation, i)
+		if err != nil {
+			t.Errorf("TestClaim testOntSdk.Claim.VerifyPresentationProof error:%s", err)
+			return
+		}
+	}
+
+	txHash, err = testOntSdk.Claim.RevokeClaimByHolder(500, 20000, claim, holder.ID, testDefAcc, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim json.Marshal presentation error:%s", err)
+		t.Errorf("TestClaim testOntSdk.Claim.RevokeClaimByHolder error:%s", err)
 		return
 	}
+	fmt.Println("txHash 2 is: ", txHash.ToHexString())
+	testOntSdk.WaitForGenerateBlock(30 * time.Second)
+
+	txHash, err = testOntSdk.Claim.RemoveClaim(500, 20000, claim, holder.ID, testDefAcc, testDefAcc)
+	if err != nil {
+		t.Errorf("TestClaim testOntSdk.Claim.RevokeClaimByHolder error:%s", err)
+		return
+	}
+	fmt.Println("txHash 3 is: ", txHash.ToHexString())
 }
