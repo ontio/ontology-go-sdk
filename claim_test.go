@@ -81,7 +81,8 @@ func TestClaim(t *testing.T) {
 	contexts := []string{"context1", "context2"}
 	types := []string{"RelationshipCredential"}
 	expirationDate := time.Now().Unix() + 300
-	claim, err := testOntSdk.Claim.CreateClaim(contexts, types, credentialSubject, issuer.ID, expirationDate, testDefAcc)
+	claim, err := testOntSdk.Claim.CreateClaim(contexts, types, credentialSubject, issuer.ID, expirationDate,
+		"", "", testDefAcc)
 	if err != nil {
 		t.Errorf("TestClaim testOntSdk.Claim.CreateClaim error:%s", err)
 		return
@@ -111,9 +112,9 @@ func TestClaim(t *testing.T) {
 		t.Errorf("TestClaim testOntSdk.Claim.VerifyCredibleOntId error:%s", err)
 		return
 	}
-	err = testOntSdk.Claim.VerifyNotExpired(claim)
+	err = testOntSdk.Claim.VerifyDate(claim)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.VerifyNotExpired error:%s", err)
+		t.Errorf("TestClaim testOntSdk.Claim.VerifyDate error:%s", err)
 		return
 	}
 	err = testOntSdk.Claim.VerifyIssuerSignature(claim)
@@ -128,7 +129,7 @@ func TestClaim(t *testing.T) {
 	}
 
 	presentation, err := testOntSdk.Claim.CreatePresentation([]*VerifiableCredential{claim}, contexts, types, holder.ID,
-		[]string{issuer.ID}, []*Account{testDefAcc})
+		[]string{issuer.ID}, []string{""}, []interface{}{""}, []*Account{testDefAcc})
 	if err != nil {
 		t.Errorf("TestClaim testOntSdk.Claim.CreatePresentation error:%s", err)
 		return

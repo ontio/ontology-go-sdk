@@ -63,6 +63,8 @@ type CredentialStatus struct {
 type Proof struct {
 	Type               string       `json:"type,omitempty"`
 	Created            string       `json:"created,omitempty"`
+	Challenge          string       `json:"chanllege,omitempty"`
+	Domain             interface{}  `json:"domain,omitempty"`
 	ProofPurpose       ProofPurpose `json:"proofPurpose,omitempty"`
 	VerificationMethod string       `json:"verificationMethod,omitempty"`
 	Hex                string       `json:"hex,omitempty"`
@@ -109,27 +111,29 @@ func (this *Claim) GenSignReq(credentialSubject interface{}, ontId string, signe
 		CredentialSubject: credentialSubject,
 		OntId:             ontId,
 	}
-	msg, err := json.Marshal(request)
-	if err != nil {
-		return nil, fmt.Errorf("GenSignReq, json.Marshal error: %s", err)
-	}
-	proof, err := this.CreateProof(msg, ontId, signer)
+	proof, err := this.CreateProof(ontId, signer, "", "")
 	if err != nil {
 		return nil, fmt.Errorf("GenSignReq, this.CreateProof error: %s", err)
 	}
 	request.Proof = proof
 
+	msg, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("GenSignReq, json.Marshal error: %s", err)
+	}
+	sig, err := signer.Sign(msg)
+	if err != nil {
+		return nil, fmt.Errorf("GenSignReq, signer.Sign error: %s", err)
+	}
+	request.Proof.Hex = hex.EncodeToString(sig)
+
 	return request, nil
 }
 
 func (this *Claim) VerifySignReq(request *Request) error {
-	rawRequest := &Request{
-		CredentialSubject: request.CredentialSubject,
-		OntId:             request.OntId,
-	}
-	msg, err := json.Marshal(rawRequest)
+	msg, err := GenRequestMsg(request)
 	if err != nil {
-		return fmt.Errorf("VerifySignReq, json.Marshal error: %s", err)
+		return fmt.Errorf("VerifySignReq, hex.DecodeString signature error: %s", err)
 	}
 	sig, err := hex.DecodeString(request.Proof.Hex)
 	if err != nil {
@@ -158,7 +162,7 @@ func (this *Claim) VerifySignReq(request *Request) error {
 }
 
 func (this *Claim) CreateClaim(contexts []string, types []string, credentialSubject interface{}, issuerId interface{},
-	expirationDateTimestamp int64, signer *Account) (*VerifiableCredential, error) {
+	expirationDateTimestamp int64, challenge string, domain interface{}, signer *Account) (*VerifiableCredential, error) {
 	claim := new(VerifiableCredential)
 	claim.Id = UUID_PREFIX + uuid.NewV4().String()
 	claim.Context = append(DefaultContext, contexts...)
@@ -186,19 +190,25 @@ func (this *Claim) CreateClaim(contexts []string, types []string, credentialSubj
 	claim.CredentialStatus = credentialStatus
 
 	// create proof
-	msg, err := json.Marshal(claim)
-	if err != nil {
-		return nil, fmt.Errorf("CreateClaim, json.Marshal claim error: %s", err)
-	}
-	ontId, err := getOntId(issuerId)
+	_, ontId, err := getOntId(issuerId)
 	if err != nil {
 		return nil, fmt.Errorf("CreateClaim, getOntId error: %s", err)
 	}
-	proof, err := this.CreateProof(msg, ontId, signer)
+	proof, err := this.CreateProof(ontId, signer, challenge, domain)
 	if err != nil {
 		return nil, fmt.Errorf("CreateClaim, this.CreateProof error: %s", err)
 	}
 	claim.Proof = proof
+
+	msg, err := json.Marshal(claim)
+	if err != nil {
+		return nil, fmt.Errorf("CreateClaim, json.Marshal claim error: %s", err)
+	}
+	sig, err := signer.Sign(msg)
+	if err != nil {
+		return nil, fmt.Errorf("CreateClaim, signer.Sign error: %s", err)
+	}
+	claim.Proof.Hex = hex.EncodeToString(sig)
 
 	return claim, nil
 }
@@ -300,37 +310,34 @@ func (this *Claim) VerifyCredibleOntId(credibleOntIds []string, claim *Verifiabl
 	return fmt.Errorf("VerifyCredibleOntId failed")
 }
 
-func (this *Claim) VerifyNotExpired(claim *VerifiableCredential) error {
+func (this *Claim) VerifyDate(claim *VerifiableCredential) error {
 	now := time.Now()
-	expirationDate, err := time.Parse("2006-01-02T15:04:05Z", claim.ExpirationDate)
+	expirationDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.ExpirationDate, time.Local)
 	if err != nil {
-		return fmt.Errorf("VerifyNotExpired error: %s", err)
+		return fmt.Errorf("VerifyDate error: %s", err)
 	}
-	if now.After(expirationDate) {
-		return fmt.Errorf("VerifyNotExpired failed")
+	if now.Unix() > expirationDate.Unix() {
+		return fmt.Errorf("VerifyDate expirationDate failed")
+	}
+
+	issuanceDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.IssuanceDate, time.Local)
+	if err != nil {
+		return fmt.Errorf("VerifyDate error: %s", err)
+	}
+	if now.Unix() < issuanceDate.Unix() {
+		return fmt.Errorf("VerifyDate issuanceDate failed")
 	}
 	return nil
 }
 
 func (this *Claim) VerifyIssuerSignature(claim *VerifiableCredential) error {
-	raw := &VerifiableCredential{
-		Context:           claim.Context,
-		Id:                claim.Id,
-		Type:              claim.Type,
-		Issuer:            claim.Issuer,
-		IssuanceDate:      claim.IssuanceDate,
-		ExpirationDate:    claim.ExpirationDate,
-		CredentialSubject: claim.CredentialSubject,
-		CredentialStatus:  claim.CredentialStatus,
-	}
-	msg, err := json.Marshal(raw)
+	msg, err := GenClaimMsg(claim)
 	if err != nil {
-		return fmt.Errorf("VerifyIssuerSignature, json.Marshal raw error: %s", err)
+		return fmt.Errorf("VerifyIssuerSignature, GenClaimMsg error: %s", err)
 	}
-
-	ontId, err := getOntId(claim.Issuer)
+	_, ontId, err := getOntId(claim.Issuer)
 	if err != nil {
-		return fmt.Errorf("CreateClaim, getOntId error: %s", err)
+		return fmt.Errorf("VerifyIssuerSignature, getOntId error: %s", err)
 	}
 	err = this.VerifyProof(ontId, claim.Proof, msg)
 	if err != nil {
@@ -371,7 +378,7 @@ func (this *Claim) GetClaimStatus(contractAddress common.Address, claimId string
 }
 
 func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, types []string, holder string,
-	signerOntIds []string, signers []*Account) (*Presentation, error) {
+	signerOntIds, challenge []string, domain []interface{}, signers []*Account) (*Presentation, error) {
 	presentation := new(Presentation)
 	presentation.Id = UUID_PREFIX + uuid.NewV4().String()
 	presentation.Context = append(DefaultContext, contexts...)
@@ -379,36 +386,38 @@ func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, 
 	presentation.Holder = holder
 	presentation.VerifiableCredential = claims
 
-	msg, err := json.Marshal(presentation)
-	if err != nil {
-		return nil, fmt.Errorf("CreatePresentation, json.Marshal msg error: %s", err)
+	if !(len(signerOntIds) == len(challenge) && len(signerOntIds) == len(domain) && len(signerOntIds) == len(signers)) {
+		return nil, fmt.Errorf("input params error")
 	}
 
 	for i := range signerOntIds {
 		// create proof
-		proof, err := this.CreateProof(msg, signerOntIds[i], signers[i])
+		proof, err := this.CreateProof(signerOntIds[i], signers[i], challenge[i], domain[i])
 		if err != nil {
 			return nil, fmt.Errorf("CreatePresentation, this.CreateProof error: %s", err)
 		}
 		presentation.Proof = append(presentation.Proof, proof)
+	}
+	msg, err := json.Marshal(presentation)
+	if err != nil {
+		return nil, fmt.Errorf("CreatePresentation, json.Marshal msg error: %s", err)
+	}
+	for j := range signerOntIds {
+		sig, err := signers[j].Sign(msg)
+		if err != nil {
+			return nil, fmt.Errorf("CreatePresentation, signer.Sign error: %s", err)
+		}
+		presentation.Proof[j].Hex = hex.EncodeToString(sig)
 	}
 
 	return presentation, nil
 }
 
 func (this *Claim) VerifyPresentationProof(presentation *Presentation, index int) (string, error) {
-	raw := &Presentation{
-		Context:              presentation.Context,
-		Id:                   presentation.Id,
-		Type:                 presentation.Type,
-		VerifiableCredential: presentation.VerifiableCredential,
-		Holder:               presentation.Holder,
-	}
-	msg, err := json.Marshal(raw)
+	msg, err := GenPresentationMsg(presentation)
 	if err != nil {
-		return "", fmt.Errorf("VerifyPresentationProof, json.Marshal raw error: %s", err)
+		return "", fmt.Errorf("VerifyPresentationProof, GenPresentationMsg error: %s", err)
 	}
-
 	ontId := parseOntId(presentation.Proof[index].VerificationMethod)
 	err = this.VerifyProof(ontId, presentation.Proof[index], msg)
 	if err != nil {
@@ -475,28 +484,29 @@ type OntIdObject struct {
 	Id string `json:"id"`
 }
 
-func getOntId(raw interface{}) (string, error) {
+func getOntId(raw interface{}) (map[string]interface{}, string, error) {
 	r, ok := raw.(string)
 	if ok {
-		return r, nil
+		return nil, r, nil
 	}
 	b, err := json.Marshal(raw)
 	if err != nil {
-		return "", fmt.Errorf("getOntId, json.Marshal error: %s", err)
+		return nil, "", fmt.Errorf("getOntId, json.Marshal error: %s", err)
 	}
 	ontIdObject := new(OntIdObject)
 	err = json.Unmarshal(b, ontIdObject)
 	if err != nil {
-		return "", fmt.Errorf("getOntId, json.Unmarshal error: %s", err)
+		return nil, "", fmt.Errorf("getOntId, json.Unmarshal error: %s", err)
 	}
-	return ontIdObject.Id, nil
+	var result map[string]interface{}
+	if err := json.Unmarshal(b, &result); err == nil {
+		return nil, "", fmt.Errorf("getOntId, json.Unmarshal result error: %s", err)
+	}
+	delete(result, "id")
+	return result, ontIdObject.Id, nil
 }
 
-func (this *Claim) CreateProof(msg []byte, ontId string, signer *Account) (*Proof, error) {
-	sig, err := signer.Sign(msg)
-	if err != nil {
-		return nil, fmt.Errorf("createProof, signer.Sign error: %s", err)
-	}
+func (this *Claim) CreateProof(ontId string, signer *Account, challenge string, domain interface{}) (*Proof, error) {
 	issuanceDate := time.Unix(time.Now().Unix(), 0).Format("2006-01-02T15:04:05Z")
 	// get public key id
 	_, pkInfo, err := this.GetPublicKeyId(ontId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
@@ -506,9 +516,48 @@ func (this *Claim) CreateProof(msg []byte, ontId string, signer *Account) (*Proo
 	proof := &Proof{
 		Type:               pkInfo.Type,
 		Created:            issuanceDate,
+		Challenge:          challenge,
+		Domain:             domain,
 		ProofPurpose:       PROOF_PURPOSE,
 		VerificationMethod: pkInfo.Id,
-		Hex:                hex.EncodeToString(sig),
 	}
 	return proof, nil
+}
+
+func GenRequestMsg(request *Request) ([]byte, error) {
+	sign := request.Proof.Hex
+	request.Proof.Hex = ""
+	msg, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("GenRequestMsg, json.Marshal error: %s", err)
+	}
+	request.Proof.Hex = sign
+	return msg, nil
+}
+
+func GenClaimMsg(claim *VerifiableCredential) ([]byte, error) {
+	sign := claim.Proof.Hex
+	claim.Proof.Hex = ""
+	msg, err := json.Marshal(claim)
+	if err != nil {
+		return nil, fmt.Errorf("GenClaimMsg, json.Marshal error: %s", err)
+	}
+	claim.Proof.Hex = sign
+	return msg, nil
+}
+
+func GenPresentationMsg(presentation *Presentation) ([]byte, error) {
+	var signs []string
+	for i := range presentation.Proof {
+		signs = append(signs, presentation.Proof[i].Hex)
+		presentation.Proof[i].Hex = ""
+	}
+	msg, err := json.Marshal(presentation)
+	if err != nil {
+		return nil, fmt.Errorf("GenPresentationMsg, json.Marshal error: %s", err)
+	}
+	for i := range presentation.Proof {
+		presentation.Proof[i].Hex = signs[i]
+	}
+	return msg, nil
 }
