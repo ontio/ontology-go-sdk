@@ -23,6 +23,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ontio/ontology/core/signature"
 	"reflect"
 	"strings"
 	"time"
@@ -64,16 +65,28 @@ type VC struct {
 	Issuer            interface{}       `json:"issuer,omitempty"`
 	CredentialSubject interface{}       `json:"credentialSubject,omitempty"`
 	CredentialStatus  *CredentialStatus `json:"credentialStatus,omitempty"`
+	Proof             *Proof            `json:"proof,omitempty"`
+}
+
+type VP struct {
+	Context              []string    `json:"@context,omitempty"`
+	Type                 []string    `json:"type,omitempty"`
+	VerifiableCredential []string    `json:"credentialStatus,omitempty"`
+	Holder               interface{} `json:"holder,omitempty"`
+	Proof                *Proof      `json:"proof,omitempty"`
 }
 
 type Payload struct {
-	Sub string `json:"sub,omitempty"`
-	Jti string `json:"jti,omitempty"`
-	Iss string `json:"iss,omitempty"`
-	Nbf int64  `json:"nbf,omitempty"`
-	Iat int64  `json:"iat,omitempty"`
-	Exp int64  `json:"exp,omitempty"`
-	VC  *VC    `json:"vc,omitempty"`
+	Iss   string      `json:"iss,omitempty"`
+	Sub   string      `json:"sub,omitempty"`
+	Aud   interface{} `json:"aud,omitempty"`
+	Exp   int64       `json:"exp,omitempty"`
+	Nbf   int64       `json:"nbf,omitempty"`
+	Iat   int64       `json:"iat,omitempty"`
+	Jti   string      `json:"jti,omitempty"`
+	Nonce string      `json:"nonce,omitempty"`
+	VC    *VC         `json:"vc,omitempty"`
+	VP    *VP         `json:"vp,omitempty"`
 }
 
 type JWTClaim struct {
@@ -83,7 +96,7 @@ type JWTClaim struct {
 }
 
 func (this *Claim) CreateJWTClaim(contexts []string, types []string, credentialSubject interface{}, issuerId interface{},
-	expirationDateTimestamp int64, signer *Account) (string, error) {
+	expirationDateTimestamp int64, challenge string, domain interface{}, signer *Account) (string, error) {
 	is, ontId, err := getOntId(issuerId)
 	if err != nil {
 		return "", fmt.Errorf("CreateJWTClaim, getOntId error: %s", err)
@@ -108,6 +121,12 @@ func (this *Claim) CreateJWTClaim(contexts []string, types []string, credentialS
 		return "", fmt.Errorf("CreateJWTClaim, getOntId error: %s", err)
 	}
 	now := time.Now().Unix()
+	proof, err := this.createProof(ontId, signer, challenge, domain, now)
+	if err != nil {
+		return "", fmt.Errorf("CreateClaim, this.CreateProof error: %s", err)
+	}
+	proof.VerificationMethod = ""
+	proof.Type = ""
 	vc := &VC{
 		Context:           append(DefaultContext, contexts...),
 		Type:              append(DefaultClaimType, types...),
@@ -117,6 +136,7 @@ func (this *Claim) CreateJWTClaim(contexts []string, types []string, credentialS
 			Id:   this.claimContractAddress.ToHexString(),
 			Type: CLAIM_STATUS_TYPE,
 		},
+		Proof: proof,
 	}
 	payload := &Payload{
 		Sub: sub,
@@ -124,8 +144,10 @@ func (this *Claim) CreateJWTClaim(contexts []string, types []string, credentialS
 		Iss: ontId,
 		Nbf: now,
 		Iat: now,
-		Exp: expirationDateTimestamp,
 		VC:  vc,
+	}
+	if expirationDateTimestamp != 0 {
+		payload.Exp = expirationDateTimestamp
 	}
 
 	claim := &JWTClaim{
@@ -142,6 +164,112 @@ func (this *Claim) CreateJWTClaim(contexts []string, types []string, credentialS
 	}
 	claim.Jws = base64.StdEncoding.EncodeToString(sign)
 	return claim.ToString()
+}
+
+func (this *Claim) VerifyJWTCredibleOntId(credibleOntIds []string, claim string) error {
+	JWTClaim := new(JWTClaim)
+	err := JWTClaim.Deserialization(claim)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTCredibleOntId, JWTClaim.Deserialization error: %s", err)
+	}
+
+	for _, v := range credibleOntIds {
+		if JWTClaim.Payload.Iss == v {
+			return nil
+		}
+	}
+	return fmt.Errorf("VerifyJWTCredibleOntId failed")
+}
+
+func (this *Claim) VerifyJWTDate(claim string) error {
+	JWTClaim := new(JWTClaim)
+	err := JWTClaim.Deserialization(claim)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTDate, JWTClaim.Deserialization error: %s", err)
+	}
+
+	now := time.Now()
+	if JWTClaim.Payload.Exp != 0 {
+		if now.Unix() > JWTClaim.Payload.Exp {
+			return fmt.Errorf("VerifyJWTDate expirationDate failed")
+		}
+	}
+
+	if JWTClaim.Payload.Nbf != 0 {
+		if now.Unix() < JWTClaim.Payload.Nbf {
+			return fmt.Errorf("VerifyJWTDate issuanceDate nbf failed")
+		}
+	}
+	if JWTClaim.Payload.Iat != 0 {
+		if now.Unix() < JWTClaim.Payload.Iat {
+			return fmt.Errorf("VerifyJWTDate issuanceDate iat failed")
+		}
+	}
+	return nil
+}
+
+func (this *Claim) VerifyJWTIssuerSignature(claim string) error {
+	JWTClaim := new(JWTClaim)
+	err := JWTClaim.Deserialization(claim)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTIssuerSignature, JWTClaim.Deserialization error: %s", err)
+	}
+
+	msg, err := JWTClaim.SignData()
+	if err != nil {
+		return fmt.Errorf("VerifyJWTIssuerSignature, JWTClaim.SignData error: %s", err)
+	}
+	err = this.verifyJWSProof(JWTClaim.Payload.Iss, JWTClaim.Payload.VC.Proof, msg, JWTClaim.Jws)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTIssuerSignature, this.VerifyJWSProof error: %s", err)
+	}
+	return nil
+}
+
+func (this *Claim) verifyJWSProof(ontId string, proof *Proof, msg []byte, jws string) error {
+	sig, err := base64.StdEncoding.DecodeString(jws)
+	if err != nil {
+		return fmt.Errorf("VerifyJWSProof, base64.StdEncoding.DecodeString jws error: %s", err)
+	}
+
+	publicKeyHex, err := this.GetPublicKey(ontId, proof.VerificationMethod)
+	if err != nil {
+		return fmt.Errorf("VerifyJWSProof, this.GetPublicKey error: %s", err)
+	}
+	data, err := hex.DecodeString(publicKeyHex)
+	if err != nil {
+		return fmt.Errorf("VerifyJWSProof, hex.DecodeString public key error: %s", err)
+	}
+	pk, err := keypair.DeserializePublicKey(data)
+	if err != nil {
+		return fmt.Errorf("VerifyJWSProof, keypair.DeserializePublicKey error: %s", err)
+	}
+
+	return signature.Verify(pk, msg, sig)
+}
+
+func (this *Claim) VerifyJWTStatus(claim string) error {
+	JWTClaim := new(JWTClaim)
+	err := JWTClaim.Deserialization(claim)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTStatus, JWTClaim.Deserialization error: %s", err)
+	}
+
+	if JWTClaim.Payload.VC.CredentialStatus.Type != CLAIM_STATUS_TYPE {
+		return fmt.Errorf("VerifyJWTStatus, credential status  %s not match", JWTClaim.Payload.VC.CredentialStatus.Type)
+	}
+	contractAddress, err := common.AddressFromHexString(JWTClaim.Payload.VC.CredentialStatus.Id)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTStatus, common.AddressFromHexString error: %s", err)
+	}
+	status, err := this.getClaimStatus(contractAddress, JWTClaim.Payload.Jti)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTStatus, this.GetClaimStatus error: %s", err)
+	}
+	if status != 1 {
+		return fmt.Errorf("VerifyJWTStatus failed")
+	}
+	return nil
 }
 
 func (this *Claim) RevokeJWTClaimByHolder(gasPrice, gasLimit uint64, claim string, holder string,
@@ -164,7 +292,102 @@ func (this *Claim) RevokeJWTClaimByHolder(gasPrice, gasLimit uint64, claim strin
 		return common.UINT256_EMPTY, fmt.Errorf("RevokeJWTClaimByHolder, this.GetPublicKeyId error: %s", err)
 	}
 
-	return this.RevokeClaim(contractAddress, gasPrice, gasLimit, JWTClaim.Payload.Jti, holder, index, signer, payer)
+	return this.revokeClaim(contractAddress, gasPrice, gasLimit, JWTClaim.Payload.Jti, holder, index, signer, payer)
+}
+
+func (this *Claim) RemoveJWTClaim(gasPrice, gasLimit uint64, claim string, holder string,
+	signer, payer *Account) (common.Uint256, error) {
+	JWTClaim := new(JWTClaim)
+	err := JWTClaim.Deserialization(claim)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTClaim, JWTClaim.Deserialization error: %s", err)
+	}
+
+	index, _, err := this.GetPublicKeyId(holder, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTClaim, this.GetPublicKeyId error: %s", err)
+	}
+	if JWTClaim.Payload.VC.CredentialStatus.Type != CLAIM_STATUS_TYPE {
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTClaim, credential status  %s not match", JWTClaim.Payload.VC.CredentialStatus.Type)
+	}
+	contractAddress, err := common.AddressFromHexString(JWTClaim.Payload.VC.CredentialStatus.Id)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTClaim, common.AddressFromHexString error: %s", err)
+	}
+	params := []interface{}{"Remove", []interface{}{JWTClaim.Payload.Jti, holder, index}}
+	txHash, err := this.ontSdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, signer, contractAddress, params)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTClaim, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
+	}
+	return txHash, nil
+}
+
+func (this *Claim) CreateJWTPresentation(claims []string, contexts, types []string, holder interface{},
+	nonce string, aud interface{}, signer *Account) (string, error) {
+	hd, ontId, err := getOntId(holder)
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTPresentation, getOntId error: %s", err)
+	}
+	// get public key id
+	_, pkInfo, err := this.GetPublicKeyId(ontId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTPresentation, this.GetPublicKeyId error: %s", err)
+	}
+	header := &Header{
+		Alg: JWTSignType[pkInfo.Type],
+		Typ: HEADER_TYPE,
+		Kid: pkInfo.Id,
+	}
+
+	now := time.Now().Unix()
+	var domain interface{}
+	proof, err := this.createProof(ontId, signer, "", domain, now)
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTPresentation, this.CreateProof error: %s", err)
+	}
+	proof.VerificationMethod = ""
+	proof.Type = ""
+	// check claims
+	for _, v := range claims {
+		JWTClaim := new(JWTClaim)
+		err := JWTClaim.Deserialization(v)
+		if err != nil {
+			return "", fmt.Errorf("CreateJWTPresentation, JWTClaim.Deserialization error: %s", err)
+		}
+	}
+	vp := &VP{
+		Context:              append(DefaultContext, contexts...),
+		Type:                 append(DefaultClaimType, types...),
+		VerifiableCredential: claims,
+		Holder:               hd,
+		Proof:                proof,
+	}
+	payload := &Payload{
+		Aud:   aud,
+		Nonce: nonce,
+		Jti:   UUID_PREFIX + uuid.NewV4().String(),
+		Iss:   ontId,
+		VP:    vp,
+	}
+
+	presentation := &JWTClaim{
+		Header:  header,
+		Payload: payload,
+	}
+	signData, err := presentation.SignData()
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTPresentation, claim.SignData error: %s", err)
+	}
+	sign, err := signer.Sign(signData)
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTPresentation, signer.Sign error: %s", err)
+	}
+	presentation.Jws = base64.StdEncoding.EncodeToString(sign)
+	return presentation.ToString()
+}
+
+func (this *Claim) JWTClaim2Json(claim string) (*VerifiableCredential, error) {
+
 }
 
 func (claim *JWTClaim) ToString() (string, error) {

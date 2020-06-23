@@ -111,7 +111,8 @@ func (this *Claim) GenSignReq(credentialSubject interface{}, ontId string, signe
 		CredentialSubject: credentialSubject,
 		OntId:             ontId,
 	}
-	proof, err := this.CreateProof(ontId, signer, "", "")
+	var domain interface{}
+	proof, err := this.createProof(ontId, signer, "", domain, time.Now().Unix())
 	if err != nil {
 		return nil, fmt.Errorf("GenSignReq, this.CreateProof error: %s", err)
 	}
@@ -194,7 +195,7 @@ func (this *Claim) CreateClaim(contexts []string, types []string, credentialSubj
 	if err != nil {
 		return nil, fmt.Errorf("CreateClaim, getOntId error: %s", err)
 	}
-	proof, err := this.CreateProof(ontId, signer, challenge, domain)
+	proof, err := this.createProof(ontId, signer, challenge, domain, now)
 	if err != nil {
 		return nil, fmt.Errorf("CreateClaim, this.CreateProof error: %s", err)
 	}
@@ -270,7 +271,7 @@ func (this *Claim) CommitClaim(contractAddress common.Address, gasPrice, gasLimi
 	return txHash, nil
 }
 
-func (this *Claim) RevokeClaim(contractAddress common.Address, gasPrice, gasLimit uint64, claimId, ontId string, index uint32,
+func (this *Claim) revokeClaim(contractAddress common.Address, gasPrice, gasLimit uint64, claimId, ontId string, index uint32,
 	signer, payer *Account) (common.Uint256, error) {
 	params := []interface{}{"Revoke", []interface{}{claimId, ontId, index}}
 	txHash, err := this.ontSdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, signer, contractAddress, params)
@@ -312,12 +313,14 @@ func (this *Claim) VerifyCredibleOntId(credibleOntIds []string, claim *Verifiabl
 
 func (this *Claim) VerifyDate(claim *VerifiableCredential) error {
 	now := time.Now()
-	expirationDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.ExpirationDate, time.Local)
-	if err != nil {
-		return fmt.Errorf("VerifyDate error: %s", err)
-	}
-	if now.Unix() > expirationDate.Unix() {
-		return fmt.Errorf("VerifyDate expirationDate failed")
+	if claim.ExpirationDate != "" {
+		expirationDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.ExpirationDate, time.Local)
+		if err != nil {
+			return fmt.Errorf("VerifyDate error: %s", err)
+		}
+		if now.Unix() > expirationDate.Unix() {
+			return fmt.Errorf("VerifyDate expirationDate failed")
+		}
 	}
 
 	issuanceDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.IssuanceDate, time.Local)
@@ -339,7 +342,7 @@ func (this *Claim) VerifyIssuerSignature(claim *VerifiableCredential) error {
 	if err != nil {
 		return fmt.Errorf("VerifyIssuerSignature, getOntId error: %s", err)
 	}
-	err = this.VerifyProof(ontId, claim.Proof, msg)
+	err = this.verifyProof(ontId, claim.Proof, msg)
 	if err != nil {
 		return fmt.Errorf("VerifyIssuerSignature, this.VerifyProof error: %s", err)
 	}
@@ -354,7 +357,7 @@ func (this *Claim) VerifyStatus(claim *VerifiableCredential) error {
 	if err != nil {
 		return fmt.Errorf("VerifyStatus, common.AddressFromHexString error: %s", err)
 	}
-	status, err := this.GetClaimStatus(contractAddress, claim.Id)
+	status, err := this.getClaimStatus(contractAddress, claim.Id)
 	if err != nil {
 		return fmt.Errorf("VerifyStatus, this.GetClaimStatus error: %s", err)
 	}
@@ -364,7 +367,7 @@ func (this *Claim) VerifyStatus(claim *VerifiableCredential) error {
 	return nil
 }
 
-func (this *Claim) GetClaimStatus(contractAddress common.Address, claimId string) (uint64, error) {
+func (this *Claim) getClaimStatus(contractAddress common.Address, claimId string) (uint64, error) {
 	params := []interface{}{"GetStatus", []interface{}{claimId}}
 	preExecResult, err := this.ontSdk.NeoVM.PreExecInvokeNeoVMContract(contractAddress, params)
 	if err != nil {
@@ -377,7 +380,7 @@ func (this *Claim) GetClaimStatus(contractAddress common.Address, claimId string
 	return r.Uint64(), nil
 }
 
-func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, types []string, holder string,
+func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, types []string, holder interface{},
 	signerOntIds, challenge []string, domain []interface{}, signers []*Account) (*Presentation, error) {
 	presentation := new(Presentation)
 	presentation.Id = UUID_PREFIX + uuid.NewV4().String()
@@ -389,27 +392,27 @@ func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, 
 	if !(len(signerOntIds) == len(challenge) && len(signerOntIds) == len(domain) && len(signerOntIds) == len(signers)) {
 		return nil, fmt.Errorf("input params error")
 	}
-
+	now := time.Now().Unix()
+	proofs := make([]*Proof, 0)
 	for i := range signerOntIds {
 		// create proof
-		proof, err := this.CreateProof(signerOntIds[i], signers[i], challenge[i], domain[i])
+		proof, err := this.createProof(signerOntIds[i], signers[i], challenge[i], domain[i], now)
 		if err != nil {
 			return nil, fmt.Errorf("CreatePresentation, this.CreateProof error: %s", err)
 		}
-		presentation.Proof = append(presentation.Proof, proof)
-	}
-	msg, err := json.Marshal(presentation)
-	if err != nil {
-		return nil, fmt.Errorf("CreatePresentation, json.Marshal msg error: %s", err)
-	}
-	for j := range signerOntIds {
-		sig, err := signers[j].Sign(msg)
+		presentation.Proof = []*Proof{proof}
+		msg, err := json.Marshal(presentation)
+		if err != nil {
+			return nil, fmt.Errorf("CreatePresentation, json.Marshal msg error: %s", err)
+		}
+		sig, err := signers[i].Sign(msg)
 		if err != nil {
 			return nil, fmt.Errorf("CreatePresentation, signer.Sign error: %s", err)
 		}
-		presentation.Proof[j].Hex = hex.EncodeToString(sig)
+		proof.Hex = hex.EncodeToString(sig)
+		proofs = append(proofs, proof)
 	}
-
+	presentation.Proof = proofs
 	return presentation, nil
 }
 
@@ -419,14 +422,14 @@ func (this *Claim) VerifyPresentationProof(presentation *Presentation, index int
 		return "", fmt.Errorf("VerifyPresentationProof, GenPresentationMsg error: %s", err)
 	}
 	ontId := parseOntId(presentation.Proof[index].VerificationMethod)
-	err = this.VerifyProof(ontId, presentation.Proof[index], msg)
+	err = this.verifyProof(ontId, presentation.Proof[index], msg)
 	if err != nil {
 		return "", fmt.Errorf("VerifyPresentationProof, this.VerifyProof error: %s", err)
 	}
 	return ontId, nil
 }
 
-func (this *Claim) VerifyProof(ontId string, proof *Proof, msg []byte) error {
+func (this *Claim) verifyProof(ontId string, proof *Proof, msg []byte) error {
 	sig, err := hex.DecodeString(proof.Hex)
 	if err != nil {
 		return fmt.Errorf("VerifyProof, hex.DecodeString signature error: %s", err)
@@ -463,7 +466,7 @@ func (this *Claim) RevokeClaimByHolder(gasPrice, gasLimit uint64, claim *Verifia
 		return common.UINT256_EMPTY, fmt.Errorf("RevokeIdByHolder, this.GetPublicKeyId error: %s", err)
 	}
 
-	return this.RevokeClaim(contractAddress, gasPrice, gasLimit, claim.Id, holder, index, signer, payer)
+	return this.revokeClaim(contractAddress, gasPrice, gasLimit, claim.Id, holder, index, signer, payer)
 }
 
 func (this *Claim) RevokeClaimByIssuer(gasPrice, gasLimit uint64, claimId string, issuer string,
@@ -473,7 +476,7 @@ func (this *Claim) RevokeClaimByIssuer(gasPrice, gasLimit uint64, claimId string
 		return common.UINT256_EMPTY, fmt.Errorf("RevokeIdByIssuer, this.GetPublicKeyId error: %s", err)
 	}
 
-	return this.RevokeClaim(this.claimContractAddress, gasPrice, gasLimit, claimId, issuer, index, signer, payer)
+	return this.revokeClaim(this.claimContractAddress, gasPrice, gasLimit, claimId, issuer, index, signer, payer)
 }
 
 func parseOntId(raw string) string {
@@ -506,8 +509,8 @@ func getOntId(raw interface{}) (map[string]interface{}, string, error) {
 	return result, ontIdObject.Id, nil
 }
 
-func (this *Claim) CreateProof(ontId string, signer *Account, challenge string, domain interface{}) (*Proof, error) {
-	issuanceDate := time.Unix(time.Now().Unix(), 0).Format("2006-01-02T15:04:05Z")
+func (this *Claim) createProof(ontId string, signer *Account, challenge string, domain interface{}, now int64) (*Proof, error) {
+	issuanceDate := time.Unix(now, 0).Format("2006-01-02T15:04:05Z")
 	// get public key id
 	_, pkInfo, err := this.GetPublicKeyId(ontId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {
