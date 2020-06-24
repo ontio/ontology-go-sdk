@@ -34,29 +34,29 @@ type Relationship struct {
 	Spouse string `json:"spouse"`
 }
 
-func TestClaim(t *testing.T) {
+func TestCreditial(t *testing.T) {
 	Init()
 
-	testOntSdk.SetClaimContractAddress("52df370680de17bc5d4262c446f102a0ee0d6312")
+	testOntSdk.SetCredContractAddress("52df370680de17bc5d4262c446f102a0ee0d6312")
 	issuer, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
-		t.Errorf("TestClaim NewDefaultSettingIdentity error:%s", err)
+		t.Errorf("TestCreditial NewDefaultSettingIdentity error:%s", err)
 		return
 	}
 	holder, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
-		t.Errorf("TestClaim NewDefaultSettingIdentity error:%s", err)
+		t.Errorf("TestCreditial NewDefaultSettingIdentity error:%s", err)
 		return
 	}
 
 	_, err = testOntSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, issuer.ID, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim RegIDWithPublicKey error:%s", err)
+		t.Errorf("TestCreditial RegIDWithPublicKey error:%s", err)
 		return
 	}
 	_, err = testOntSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, holder.ID, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim RegIDWithPublicKey error:%s", err)
+		t.Errorf("TestCreditial RegIDWithPublicKey error:%s", err)
 		return
 	}
 	testOntSdk.WaitForGenerateBlock(30 * time.Second)
@@ -66,100 +66,100 @@ func TestClaim(t *testing.T) {
 			{"did:example:c276e12ec21ebfeb1f712ebc6f1", "Morgan Doe", "did:example:ebfeb1f712ebc6f1c276e12ec21"}},
 	)
 	//var credentialSubject2 interface{}
-	request, err := testOntSdk.Claim.GenSignReq(credentialSubject, holder.ID, testDefAcc)
+	request, err := testOntSdk.Credential.GenSignReq(credentialSubject, holder.ID, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.GenSignReq error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.GenSignReq error:%s", err)
 		return
 	}
 
-	err = testOntSdk.Claim.VerifySignReq(request)
+	err = testOntSdk.Credential.VerifySignReq(request)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.VerifySignReq error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.VerifySignReq error:%s", err)
 		return
 	}
 
 	contexts := []string{"context1", "context2"}
 	types := []string{"RelationshipCredential"}
 	expirationDate := time.Now().Unix() + 300
-	claim, err := testOntSdk.Claim.CreateClaim(contexts, types, credentialSubject, issuer.ID, expirationDate,
+	credential, err := testOntSdk.Credential.CreateCredential(contexts, types, credentialSubject, issuer.ID, expirationDate,
 		"", "", testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.CreateClaim error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.CreateCredential error:%s", err)
 		return
 	}
-	claimJson, err := json.Marshal(claim)
+	credentialJson, err := json.Marshal(credential)
 	if err != nil {
-		t.Errorf("TestClaim json.Marshal claim error:%s", err)
+		t.Errorf("TestCreditial json.Marshal credential error:%s", err)
 		return
 	}
-	fmt.Println("claim is: ", string(claimJson))
+	fmt.Println("credential is: ", string(credentialJson))
 
-	contractAddress, err := common.AddressFromHexString(claim.CredentialStatus.Id)
+	contractAddress, err := common.AddressFromHexString(credential.CredentialStatus.Id)
 	if err != nil {
-		t.Errorf("TestClaim common.AddressFromHexString:%s", err)
+		t.Errorf("TestCreditial common.AddressFromHexString:%s", err)
 		return
 	}
-	txHash, err := testOntSdk.Claim.CommitClaim(contractAddress, 500, 20000, claim.Id, issuer.ID, holder.ID, testDefAcc, testDefAcc)
+	txHash, err := testOntSdk.Credential.CommitCredential(contractAddress, 500, 20000, credential.Id, issuer.ID, holder.ID, testDefAcc, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.CommitClaim error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.CommitCredential error:%s", err)
 		return
 	}
 	fmt.Println("txHash 1 is: ", txHash.ToHexString())
 	testOntSdk.WaitForGenerateBlock(30 * time.Second)
 
-	err = testOntSdk.Claim.VerifyCredibleOntId([]string{issuer.ID}, claim)
+	err = testOntSdk.Credential.VerifyCredibleOntId([]string{issuer.ID}, credential)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.VerifyCredibleOntId error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.VerifyCredibleOntId error:%s", err)
 		return
 	}
-	err = testOntSdk.Claim.VerifyDate(claim)
+	err = testOntSdk.Credential.VerifyDate(credential)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.VerifyDate error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.VerifyDate error:%s", err)
 		return
 	}
-	err = testOntSdk.Claim.VerifyIssuerSignature(claim)
+	err = testOntSdk.Credential.VerifyIssuerSignature(credential)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.VerifyIssuerSignature error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.VerifyIssuerSignature error:%s", err)
 		return
 	}
-	err = testOntSdk.Claim.VerifyStatus(claim)
+	err = testOntSdk.Credential.VerifyStatus(credential)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.VerifyStatus error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.VerifyStatus error:%s", err)
 		return
 	}
 
-	presentation, err := testOntSdk.Claim.CreatePresentation([]*VerifiableCredential{claim}, contexts, types, holder.ID,
+	presentation, err := testOntSdk.Credential.CreatePresentation([]*VerifiableCredential{credential}, contexts, types, holder.ID,
 		[]string{issuer.ID}, []string{""}, []interface{}{""}, []*Account{testDefAcc})
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.CreatePresentation error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.CreatePresentation error:%s", err)
 		return
 	}
 	presentationJson, err := json.Marshal(presentation)
 	if err != nil {
-		t.Errorf("TestClaim json.Marshal presentation error:%s", err)
+		t.Errorf("TestCreditial json.Marshal presentation error:%s", err)
 		return
 	}
 	fmt.Println("presentation is: ", string(presentationJson))
 
 	for i := range presentation.Proof {
-		_, err = testOntSdk.Claim.VerifyPresentationProof(presentation, i)
+		_, err = testOntSdk.Credential.VerifyPresentationProof(presentation, i)
 		if err != nil {
-			t.Errorf("TestClaim testOntSdk.Claim.VerifyPresentationProof error:%s", err)
+			t.Errorf("TestCreditial testOntSdk.Credential.VerifyPresentationProof error:%s", err)
 			return
 		}
 	}
 
-	txHash, err = testOntSdk.Claim.RevokeClaimByHolder(500, 20000, claim, holder.ID, testDefAcc, testDefAcc)
+	txHash, err = testOntSdk.Credential.RevokeCredentialByHolder(500, 20000, credential, holder.ID, testDefAcc, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.RevokeClaimByHolder error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.RevokeCredentialByHolder error:%s", err)
 		return
 	}
 	fmt.Println("txHash 2 is: ", txHash.ToHexString())
 	testOntSdk.WaitForGenerateBlock(30 * time.Second)
 
-	txHash, err = testOntSdk.Claim.RemoveClaim(500, 20000, claim, holder.ID, testDefAcc, testDefAcc)
+	txHash, err = testOntSdk.Credential.RemoveCredential(500, 20000, credential, holder.ID, testDefAcc, testDefAcc)
 	if err != nil {
-		t.Errorf("TestClaim testOntSdk.Claim.RevokeClaimByHolder error:%s", err)
+		t.Errorf("TestCreditial testOntSdk.Credential.RevokeCredentialByHolder error:%s", err)
 		return
 	}
 	fmt.Println("txHash 3 is: ", txHash.ToHexString())

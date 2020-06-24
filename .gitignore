@@ -2,3 +2,4 @@ cscope*
 vendor/*
 glide.lock
 .idea/
+wallet.dat

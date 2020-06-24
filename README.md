@@ -1055,14 +1055,14 @@ ontSdk.Native.OntId.GetDocumentJson(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
-### 2.6 Claim API
+### 2.6 Credential API
 
 #### 2.6.1 GenSignReq
 
 ```
-ontSdk.Claim.GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error)
+ontSdk.Credential.GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error)
 ```
-`credentialSubject`: [credentialSubject of claim](https://www.w3.org/TR/vc-data-model/#credential-subject)
+`credentialSubject`: [credentialSubject of Credential](https://www.w3.org/TR/vc-data-model/#credential-subject)
 
 `ontId`: holder ONT ID
 
@@ -1071,20 +1071,20 @@ ontSdk.Claim.GenSignReq(credentialSubject interface{}, ontId string, signer *Acc
 #### 2.6.2 VerifySignReq
 
 ```
-ontSdk.Claim.VerifySignReq(request *Request) error
+ontSdk.Credential.VerifySignReq(request *Request) error
 ```
 `request`: result of GenSignReq
 
-#### 2.6.3 CreateClaim
+#### 2.6.3 CreateCredential
 
 ```
-ontSdk.Claim.CreateClaim(contexts []string, types []string, credentialSubject interface{}, issuerId string, expirationDateTimestamp int64, signer *Account) (*VerifiableCredential, uint32, error)
+ontSdk.Credential.CreateCredential(contexts []string, types []string, credentialSubject interface{}, issuerId string, expirationDateTimestamp int64, signer *Account) (*VerifiableCredential, uint32, error)
 ```
 `contexts`: [definition](https://www.w3.org/TR/vc-data-model/#contexts)
 
 `types`: [definition](https://www.w3.org/TR/vc-data-model/#types)
 
-`credentialSubject`: [credentialSubject of claim](https://www.w3.org/TR/vc-data-model/#credential-subject)
+`credentialSubject`: [credentialSubject of Credential](https://www.w3.org/TR/vc-data-model/#credential-subject)
 
 `issuerId`: ONT ID of issuer
 
@@ -1092,12 +1092,12 @@ ontSdk.Claim.CreateClaim(contexts []string, types []string, credentialSubject in
 
 `signer`: signer account
 
-#### 2.6.4 CommitClaim
+#### 2.6.4 CommitCredential
 
 ```
-ontSdk.Claim.CommitClaim(gasPrice, gasLimit uint64, claimId, issuerId, holderId string, index uint32, signer, payer *Account) (common.Uint256, error)
+ontSdk.Credential.CommitCredential(gasPrice, gasLimit uint64, credentialId, issuerId, holderId string, index uint32, signer, payer *Account) (common.Uint256, error)
 ```
-`claimId`: Id of claim
+`credentialId`: Id of credential
 
 `issuerId`: ONT ID of issuer
 
@@ -1110,39 +1110,39 @@ ontSdk.Claim.CommitClaim(gasPrice, gasLimit uint64, claimId, issuerId, holderId 
 #### 2.6.5 VerifyCredibleOntId
 
 ```
-ontSdk.Claim.VerifyCredibleOntId(credibleOntIds []string, claim *VerifiableCredential) error
+ontSdk.Credential.VerifyCredibleOntId(credibleOntIds []string, credential *VerifiableCredential) error
 ```
 `credibleOntIds`: credible ONT ID list
 
-`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
 #### 2.6.6 VerifyNotExpired
 
 ```
-ontSdk.Claim.VerifyNotExpired(claim *VerifiableCredential) error
+ontSdk.Credential.VerifyNotExpired(credential *VerifiableCredential) error
 ```
-`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
 #### 2.6.7 VerifyIssuerSignature
 
 ```
-ontSdk.Claim.VerifyIssuerSignature(claim *VerifiableCredential) error
+ontSdk.Credential.VerifyIssuerSignature(credential *VerifiableCredential) error
 ```
-`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
 #### 2.6.8 VerifyStatus
 
 ```
-ontSdk.Claim.VerifyStatus(claim *VerifiableCredential) error
+ontSdk.Credential.VerifyStatus(credential *VerifiableCredential) error
 ```
-`claim`: [definition](https://www.w3.org/TR/vc-data-model/)
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
 #### 2.6.9 CreatePresentation
 
 ```
-ontSdk.Claim.CreatePresentation(claims []*VerifiableCredential, contexts, types []string, holder string, signers []*Account) (*Presentation, error)
+ontSdk.Credential.CreatePresentation(credentials []*VerifiableCredential, contexts, types []string, holder string, signers []*Account) (*Presentation, error)
 ```
-`claims`: claim list
+`credentials`: credential list
 
 `contexts`: [definition](https://www.w3.org/TR/vc-data-model/#contexts)
 
@@ -1155,7 +1155,7 @@ ontSdk.Claim.CreatePresentation(claims []*VerifiableCredential, contexts, types 
 #### 2.6.10 VerifyPresentation
 
 ```
-ontSdk.Claim.VerifyPresentation(presentation *Presentation, credibleOntIds []string) error
+ontSdk.Credential.VerifyPresentation(presentation *Presentation, credibleOntIds []string) error
 ```
 `presentation`: [definition](https://www.w3.org/TR/vc-data-model/#presentations-0)
 

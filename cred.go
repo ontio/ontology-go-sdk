@@ -32,21 +32,21 @@ import (
 )
 
 const (
-	CLAIM_STATUS_TYPE ClaimStatusType = "AttestContract"
-	PROOF_PURPOSE     ProofPurpose    = "assertionMethod"
-	UUID_PREFIX                       = "urn:uuid:"
+	CREDENTIAL_STATUS_TYPE CredentialStatusType = "AttestContract"
+	PROOF_PURPOSE          ProofPurpose         = "assertionMethod"
+	UUID_PREFIX                                 = "urn:uuid:"
 )
 
-type ClaimStatusType string
+type CredentialStatusType string
 type ProofPurpose string
 
 var DefaultContext = []string{"https://www.w3.org/2018/credentials/v1", "https://ontid.ont.io/credentials/v1"}
-var DefaultClaimType = []string{"VerifiableCredential"}
+var DefaultCredentialType = []string{"VerifiableCredential"}
 var DefaultPresentationType = []string{"VerifiablePresentation"}
 
-type Claim struct {
-	claimContractAddress common.Address
-	ontSdk               *OntologySdk
+type Credential struct {
+	credRecordContractAddress common.Address
+	ontSdk                    *OntologySdk
 }
 
 type Request struct {
@@ -56,8 +56,8 @@ type Request struct {
 }
 
 type CredentialStatus struct {
-	Id   string          `json:"id"`
-	Type ClaimStatusType `json:"type"`
+	Id   string               `json:"id"`
+	Type CredentialStatusType `json:"type"`
 }
 
 type Proof struct {
@@ -100,13 +100,13 @@ type PublicKey struct {
 	PublicKeyHex string `json:"publicKeyHex"`
 }
 
-func newClaim(ontSdk *OntologySdk) *Claim {
-	return &Claim{
+func newCredential(ontSdk *OntologySdk) *Credential {
+	return &Credential{
 		ontSdk: ontSdk,
 	}
 }
 
-func (this *Claim) GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error) {
+func (this *Credential) GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error) {
 	request := &Request{
 		CredentialSubject: credentialSubject,
 		OntId:             ontId,
@@ -131,7 +131,7 @@ func (this *Claim) GenSignReq(credentialSubject interface{}, ontId string, signe
 	return request, nil
 }
 
-func (this *Claim) VerifySignReq(request *Request) error {
+func (this *Credential) VerifySignReq(request *Request) error {
 	msg, err := GenRequestMsg(request)
 	if err != nil {
 		return fmt.Errorf("VerifySignReq, hex.DecodeString signature error: %s", err)
@@ -162,59 +162,59 @@ func (this *Claim) VerifySignReq(request *Request) error {
 	return fmt.Errorf("VerifySignReq failed")
 }
 
-func (this *Claim) CreateClaim(contexts []string, types []string, credentialSubject interface{}, issuerId interface{},
+func (this *Credential) CreateCredential(contexts []string, types []string, credentialSubject interface{}, issuerId interface{},
 	expirationDateTimestamp int64, challenge string, domain interface{}, signer *Account) (*VerifiableCredential, error) {
-	claim := new(VerifiableCredential)
-	claim.Id = UUID_PREFIX + uuid.NewV4().String()
-	claim.Context = append(DefaultContext, contexts...)
-	claim.Type = append(DefaultClaimType, types...)
-	claim.Issuer = issuerId
+	credential := new(VerifiableCredential)
+	credential.Id = UUID_PREFIX + uuid.NewV4().String()
+	credential.Context = append(DefaultContext, contexts...)
+	credential.Type = append(DefaultCredentialType, types...)
+	credential.Issuer = issuerId
 
 	now := time.Now().Unix()
 	issuanceDate := time.Unix(now, 0).Format("2006-01-02T15:04:05Z")
-	claim.IssuanceDate = issuanceDate
+	credential.IssuanceDate = issuanceDate
 
 	if expirationDateTimestamp != 0 {
 		expirationDate := time.Unix(expirationDateTimestamp, 0).Format("2006-01-02T15:04:05Z")
-		claim.ExpirationDate = expirationDate
+		credential.ExpirationDate = expirationDate
 		if now > expirationDateTimestamp {
-			return nil, fmt.Errorf("CreateClaim, now is after expirationDateTimestamp")
+			return nil, fmt.Errorf("CreateCredential, now is after expirationDateTimestamp")
 		}
 	}
 
-	claim.CredentialSubject = credentialSubject
+	credential.CredentialSubject = credentialSubject
 
 	credentialStatus := &CredentialStatus{
-		Id:   this.claimContractAddress.ToHexString(),
-		Type: CLAIM_STATUS_TYPE,
+		Id:   this.credRecordContractAddress.ToHexString(),
+		Type: CREDENTIAL_STATUS_TYPE,
 	}
-	claim.CredentialStatus = credentialStatus
+	credential.CredentialStatus = credentialStatus
 
 	// create proof
 	_, ontId, err := getOntId(issuerId)
 	if err != nil {
-		return nil, fmt.Errorf("CreateClaim, getOntId error: %s", err)
+		return nil, fmt.Errorf("CreateCredential, getOntId error: %s", err)
 	}
 	proof, err := this.createProof(ontId, signer, challenge, domain, now)
 	if err != nil {
-		return nil, fmt.Errorf("CreateClaim, this.CreateProof error: %s", err)
+		return nil, fmt.Errorf("CreateCredential, this.CreateProof error: %s", err)
 	}
-	claim.Proof = proof
+	credential.Proof = proof
 
-	msg, err := json.Marshal(claim)
+	msg, err := json.Marshal(credential)
 	if err != nil {
-		return nil, fmt.Errorf("CreateClaim, json.Marshal claim error: %s", err)
+		return nil, fmt.Errorf("CreateCredential, json.Marshal credential error: %s", err)
 	}
 	sig, err := signer.Sign(msg)
 	if err != nil {
-		return nil, fmt.Errorf("CreateClaim, signer.Sign error: %s", err)
+		return nil, fmt.Errorf("CreateCredential, signer.Sign error: %s", err)
 	}
-	claim.Proof.Hex = hex.EncodeToString(sig)
+	credential.Proof.Hex = hex.EncodeToString(sig)
 
-	return claim, nil
+	return credential, nil
 }
 
-func (this *Claim) GetPublicKeyId(ontId string, publicKeyHex string) (uint32, *PublicKey, error) {
+func (this *Credential) GetPublicKeyId(ontId string, publicKeyHex string) (uint32, *PublicKey, error) {
 	publicKeyList, err := this.GetPublicKeyList(ontId)
 	if err != nil {
 		return 0, nil, fmt.Errorf("GetPublicKeyId, this.GetPublicKeyList error: %s", err)
@@ -228,7 +228,7 @@ func (this *Claim) GetPublicKeyId(ontId string, publicKeyHex string) (uint32, *P
 	return 0, nil, fmt.Errorf("GetPublicKeyId, record not found")
 }
 
-func (this *Claim) GetPublicKey(ontId string, Id string) (string, error) {
+func (this *Credential) GetPublicKey(ontId string, Id string) (string, error) {
 	publicKeyList, err := this.GetPublicKeyList(ontId)
 	if err != nil {
 		return "", fmt.Errorf("GetPublicKeyId, this.GetPublicKeyList error: %s", err)
@@ -242,7 +242,7 @@ func (this *Claim) GetPublicKey(ontId string, Id string) (string, error) {
 	return "", fmt.Errorf("GetPublicKeyId, record not found")
 }
 
-func (this *Claim) GetPublicKeyList(ontId string) (PublicKeyList, error) {
+func (this *Credential) GetPublicKeyList(ontId string) (PublicKeyList, error) {
 	publicKeys, err := this.ontSdk.Native.OntId.GetPublicKeysJson(ontId)
 	if err != nil {
 		return nil, fmt.Errorf("GetPublicKeyList, this.ontSdk.Native.OntId.GetPublicKeysJson error: %s", err)
@@ -257,64 +257,64 @@ func (this *Claim) GetPublicKeyList(ontId string) (PublicKeyList, error) {
 	return publicKeyList, nil
 }
 
-func (this *Claim) CommitClaim(contractAddress common.Address, gasPrice, gasLimit uint64, claimId, issuerId,
+func (this *Credential) CommitCredential(contractAddress common.Address, gasPrice, gasLimit uint64, credentialId, issuerId,
 	holderId string, signer, payer *Account) (common.Uint256, error) {
 	index, _, err := this.GetPublicKeyId(holderId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("CommitClaim, this.GetPublicKeyId error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("CommitCredential, this.GetPublicKeyId error: %s", err)
 	}
-	params := []interface{}{"Commit", []interface{}{claimId, issuerId, index, holderId}}
+	params := []interface{}{"Commit", []interface{}{credentialId, issuerId, index, holderId}}
 	txHash, err := this.ontSdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, signer, contractAddress, params)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("CommitClaim, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("CommitCredential, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
 	}
 	return txHash, nil
 }
 
-func (this *Claim) revokeClaim(contractAddress common.Address, gasPrice, gasLimit uint64, claimId, ontId string, index uint32,
+func (this *Credential) revokeCredential(contractAddress common.Address, gasPrice, gasLimit uint64, credentialId, ontId string, index uint32,
 	signer, payer *Account) (common.Uint256, error) {
-	params := []interface{}{"Revoke", []interface{}{claimId, ontId, index}}
+	params := []interface{}{"Revoke", []interface{}{credentialId, ontId, index}}
 	txHash, err := this.ontSdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, signer, contractAddress, params)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeClaim, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("revokeCredential, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
 	}
 	return txHash, nil
 }
 
-func (this *Claim) RemoveClaim(gasPrice, gasLimit uint64, claim *VerifiableCredential, ontId string,
+func (this *Credential) RemoveCredential(gasPrice, gasLimit uint64, credential *VerifiableCredential, ontId string,
 	signer, payer *Account) (common.Uint256, error) {
 	index, _, err := this.GetPublicKeyId(ontId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RemoveClaim, this.GetPublicKeyId error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveCredential, this.GetPublicKeyId error: %s", err)
 	}
-	if claim.CredentialStatus.Type != CLAIM_STATUS_TYPE {
-		return common.UINT256_EMPTY, fmt.Errorf("RemoveClaim, credential status  %s not match", claim.CredentialStatus.Type)
+	if credential.CredentialStatus.Type != CREDENTIAL_STATUS_TYPE {
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveCredential, credential status  %s not match", credential.CredentialStatus.Type)
 	}
-	contractAddress, err := common.AddressFromHexString(claim.CredentialStatus.Id)
+	contractAddress, err := common.AddressFromHexString(credential.CredentialStatus.Id)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RemoveClaim, common.AddressFromHexString error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveCredential, common.AddressFromHexString error: %s", err)
 	}
-	params := []interface{}{"Remove", []interface{}{claim.Id, ontId, index}}
+	params := []interface{}{"Remove", []interface{}{credential.Id, ontId, index}}
 	txHash, err := this.ontSdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, payer, signer, contractAddress, params)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeClaim, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveCredential, this.ontSdk.NeoVM.InvokeNeoVMContract error: %s", err)
 	}
 	return txHash, nil
 }
 
-func (this *Claim) VerifyCredibleOntId(credibleOntIds []string, claim *VerifiableCredential) error {
+func (this *Credential) VerifyCredibleOntId(credibleOntIds []string, credential *VerifiableCredential) error {
 	for _, v := range credibleOntIds {
-		if claim.Issuer == v {
+		if credential.Issuer == v {
 			return nil
 		}
 	}
 	return fmt.Errorf("VerifyCredibleOntId failed")
 }
 
-func (this *Claim) VerifyDate(claim *VerifiableCredential) error {
+func (this *Credential) VerifyDate(credential *VerifiableCredential) error {
 	now := time.Now()
-	if claim.ExpirationDate != "" {
-		expirationDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.ExpirationDate, time.Local)
+	if credential.ExpirationDate != "" {
+		expirationDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", credential.ExpirationDate, time.Local)
 		if err != nil {
 			return fmt.Errorf("VerifyDate error: %s", err)
 		}
@@ -323,7 +323,7 @@ func (this *Claim) VerifyDate(claim *VerifiableCredential) error {
 		}
 	}
 
-	issuanceDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", claim.IssuanceDate, time.Local)
+	issuanceDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", credential.IssuanceDate, time.Local)
 	if err != nil {
 		return fmt.Errorf("VerifyDate error: %s", err)
 	}
@@ -333,33 +333,33 @@ func (this *Claim) VerifyDate(claim *VerifiableCredential) error {
 	return nil
 }
 
-func (this *Claim) VerifyIssuerSignature(claim *VerifiableCredential) error {
-	msg, err := GenClaimMsg(claim)
+func (this *Credential) VerifyIssuerSignature(credential *VerifiableCredential) error {
+	msg, err := GenCredentialMsg(credential)
 	if err != nil {
-		return fmt.Errorf("VerifyIssuerSignature, GenClaimMsg error: %s", err)
+		return fmt.Errorf("VerifyIssuerSignature, GenCredentialMsg error: %s", err)
 	}
-	_, ontId, err := getOntId(claim.Issuer)
+	_, ontId, err := getOntId(credential.Issuer)
 	if err != nil {
 		return fmt.Errorf("VerifyIssuerSignature, getOntId error: %s", err)
 	}
-	err = this.verifyProof(ontId, claim.Proof, msg)
+	err = this.verifyProof(ontId, credential.Proof, msg)
 	if err != nil {
 		return fmt.Errorf("VerifyIssuerSignature, this.VerifyProof error: %s", err)
 	}
 	return nil
 }
 
-func (this *Claim) VerifyStatus(claim *VerifiableCredential) error {
-	if claim.CredentialStatus.Type != CLAIM_STATUS_TYPE {
-		return fmt.Errorf("VerifyStatus, credential status  %s not match", claim.CredentialStatus.Type)
+func (this *Credential) VerifyStatus(credential *VerifiableCredential) error {
+	if credential.CredentialStatus.Type != CREDENTIAL_STATUS_TYPE {
+		return fmt.Errorf("VerifyStatus, credential status  %s not match", credential.CredentialStatus.Type)
 	}
-	contractAddress, err := common.AddressFromHexString(claim.CredentialStatus.Id)
+	contractAddress, err := common.AddressFromHexString(credential.CredentialStatus.Id)
 	if err != nil {
 		return fmt.Errorf("VerifyStatus, common.AddressFromHexString error: %s", err)
 	}
-	status, err := this.getClaimStatus(contractAddress, claim.Id)
+	status, err := this.getCredentialStatus(contractAddress, credential.Id)
 	if err != nil {
-		return fmt.Errorf("VerifyStatus, this.GetClaimStatus error: %s", err)
+		return fmt.Errorf("VerifyStatus, this.getCredentialStatus error: %s", err)
 	}
 	if status != 1 {
 		return fmt.Errorf("VerifyStatus failed")
@@ -367,27 +367,27 @@ func (this *Claim) VerifyStatus(claim *VerifiableCredential) error {
 	return nil
 }
 
-func (this *Claim) getClaimStatus(contractAddress common.Address, claimId string) (uint64, error) {
-	params := []interface{}{"GetStatus", []interface{}{claimId}}
+func (this *Credential) getCredentialStatus(contractAddress common.Address, credentialId string) (uint64, error) {
+	params := []interface{}{"GetStatus", []interface{}{credentialId}}
 	preExecResult, err := this.ontSdk.NeoVM.PreExecInvokeNeoVMContract(contractAddress, params)
 	if err != nil {
-		return 0, fmt.Errorf("GetClaimStatus, this.ontSdk.NeoVM.PreExecInvokeNeoVMContract error: %s", err)
+		return 0, fmt.Errorf("getCredentialStatus, this.ontSdk.NeoVM.PreExecInvokeNeoVMContract error: %s", err)
 	}
 	r, err := preExecResult.Result.ToInteger()
 	if err != nil {
-		return 0, fmt.Errorf("GetClaimStatus, preExecResult.Result.ToInteger error: %s", err)
+		return 0, fmt.Errorf("getCredentialStatus, preExecResult.Result.ToInteger error: %s", err)
 	}
 	return r.Uint64(), nil
 }
 
-func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, types []string, holder interface{},
+func (this *Credential) CreatePresentation(credentials []*VerifiableCredential, contexts, types []string, holder interface{},
 	signerOntIds, challenge []string, domain []interface{}, signers []*Account) (*Presentation, error) {
 	presentation := new(Presentation)
 	presentation.Id = UUID_PREFIX + uuid.NewV4().String()
 	presentation.Context = append(DefaultContext, contexts...)
 	presentation.Type = append(DefaultPresentationType, types...)
 	presentation.Holder = holder
-	presentation.VerifiableCredential = claims
+	presentation.VerifiableCredential = credentials
 
 	if !(len(signerOntIds) == len(challenge) && len(signerOntIds) == len(domain) && len(signerOntIds) == len(signers)) {
 		return nil, fmt.Errorf("input params error")
@@ -416,7 +416,7 @@ func (this *Claim) CreatePresentation(claims []*VerifiableCredential, contexts, 
 	return presentation, nil
 }
 
-func (this *Claim) VerifyPresentationProof(presentation *Presentation, index int) (string, error) {
+func (this *Credential) VerifyPresentationProof(presentation *Presentation, index int) (string, error) {
 	msg, err := GenPresentationMsg(presentation)
 	if err != nil {
 		return "", fmt.Errorf("VerifyPresentationProof, GenPresentationMsg error: %s", err)
@@ -429,7 +429,7 @@ func (this *Claim) VerifyPresentationProof(presentation *Presentation, index int
 	return ontId, nil
 }
 
-func (this *Claim) verifyProof(ontId string, proof *Proof, msg []byte) error {
+func (this *Credential) verifyProof(ontId string, proof *Proof, msg []byte) error {
 	sig, err := hex.DecodeString(proof.Hex)
 	if err != nil {
 		return fmt.Errorf("VerifyProof, hex.DecodeString signature error: %s", err)
@@ -451,32 +451,32 @@ func (this *Claim) verifyProof(ontId string, proof *Proof, msg []byte) error {
 	return signature.Verify(pk, msg, sig)
 }
 
-func (this *Claim) RevokeClaimByHolder(gasPrice, gasLimit uint64, claim *VerifiableCredential, holder string,
+func (this *Credential) RevokeCredentialByHolder(gasPrice, gasLimit uint64, credential *VerifiableCredential, holder string,
 	signer, payer *Account) (common.Uint256, error) {
-	if claim.CredentialStatus.Type != CLAIM_STATUS_TYPE {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeIdByHolder, credential status  %s not match", claim.CredentialStatus.Type)
+	if credential.CredentialStatus.Type != CREDENTIAL_STATUS_TYPE {
+		return common.UINT256_EMPTY, fmt.Errorf("RevokeCredentialByHolder, credential status  %s not match", credential.CredentialStatus.Type)
 	}
-	contractAddress, err := common.AddressFromHexString(claim.CredentialStatus.Id)
+	contractAddress, err := common.AddressFromHexString(credential.CredentialStatus.Id)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeIdByHolder, common.AddressFromHexString error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RevokeCredentialByHolder, common.AddressFromHexString error: %s", err)
 	}
 
 	index, _, err := this.GetPublicKeyId(holder, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeIdByHolder, this.GetPublicKeyId error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RevokeCredentialByHolder, this.GetPublicKeyId error: %s", err)
 	}
 
-	return this.revokeClaim(contractAddress, gasPrice, gasLimit, claim.Id, holder, index, signer, payer)
+	return this.revokeCredential(contractAddress, gasPrice, gasLimit, credential.Id, holder, index, signer, payer)
 }
 
-func (this *Claim) RevokeClaimByIssuer(gasPrice, gasLimit uint64, claimId string, issuer string,
+func (this *Credential) RevokeCredentialByIssuer(gasPrice, gasLimit uint64, credentialId string, issuer string,
 	signer, payer *Account) (common.Uint256, error) {
 	index, _, err := this.GetPublicKeyId(issuer, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeIdByIssuer, this.GetPublicKeyId error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RevokeCredentialByIssuer, this.GetPublicKeyId error: %s", err)
 	}
 
-	return this.revokeClaim(this.claimContractAddress, gasPrice, gasLimit, claimId, issuer, index, signer, payer)
+	return this.revokeCredential(this.credRecordContractAddress, gasPrice, gasLimit, credentialId, issuer, index, signer, payer)
 }
 
 func parseOntId(raw string) string {
@@ -509,7 +509,7 @@ func getOntId(raw interface{}) (map[string]interface{}, string, error) {
 	return result, ontIdObject.Id, nil
 }
 
-func (this *Claim) createProof(ontId string, signer *Account, challenge string, domain interface{}, now int64) (*Proof, error) {
+func (this *Credential) createProof(ontId string, signer *Account, challenge string, domain interface{}, now int64) (*Proof, error) {
 	issuanceDate := time.Unix(now, 0).Format("2006-01-02T15:04:05Z")
 	// get public key id
 	_, pkInfo, err := this.GetPublicKeyId(ontId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
@@ -538,14 +538,14 @@ func GenRequestMsg(request *Request) ([]byte, error) {
 	return msg, nil
 }
 
-func GenClaimMsg(claim *VerifiableCredential) ([]byte, error) {
-	sign := claim.Proof.Hex
-	claim.Proof.Hex = ""
-	msg, err := json.Marshal(claim)
+func GenCredentialMsg(credentials *VerifiableCredential) ([]byte, error) {
+	sign := credentials.Proof.Hex
+	credentials.Proof.Hex = ""
+	msg, err := json.Marshal(credentials)
 	if err != nil {
-		return nil, fmt.Errorf("GenClaimMsg, json.Marshal error: %s", err)
+		return nil, fmt.Errorf("GenCredentialsMsg, json.Marshal error: %s", err)
 	}
-	claim.Proof.Hex = sign
+	credentials.Proof.Hex = sign
 	return msg, nil
 }
 

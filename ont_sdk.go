@@ -48,10 +48,10 @@ func init() {
 //OntologySdk is the main struct for user
 type OntologySdk struct {
 	client.ClientMgr
-	Native *NativeContract
-	NeoVM  *NeoVMContract
-	WasmVM *WasmVMContract
-	Claim  *Claim
+	Native     *NativeContract
+	NeoVM      *NeoVMContract
+	WasmVM     *WasmVMContract
+	Credential *Credential
 }
 
 //NewOntologySdk return OntologySdk.
@@ -63,8 +63,8 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.NeoVM = neoVM
 	wasmVM := newWasmVMContract(ontSdk)
 	ontSdk.WasmVM = wasmVM
-	Claim := newClaim(ontSdk)
-	ontSdk.Claim = Claim
+	credential := newCredential(ontSdk)
+	ontSdk.Credential = credential
 	return ontSdk
 }
 
@@ -82,12 +82,12 @@ func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 }
 
 //OpenWallet return a wallet instance
-func (this *OntologySdk) SetClaimContractAddress(addr string) error {
+func (this *OntologySdk) SetCredContractAddress(addr string) error {
 	address, err := common.AddressFromHexString(addr)
 	if err != nil {
-		return fmt.Errorf("SetClaimContractAddress error: %s", err)
+		return fmt.Errorf("SetCredContractAddress error: %s", err)
 	}
-	this.Claim.claimContractAddress = address
+	this.Credential.credRecordContractAddress = address
 	return nil
 }
 
