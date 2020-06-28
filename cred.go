@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -112,7 +113,7 @@ func (this *Credential) GenSignReq(credentialSubject interface{}, ontId string, 
 		OntId:             ontId,
 	}
 	var domain interface{}
-	proof, err := this.createProof(ontId, signer, "", domain, time.Now().Unix())
+	proof, err := this.createProof(ontId, signer, "", domain, time.Now().UTC().Unix())
 	if err != nil {
 		return nil, fmt.Errorf("GenSignReq, this.CreateProof error: %s", err)
 	}
@@ -170,18 +171,17 @@ func (this *Credential) CreateCredential(contexts []string, types []string, cred
 	credential.Type = append(DefaultCredentialType, types...)
 	credential.Issuer = issuerId
 
-	now := time.Now().Unix()
-	issuanceDate := time.Unix(now, 0).Format("2006-01-02T15:04:05Z")
+	now := time.Now().UTC().Unix()
+	issuanceDate := time.Unix(now, 0).UTC().Format("2006-01-02T15:04:05Z")
 	credential.IssuanceDate = issuanceDate
 
 	if expirationDateTimestamp != 0 {
-		expirationDate := time.Unix(expirationDateTimestamp, 0).Format("2006-01-02T15:04:05Z")
+		expirationDate := time.Unix(expirationDateTimestamp, 0).UTC().Format("2006-01-02T15:04:05Z")
 		credential.ExpirationDate = expirationDate
 		if now > expirationDateTimestamp {
 			return nil, fmt.Errorf("CreateCredential, now is after expirationDateTimestamp")
 		}
 	}
-
 	credential.CredentialSubject = credentialSubject
 
 	credentialStatus := &CredentialStatus{
@@ -312,9 +312,9 @@ func (this *Credential) VerifyCredibleOntId(credibleOntIds []string, credential 
 }
 
 func (this *Credential) VerifyDate(credential *VerifiableCredential) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	if credential.ExpirationDate != "" {
-		expirationDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", credential.ExpirationDate, time.Local)
+		expirationDate, err := time.Parse("2006-01-02T15:04:05Z", credential.ExpirationDate)
 		if err != nil {
 			return fmt.Errorf("VerifyDate error: %s", err)
 		}
@@ -323,7 +323,7 @@ func (this *Credential) VerifyDate(credential *VerifiableCredential) error {
 		}
 	}
 
-	issuanceDate, err := time.ParseInLocation("2006-01-02T15:04:05Z", credential.IssuanceDate, time.Local)
+	issuanceDate, err := time.Parse("2006-01-02T15:04:05Z", credential.IssuanceDate)
 	if err != nil {
 		return fmt.Errorf("VerifyDate error: %s", err)
 	}
@@ -392,7 +392,7 @@ func (this *Credential) CreatePresentation(credentials []*VerifiableCredential, 
 	if !(len(signerOntIds) == len(challenge) && len(signerOntIds) == len(domain) && len(signerOntIds) == len(signers)) {
 		return nil, fmt.Errorf("input params error")
 	}
-	now := time.Now().Unix()
+	now := time.Now().UTC().Unix()
 	proofs := make([]*Proof, 0)
 	for i := range signerOntIds {
 		// create proof
@@ -427,6 +427,108 @@ func (this *Credential) VerifyPresentationProof(presentation *Presentation, inde
 		return "", fmt.Errorf("VerifyPresentationProof, this.VerifyProof error: %s", err)
 	}
 	return ontId, nil
+}
+
+func (this *Credential) JsonCred2JWT(cred *VerifiableCredential) (string, error) {
+	is, ontId, err := getOntId(cred.Issuer)
+	if err != nil {
+		return "", fmt.Errorf("JsonCred2JWT, getOntId issuer error: %s", err)
+	}
+	header, err := makeJWTHeader(cred.Proof.Type, cred.Proof.VerificationMethod)
+	if err != nil {
+		return "", fmt.Errorf("JsonCred2JWT, makeJWTHeader error: %s", err)
+	}
+
+	cs, sub, err := getOntId(cred.CredentialSubject)
+	if err != nil {
+		return "", fmt.Errorf("JsonCred2JWT, getOntId credentialSubject error: %s", err)
+	}
+
+	proof := cred.Proof
+	proof.VerificationMethod = ""
+	proof.Type = ""
+	vc := &VC{
+		Context:           cred.Context,
+		Type:              cred.Type,
+		Issuer:            is,
+		CredentialSubject: cs,
+		CredentialStatus:  cred.CredentialStatus,
+		Proof:             proof,
+	}
+	issuanceDate, err := time.Parse("2006-01-02T15:04:05Z", cred.IssuanceDate)
+	if err != nil {
+		return "", fmt.Errorf("JsonCred2JWT, time.Parse issuanceDate error: %s", err)
+	}
+	expirationDate, err := time.Parse("2006-01-02T15:04:05Z", cred.ExpirationDate)
+	if err != nil {
+		return "", fmt.Errorf("JsonCred2JWT, time.Parse expirationDate error: %s", err)
+	}
+	payload := &Payload{
+		Sub: sub,
+		Jti: cred.Id,
+		Iss: ontId,
+		Nbf: issuanceDate.Unix(),
+		Iat: issuanceDate.Unix(),
+		Exp: expirationDate.Unix(),
+		VC:  vc,
+	}
+
+	credential := &JWTCredential{
+		Header:  header,
+		Payload: payload,
+	}
+	if cred.Proof.Jws == "" {
+		return "", fmt.Errorf("JsonCred2JWT, Jws signature is empty")
+	}
+	credential.Jws = cred.Proof.Jws
+	return credential.ToString()
+}
+
+func (this *Credential) JsonPresentation2JWT(presentation *Presentation, proof *Proof) (string, error) {
+	hd, ontId, err := getOntId(presentation.Holder)
+	if err != nil {
+		return "", fmt.Errorf("JsonPresentation2JWT, getOntId holder error: %s", err)
+	}
+	header, err := makeJWTHeader(proof.Type, proof.VerificationMethod)
+	if err != nil {
+		return "", fmt.Errorf("JsonPresentation2JWT, makeJWTHeader error: %s", err)
+	}
+
+	proof.VerificationMethod = ""
+	proof.Type = ""
+	// make credentials
+	var credentials []string
+	for _, v := range presentation.VerifiableCredential {
+		JWTCred, err := this.JsonCred2JWT(v)
+		if err != nil {
+			return "", fmt.Errorf("JsonPresentation2JWT, this.JsonCred2JWT error: %s", err)
+		}
+		credentials = append(credentials, JWTCred)
+	}
+	vp := &VP{
+		Context:              presentation.Context,
+		Type:                 presentation.Type,
+		VerifiableCredential: credentials,
+		Holder:               hd,
+		Proof:                proof,
+	}
+	payload := &Payload{
+		Aud:   proof.Domain,
+		Nonce: proof.Challenge,
+		Jti:   presentation.Id,
+		Iss:   ontId,
+		VP:    vp,
+	}
+
+	JWTPresentation := &JWTCredential{
+		Header:  header,
+		Payload: payload,
+	}
+	if proof.Jws == "" {
+		return "", fmt.Errorf("JsonPresentation2JWT, Jws signature is empty")
+	}
+	JWTPresentation.Jws = proof.Jws
+	return JWTPresentation.ToString()
 }
 
 func (this *Credential) verifyProof(ontId string, proof *Proof, msg []byte) error {
@@ -487,7 +589,39 @@ type OntIdObject struct {
 	Id string `json:"id"`
 }
 
-func getOntId(raw interface{}) (map[string]interface{}, string, error) {
+func genIdObject(ontId string, object interface{}) (interface{}, error) {
+	b, err := json.Marshal(object)
+	if err != nil {
+		return nil, fmt.Errorf("genIdObject, json.Marshal object error: %s", err)
+	}
+	m := make(map[string]interface{})
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, fmt.Errorf("genIdObject, json.Unmarshal object error: %s", err)
+	}
+	if m == nil {
+		m = make(map[string]interface{})
+	}
+	m["id"] = ontId
+
+	if len(m) == 1 {
+		return ontId, nil
+	}
+	j, err := json.Marshal(m)
+	if err != nil {
+		return nil, fmt.Errorf("genIdObject, json.Marshal map object error: %s", err)
+	}
+	var r interface{}
+	if err := json.Unmarshal(j, &r); err != nil {
+		return nil, fmt.Errorf("genIdObject, json.Unmarshal result error: %s", err)
+	}
+	return r, nil
+}
+
+func getOntId(raw interface{}) (interface{}, string, error) {
+	t := reflect.TypeOf(raw).Kind()
+	if t != reflect.Struct && t != reflect.String {
+		return raw, "", nil
+	}
 	r, ok := raw.(string)
 	if ok {
 		return nil, r, nil
@@ -501,16 +635,25 @@ func getOntId(raw interface{}) (map[string]interface{}, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("getOntId, json.Unmarshal error: %s", err)
 	}
-	var result map[string]interface{}
-	if err := json.Unmarshal(b, &result); err == nil {
+	m := make(map[string]interface{})
+	if err := json.Unmarshal(b, &m); err == nil {
 		return nil, "", fmt.Errorf("getOntId, json.Unmarshal result error: %s", err)
 	}
-	delete(result, "id")
+	delete(m, "id")
+	var result interface{}
+	mb, err := json.Marshal(m)
+	if err != nil {
+		return nil, "", fmt.Errorf("getOntId, json.Marshal map error: %s", err)
+	}
+	err = json.Unmarshal(mb, &result)
+	if err != nil {
+		return nil, "", fmt.Errorf("getOntId, json.Unmarshal result error: %s", err)
+	}
 	return result, ontIdObject.Id, nil
 }
 
 func (this *Credential) createProof(ontId string, signer *Account, challenge string, domain interface{}, now int64) (*Proof, error) {
-	issuanceDate := time.Unix(now, 0).Format("2006-01-02T15:04:05Z")
+	issuanceDate := time.Unix(now, 0).UTC().Format("2006-01-02T15:04:05Z")
 	// get public key id
 	_, pkInfo, err := this.GetPublicKeyId(ontId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {

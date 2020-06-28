@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology/core/signature"
-	"reflect"
 	"strings"
 	"time"
 
@@ -47,6 +46,16 @@ var JWTSignType = map[string]string{
 	"SM2VerificationKey2019":            "SM",
 }
 
+var JsonSignType = map[string]string{
+	"ES224":  "EcdsaSecp224r1VerificationKey2019",
+	"ES256":  "EcdsaSecp256r1VerificationKey2019",
+	"ES384":  "EcdsaSecp384r1VerificationKey2019",
+	"ES512":  "EcdsaSecp521r1VerificationKey2019",
+	"ES256K": "EcdsaSecp256k1VerificationKey2019",
+	"EdDSA":  "Ed25519VerificationKey2018",
+	"SM":     "SM2VerificationKey2019",
+}
+
 type VerifiableCredentialJWT struct {
 	Header    Header
 	Payload   Payload
@@ -55,8 +64,8 @@ type VerifiableCredentialJWT struct {
 
 type Header struct {
 	Alg string `json:"alg,omitempty"`
-	Typ string `json:"typ,omitempty"`
 	Kid string `json:"kid,omitempty"`
+	Typ string `json:"typ,omitempty"`
 }
 
 type VC struct {
@@ -106,21 +115,17 @@ func (this *Credential) CreateJWTCredential(contexts []string, types []string, c
 	if err != nil {
 		return "", fmt.Errorf("CreateJWTCredential, this.GetPublicKeyId error: %s", err)
 	}
-	header := &Header{
-		Alg: JWTSignType[pkInfo.Type],
-		Typ: HEADER_TYPE,
-		Kid: pkInfo.Id,
+	header, err := makeJWTHeader(pkInfo.Type, pkInfo.Id)
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTCredential, makeJWTHeader error: %s", err)
 	}
 
-	t := reflect.TypeOf(credentialSubject).Kind()
-	if t != reflect.Struct && t != reflect.String {
-		return "", fmt.Errorf("CreateJWTCredential, credentialSubject is not string or struct")
-	}
 	cs, sub, err := getOntId(credentialSubject)
 	if err != nil {
 		return "", fmt.Errorf("CreateJWTCredential, getOntId error: %s", err)
 	}
-	now := time.Now().Unix()
+
+	now := time.Now().UTC().Unix()
 	proof, err := this.createProof(ontId, signer, challenge, domain, now)
 	if err != nil {
 		return "", fmt.Errorf("CreateJWTCredential, this.CreateProof error: %s", err)
@@ -167,10 +172,9 @@ func (this *Credential) CreateJWTCredential(contexts []string, types []string, c
 }
 
 func (this *Credential) VerifyJWTCredibleOntId(credibleOntIds []string, credential string) error {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return fmt.Errorf("VerifyJWTCredibleOntId, JWTCredential.Deserialization error: %s", err)
+		return fmt.Errorf("VerifyJWTCredibleOntId, DeserializeJWT error: %s", err)
 	}
 
 	for _, v := range credibleOntIds {
@@ -182,13 +186,12 @@ func (this *Credential) VerifyJWTCredibleOntId(credibleOntIds []string, credenti
 }
 
 func (this *Credential) VerifyJWTDate(credential string) error {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return fmt.Errorf("VerifyJWTDate, JWTCredential.Deserialization error: %s", err)
+		return fmt.Errorf("VerifyJWTDate, DeserializeJWT error: %s", err)
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	if JWTCredential.Payload.Exp != 0 {
 		if now.Unix() > JWTCredential.Payload.Exp {
 			return fmt.Errorf("VerifyJWTDate expirationDate failed")
@@ -209,30 +212,29 @@ func (this *Credential) VerifyJWTDate(credential string) error {
 }
 
 func (this *Credential) VerifyJWTIssuerSignature(credential string) error {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return fmt.Errorf("VerifyJWTIssuerSignature, JWTCredential.Deserialization error: %s", err)
+		return fmt.Errorf("VerifyJWTIssuerSignature, DeserializeJWT error: %s", err)
 	}
 
 	msg, err := JWTCredential.SignData()
 	if err != nil {
 		return fmt.Errorf("VerifyJWTIssuerSignature, JWTCredential.SignData error: %s", err)
 	}
-	err = this.verifyJWSProof(JWTCredential.Payload.Iss, JWTCredential.Payload.VC.Proof, msg, JWTCredential.Jws)
+	err = this.verifyJWSProof(JWTCredential.Payload.Iss, JWTCredential.Header.Kid, msg, JWTCredential.Jws)
 	if err != nil {
 		return fmt.Errorf("VerifyJWTIssuerSignature, this.VerifyJWSProof error: %s", err)
 	}
 	return nil
 }
 
-func (this *Credential) verifyJWSProof(ontId string, proof *Proof, msg []byte, jws string) error {
+func (this *Credential) verifyJWSProof(ontId, kid string, msg []byte, jws string) error {
 	sig, err := base64.StdEncoding.DecodeString(jws)
 	if err != nil {
 		return fmt.Errorf("VerifyJWSProof, base64.StdEncoding.DecodeString jws error: %s", err)
 	}
 
-	publicKeyHex, err := this.GetPublicKey(ontId, proof.VerificationMethod)
+	publicKeyHex, err := this.GetPublicKey(ontId, kid)
 	if err != nil {
 		return fmt.Errorf("VerifyJWSProof, this.GetPublicKey error: %s", err)
 	}
@@ -249,10 +251,9 @@ func (this *Credential) verifyJWSProof(ontId string, proof *Proof, msg []byte, j
 }
 
 func (this *Credential) VerifyJWTStatus(credential string) error {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return fmt.Errorf("VerifyJWTStatus, JWTCredential.Deserialization error: %s", err)
+		return fmt.Errorf("VerifyJWTStatus, DeserializeJWT error: %s", err)
 	}
 
 	if JWTCredential.Payload.VC.CredentialStatus.Type != CREDENTIAL_STATUS_TYPE {
@@ -274,10 +275,9 @@ func (this *Credential) VerifyJWTStatus(credential string) error {
 
 func (this *Credential) RevokeJWTCredentialByHolder(gasPrice, gasLimit uint64, credential string, holder string,
 	signer, payer *Account) (common.Uint256, error) {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RevokeJWTCredentialByHolder, JWTCredential.Deserialization error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RevokeJWTCredentialByHolder, DeserializeJWT error: %s", err)
 	}
 	if JWTCredential.Payload.VC.CredentialStatus.Type != CREDENTIAL_STATUS_TYPE {
 		return common.UINT256_EMPTY, fmt.Errorf("RevokeJWTCredentialByHolder, credential status  %s not match", JWTCredential.Payload.VC.CredentialStatus.Type)
@@ -297,10 +297,9 @@ func (this *Credential) RevokeJWTCredentialByHolder(gasPrice, gasLimit uint64, c
 
 func (this *Credential) RemoveJWTCredential(gasPrice, gasLimit uint64, credential string, holder string,
 	signer, payer *Account) (common.Uint256, error) {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTCredential, JWTCredential.Deserialization error: %s", err)
+		return common.UINT256_EMPTY, fmt.Errorf("RemoveJWTCredential, DeserializeJWT error: %s", err)
 	}
 
 	index, _, err := this.GetPublicKeyId(holder, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
@@ -333,13 +332,12 @@ func (this *Credential) CreateJWTPresentation(credentials []string, contexts, ty
 	if err != nil {
 		return "", fmt.Errorf("CreateJWTPresentation, this.GetPublicKeyId error: %s", err)
 	}
-	header := &Header{
-		Alg: JWTSignType[pkInfo.Type],
-		Typ: HEADER_TYPE,
-		Kid: pkInfo.Id,
+	header, err := makeJWTHeader(pkInfo.Type, pkInfo.Id)
+	if err != nil {
+		return "", fmt.Errorf("CreateJWTPresentation, makeJWTHeader error: %s", err)
 	}
 
-	now := time.Now().Unix()
+	now := time.Now().UTC().Unix()
 	var domain interface{}
 	proof, err := this.createProof(ontId, signer, "", domain, now)
 	if err != nil {
@@ -349,10 +347,9 @@ func (this *Credential) CreateJWTPresentation(credentials []string, contexts, ty
 	proof.Type = ""
 	// check credentials
 	for _, v := range credentials {
-		JWTCredential := new(JWTCredential)
-		err := JWTCredential.Deserialization(v)
+		_, err := DeserializeJWT(v)
 		if err != nil {
-			return "", fmt.Errorf("CreateJWTPresentation, JWTCredential.Deserialization error: %s", err)
+			return "", fmt.Errorf("CreateJWTPresentation, DeserializeJWT error: %s", err)
 		}
 	}
 	vp := &VP{
@@ -386,14 +383,90 @@ func (this *Credential) CreateJWTPresentation(credentials []string, contexts, ty
 	return presentation.ToString()
 }
 
-func (this *Credential) JWTCred2Json(credential string) (*VerifiableCredential, error) {
-	JWTCredential := new(JWTCredential)
-	err := JWTCredential.Deserialization(credential)
+func (this *Credential) JWTCred2Json(jwtCred string) (*VerifiableCredential, error) {
+	JWTCredential, err := DeserializeJWT(jwtCred)
 	if err != nil {
-		return nil, fmt.Errorf("JWTCred2Json, JWTCredential.Deserialization error: %s", err)
+		return nil, fmt.Errorf("JWTCred2Json, DeserializeJWT error: %s", err)
 	}
 
-	return nil, nil
+	if JWTCredential.Payload.VC == nil {
+		return nil, fmt.Errorf("JWTCred2Json, JWTCredential is not a credential error: %s", err)
+	}
+
+	credential := new(VerifiableCredential)
+	credential.Id = JWTCredential.Payload.Jti
+	credential.Context = JWTCredential.Payload.VC.Context
+	credential.Type = JWTCredential.Payload.VC.Type
+
+	issuer, err := genIdObject(JWTCredential.Payload.Iss, JWTCredential.Payload.VC.Issuer)
+	if err != nil {
+		return nil, fmt.Errorf("JWTCred2Json, genIdObject error: %s", err)
+	}
+	credential.Issuer = issuer
+
+	t := JWTCredential.Payload.Iat
+	if JWTCredential.Payload.Iat == 0 {
+		t = JWTCredential.Payload.Nbf
+	}
+	issuanceDate := time.Unix(t, 0).UTC().Format("2006-01-02T15:04:05Z")
+	credential.IssuanceDate = issuanceDate
+
+	expirationDate := time.Unix(JWTCredential.Payload.Exp, 0).UTC().Format("2006-01-02T15:04:05Z")
+	credential.ExpirationDate = expirationDate
+	credential.CredentialSubject = JWTCredential.Payload.VC.CredentialSubject
+	credential.CredentialStatus = JWTCredential.Payload.VC.CredentialStatus
+
+	// create proof
+	credential.Proof = JWTCredential.Payload.VC.Proof
+	credential.Proof.VerificationMethod = JWTCredential.Header.Kid
+	credential.Proof.Type = JsonSignType[JWTCredential.Header.Alg]
+	credential.Proof.Challenge = JWTCredential.Payload.Nonce
+	credential.Proof.Domain = JWTCredential.Payload.Aud
+	credential.Proof.Jws = JWTCredential.Jws
+
+	return credential, nil
+}
+
+func (this *Credential) JWTPresentation2Json(jwtPresentation string) (*Presentation, error) {
+	JWTPresentation, err := DeserializeJWT(jwtPresentation)
+	if err != nil {
+		return nil, fmt.Errorf("JWTPresentation2Json, JWTPresentation.Deserialization error: %s", err)
+	}
+
+	if JWTPresentation.Payload.VP == nil {
+		return nil, fmt.Errorf("JWTPresentation2Json, JWTPresentation is not a presentation error: %s", err)
+	}
+
+	presentation := new(Presentation)
+	presentation.Id = JWTPresentation.Payload.Jti
+	presentation.Context = JWTPresentation.Payload.VP.Context
+	presentation.Type = JWTPresentation.Payload.VP.Type
+
+	holder, err := genIdObject(JWTPresentation.Payload.Iss, JWTPresentation.Payload.VP.Holder)
+	if err != nil {
+		return nil, fmt.Errorf("JWTCred2Json, genIdObject error: %s", err)
+	}
+	presentation.Holder = holder
+
+	for _, v := range JWTPresentation.Payload.VP.VerifiableCredential {
+		cred, err := this.JWTCred2Json(v)
+		if err != nil {
+			return nil, fmt.Errorf("JWTPresentation2Json, this.JWTCred2Json error: %s", err)
+		}
+		presentation.VerifiableCredential = append(presentation.VerifiableCredential, cred)
+	}
+
+	// create proof
+	proof := new(Proof)
+	proof = JWTPresentation.Payload.VP.Proof
+	proof.VerificationMethod = JWTPresentation.Header.Kid
+	proof.Type = JsonSignType[JWTPresentation.Header.Alg]
+	proof.Challenge = JWTPresentation.Payload.Nonce
+	proof.Domain = JWTPresentation.Payload.Aud
+	proof.Jws = JWTPresentation.Jws
+
+	presentation.Proof = append(presentation.Proof, proof)
+	return presentation, nil
 }
 
 func (cred *JWTCredential) ToString() (string, error) {
@@ -429,29 +502,48 @@ func (cred *JWTCredential) SignData() ([]byte, error) {
 	return []byte(signData), nil
 }
 
-func (cred *JWTCredential) Deserialization(jwt string) error {
+func DeserializeJWT(jwt string) (*JWTCredential, error) {
 	slice := strings.Split(jwt, ".")
 	if len(slice) != 3 {
-		return fmt.Errorf("JWTCredential Deserialization, length of elem is not 3")
+		return nil, fmt.Errorf("JWTCredential Deserialization, length of elem is not 3")
 	}
 	headerb, err := base64.StdEncoding.DecodeString(slice[0])
 	if err != nil {
-		return fmt.Errorf("JWTCredential Deserialization, base64.StdEncoding.DecodeString header error: %s", err)
+		return nil, fmt.Errorf("JWTCredential Deserialization, base64.StdEncoding.DecodeString header error: %s", err)
 	}
-	err = json.Unmarshal(headerb, cred.Header)
+	header := new(Header)
+	err = json.Unmarshal(headerb, header)
 	if err != nil {
-		return fmt.Errorf("JWTCredential Deserialization, json.Unmarshal header error: %s", err)
+		return nil, fmt.Errorf("JWTCredential Deserialization, json.Unmarshal header error: %s", err)
 	}
 
+	payload := new(Payload)
 	payloadb, err := base64.StdEncoding.DecodeString(slice[1])
 	if err != nil {
-		return fmt.Errorf("JWTCredential Deserialization, base64.StdEncoding.DecodeString payload error: %s", err)
+		return nil, fmt.Errorf("JWTCredential Deserialization, base64.StdEncoding.DecodeString payload error: %s", err)
 	}
-	err = json.Unmarshal(payloadb, cred.Payload)
+	err = json.Unmarshal(payloadb, payload)
 	if err != nil {
-		return fmt.Errorf("JWTCredential Deserialization, json.Unmarshal payload error: %s", err)
+		return nil, fmt.Errorf("JWTCredential Deserialization, json.Unmarshal payload error: %s", err)
 	}
 
-	cred.Jws = slice[2]
-	return nil
+	jws := slice[2]
+	r := &JWTCredential{
+		Header:  header,
+		Payload: payload,
+		Jws:     jws,
+	}
+	return r, nil
+}
+
+func makeJWTHeader(proofType, verificationMethod string) (*Header, error) {
+	if proofType == "" || verificationMethod == "" {
+		return nil, fmt.Errorf("makeJWTHeader, proof is illegal")
+	}
+	header := &Header{
+		Alg: JWTSignType[proofType],
+		Typ: HEADER_TYPE,
+		Kid: verificationMethod,
+	}
+	return header, nil
 }
