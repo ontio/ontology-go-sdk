@@ -64,7 +64,7 @@ type CredentialStatus struct {
 type Proof struct {
 	Type               string       `json:"type,omitempty"`
 	Created            string       `json:"created,omitempty"`
-	Challenge          string       `json:"chanllege,omitempty"`
+	Challenge          string       `json:"challenge,omitempty"`
 	Domain             interface{}  `json:"domain,omitempty"`
 	ProofPurpose       ProofPurpose `json:"proofPurpose,omitempty"`
 	VerificationMethod string       `json:"verificationMethod,omitempty"`
@@ -84,7 +84,7 @@ type VerifiableCredential struct {
 	Proof             *Proof            `json:"proof,omitempty"`
 }
 
-type Presentation struct {
+type VerifiablePresentation struct {
 	Context              []string                `json:"@context,omitempty"`
 	Id                   string                  `json:"id,omitempty"`
 	Type                 []string                `json:"type,omitempty"`
@@ -381,8 +381,8 @@ func (this *Credential) getCredentialStatus(contractAddress common.Address, cred
 }
 
 func (this *Credential) CreatePresentation(credentials []*VerifiableCredential, contexts, types []string, holder interface{},
-	signerOntIds, challenge []string, domain []interface{}, signers []*Account) (*Presentation, error) {
-	presentation := new(Presentation)
+	signerOntIds, challenge []string, domain []interface{}, signers []*Account) (*VerifiablePresentation, error) {
+	presentation := new(VerifiablePresentation)
 	presentation.Id = UUID_PREFIX + uuid.NewV4().String()
 	presentation.Context = append(DefaultContext, contexts...)
 	presentation.Type = append(DefaultPresentationType, types...)
@@ -416,7 +416,7 @@ func (this *Credential) CreatePresentation(credentials []*VerifiableCredential, 
 	return presentation, nil
 }
 
-func (this *Credential) VerifyPresentationProof(presentation *Presentation, index int) (string, error) {
+func (this *Credential) VerifyPresentationProof(presentation *VerifiablePresentation, index int) (string, error) {
 	msg, err := GenPresentationMsg(presentation)
 	if err != nil {
 		return "", fmt.Errorf("VerifyPresentationProof, GenPresentationMsg error: %s", err)
@@ -484,7 +484,7 @@ func (this *Credential) JsonCred2JWT(cred *VerifiableCredential) (string, error)
 	return credential.ToString()
 }
 
-func (this *Credential) JsonPresentation2JWT(presentation *Presentation, proof *Proof) (string, error) {
+func (this *Credential) JsonPresentation2JWT(presentation *VerifiablePresentation, proof *Proof) (string, error) {
 	hd, ontId, err := getOntId(presentation.Holder)
 	if err != nil {
 		return "", fmt.Errorf("JsonPresentation2JWT, getOntId holder error: %s", err)
@@ -692,7 +692,7 @@ func GenCredentialMsg(credentials *VerifiableCredential) ([]byte, error) {
 	return msg, nil
 }
 
-func GenPresentationMsg(presentation *Presentation) ([]byte, error) {
+func GenPresentationMsg(presentation *VerifiablePresentation) ([]byte, error) {
 	var signs []string
 	for i := range presentation.Proof {
 		signs = append(signs, presentation.Proof[i].Hex)

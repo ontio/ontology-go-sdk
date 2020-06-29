@@ -80,7 +80,7 @@ type VC struct {
 type VP struct {
 	Context              []string    `json:"@context,omitempty"`
 	Type                 []string    `json:"type,omitempty"`
-	VerifiableCredential []string    `json:"credentialStatus,omitempty"`
+	VerifiableCredential []string    `json:"verifiableCredential,omitempty"`
 	Holder               interface{} `json:"holder,omitempty"`
 	Proof                *Proof      `json:"proof,omitempty"`
 }
@@ -427,7 +427,7 @@ func (this *Credential) JWTCred2Json(jwtCred string) (*VerifiableCredential, err
 	return credential, nil
 }
 
-func (this *Credential) JWTPresentation2Json(jwtPresentation string) (*Presentation, error) {
+func (this *Credential) JWTPresentation2Json(jwtPresentation string) (*VerifiablePresentation, error) {
 	JWTPresentation, err := DeserializeJWT(jwtPresentation)
 	if err != nil {
 		return nil, fmt.Errorf("JWTPresentation2Json, JWTPresentation.Deserialization error: %s", err)
@@ -437,7 +437,7 @@ func (this *Credential) JWTPresentation2Json(jwtPresentation string) (*Presentat
 		return nil, fmt.Errorf("JWTPresentation2Json, JWTPresentation is not a presentation error: %s", err)
 	}
 
-	presentation := new(Presentation)
+	presentation := new(VerifiablePresentation)
 	presentation.Id = JWTPresentation.Payload.Jti
 	presentation.Context = JWTPresentation.Payload.VP.Context
 	presentation.Type = JWTPresentation.Payload.VP.Type

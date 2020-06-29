@@ -164,3 +164,42 @@ func TestCredential(t *testing.T) {
 	}
 	fmt.Println("txHash 3 is: ", txHash.ToHexString())
 }
+
+func TestVerifyJSONCred(t *testing.T) {
+	Init()
+
+	credibleOntIds := []string{"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd",
+		"did:ont:AVe4zVZzteo6HoLpdBwpKNtDXLjJBzB9fv"}
+	credString := "{\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://ontid.ont.io/credentials/v1\"],\"id\":\"urn:uuid:5375555d-9ea2-4a4b-8318-11c28c9bde48\",\"type\":[\"VerifiableCredential\",\"RelationshipCredential\"],\"issuer\":\"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd\",\"issuanceDate\":\"2020-06-29T10:11:36Z\",\"expirationDate\":\"2020-06-30T10:11:36Z\",\"credentialSubject\":[{\"id\":\"did:ont:111111\",\"name\":\"Bob\",\"spouse\":\"Alice\"}],\"credentialStatus\":{\"id\":\"52df370680de17bc5d4262c446f102a0ee0d6312\",\"type\":\"AttestContract\"},\"proof\":{\"type\":\"EcdsaSecp256r1VerificationKey2019\",\"created\":\"2020-06-29T10:11:36Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":\"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd#keys-2\",\"hex\":\"01d899e082ad8644cc01ade2f2eeb9b66443cc518c5d56e5a8ef7a562592a189ef19e2a883eb2d6dd4c4817e8b1841663e56b7cb66aba5dfd2f4f777faeda40bf7\"}}"
+	credential := &VerifiableCredential{}
+	if err := json.Unmarshal([]byte(credString), credential); err != nil {
+		t.Fatal(err)
+	}
+	err := testOntSdk.Credential.VerifyCredibleOntId(credibleOntIds, credential)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = testOntSdk.Credential.VerifyDate(credential)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = testOntSdk.Credential.VerifyIssuerSignature(credential)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = testOntSdk.Credential.VerifyStatus(credential)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presentationString := "{\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://ontid.ont.io/credentials/v1\"],\"id\":\"urn:uuid:7d0f6ffd-28d5-4954-a92f-38ca6062c746\",\"type\":[\"VerifiablePresentation\",\"CredentialManagerPresentation\"],\"verifiableCredential\":[{\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://ontid.ont.io/credentials/v1\"],\"id\":\"urn:uuid:5375555d-9ea2-4a4b-8318-11c28c9bde48\",\"type\":[\"VerifiableCredential\",\"RelationshipCredential\"],\"issuer\":\"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd\",\"issuanceDate\":\"2020-06-29T10:11:36Z\",\"expirationDate\":\"2020-06-30T10:11:36Z\",\"credentialSubject\":[{\"id\":\"did:ont:111111\",\"name\":\"Bob\",\"spouse\":\"Alice\"}],\"credentialStatus\":{\"id\":\"52df370680de17bc5d4262c446f102a0ee0d6312\",\"type\":\"AttestContract\"},\"proof\":{\"type\":\"EcdsaSecp256r1VerificationKey2019\",\"created\":\"2020-06-29T10:11:36Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":\"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd#keys-2\",\"hex\":\"01d899e082ad8644cc01ade2f2eeb9b66443cc518c5d56e5a8ef7a562592a189ef19e2a883eb2d6dd4c4817e8b1841663e56b7cb66aba5dfd2f4f777faeda40bf7\"}},{\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://ontid.ont.io/credentials/v1\"],\"id\":\"urn:uuid:3076ea1d-ef58-425e-8849-82f218ab906e\",\"type\":[\"VerifiableCredential\",\"RelationshipCredential\"],\"issuer\":{\"id\":\"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd\",\"name\":\"issuer\"},\"issuanceDate\":\"2020-06-29T10:11:55Z\",\"expirationDate\":\"2020-06-30T10:11:36Z\",\"credentialSubject\":[{\"id\":\"did:ont:111111\",\"name\":\"he\",\"spouse\":\"she\"}],\"credentialStatus\":{\"id\":\"52df370680de17bc5d4262c446f102a0ee0d6312\",\"type\":\"AttestContract\"},\"proof\":{\"type\":\"EcdsaSecp256r1VerificationKey2019\",\"created\":\"2020-06-29T10:11:55Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":\"did:ont:AJ4C9aTYxTGUhEpaZdPjFSqCqzMCqJDRUd#keys-2\",\"hex\":\"018691f221e88ed5aae4eca1f991fb82c3ea1fe04d637ee03bc42b9118ae4511a66f992ddac6c678f5f472ddb4052929747267a64286f11155318e2b53e8f86af1\"}}],\"holder\":\"did:ont:AVe4zVZzteo6HoLpdBwpKNtDXLjJBzB9fv\",\"proof\":[{\"type\":\"EcdsaSecp256r1VerificationKey2019\",\"created\":\"2020-06-29T10:12:14Z\",\"challenge\":\"d1b23d3...3d23d32d2\",\"domain\":[\"https://example.com\"],\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":\"did:ont:AVe4zVZzteo6HoLpdBwpKNtDXLjJBzB9fv#keys-2\",\"hex\":\"01673ba58f0a4d03120713c8b81865dcf52be29d516d7f4420e9d490191d97f843475f9b06d2f45b7d9cb7c80edfa95e82ea5272e781dcda335cbe4837d5a836cd\"}]}"
+	presentation := &VerifiablePresentation{}
+	if err := json.Unmarshal([]byte(presentationString), presentation); err != nil {
+		t.Fatal(err)
+	}
+	for i := range presentation.Proof {
+		_, err = testOntSdk.Credential.VerifyPresentationProof(presentation, i)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
