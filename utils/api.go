@@ -25,6 +25,7 @@ import (
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	bc "github.com/ontio/ontology/http/base/common"
 )
 
 func GetVersion(data []byte) (string, error) {
@@ -171,6 +172,24 @@ func GetMerkleProof(data []byte) (*sdkcom.MerkleProof, error) {
 		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
 	}
 	return proof, nil
+}
+
+func GetCrossStatesProof(data []byte) (*bc.CrossStatesProof, error) {
+	proof := &bc.CrossStatesProof{}
+	err := json.Unmarshal(data, proof)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	return proof, nil
+}
+
+func GetCrossChainMsg(data []byte) (string, error) {
+	crossChainMsg := ""
+	err := json.Unmarshal(data, &crossChainMsg)
+	if err != nil {
+		return "", fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	return crossChainMsg, nil
 }
 
 func GetBlockTxHashes(data []byte) (*sdkcom.BlockTxHashes, error) {
