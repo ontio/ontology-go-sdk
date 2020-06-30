@@ -2462,6 +2462,23 @@ func (this *OntId) GetDocumentJson(ontId string) ([]byte, error) {
 	}
 	return data, nil
 }
+func (this *OntId) GetDDO(ontId string) ([]byte, error) {
+	preResult, err := this.native.PreExecInvokeNativeContract(
+		ONT_ID_CONTRACT_ADDRESS,
+		ONT_ID_CONTRACT_VERSION,
+		"getDDO",
+		[]interface{}{
+			ontId,
+		})
+	if err != nil {
+		return nil, err
+	}
+	data, err := preResult.Result.ToByteArray()
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
 
 type GlobalParam struct {
 	ontSdk *OntologySdk
