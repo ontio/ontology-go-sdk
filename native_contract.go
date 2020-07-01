@@ -1574,7 +1574,7 @@ func (this *OntId) NewRemoveAttributesByControllerTransaction(gasPrice, gasLimit
 		gasLimit,
 		ONT_ID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
-		"removeAttributesByController",
+		"removeAttributeByController",
 		[]interface{}{
 			&removeAttributesByController{
 				OntId:   ontId,
