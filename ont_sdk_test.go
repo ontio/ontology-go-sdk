@@ -42,9 +42,9 @@ var (
 	testWallet   *Wallet
 	testPasswd   = []byte("123456")
 	testDefAcc   *Account
-	testGasPrice = uint64(500)
+	testGasPrice = uint64(2500)
 	testGasLimit = uint64(20000)
-	testNetUrl   = "http://polaris1.ont.io:20336"
+	testNetUrl   = "http://polaris2.ont.io:20336"
 )
 
 func init() {
@@ -79,9 +79,9 @@ func TestParseNativeTxPayload(t *testing.T) {
 	for i := 0; i < 1; i++ {
 		transfers = append(transfers, state)
 	}
-	_, err = testOntSdk.Native.Ont.NewMultiTransferTransaction(500, 20000, transfers)
+	_, err = testOntSdk.Native.Ont.NewMultiTransferTransaction(2500, 20000, transfers)
 	assert.Nil(t, err)
-	_, err = testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc.Address, acc.Address, 20)
+	_, err = testOntSdk.Native.Ont.NewTransferFromTransaction(2500, 20000, acc.Address, acc.Address, acc.Address, 20)
 	assert.Nil(t, err)
 }
 
@@ -237,7 +237,7 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 
 	acc3, err := NewAccountFromPrivateKey(pri3, signature.SHA256withECDSA)
 	amount := 1000000000
-	txFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, uint64(amount))
+	txFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(2500, 20000, acc.Address, acc2.Address, acc3.Address, uint64(amount))
 	assert.Nil(t, err)
 	tx, err := txFrom.IntoImmutable()
 	assert.Nil(t, err)
@@ -276,7 +276,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	assert.Nil(t, err)
 
 	amount := uint64(1000000000)
-	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, amount)
+	tx, err := testOntSdk.Native.Ont.NewTransferTransaction(2500, 20000, acc.Address, acc2.Address, amount)
 	assert.Nil(t, err)
 
 	tx2, err := tx.IntoImmutable()
@@ -290,7 +290,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	assert.Equal(t, amount, states[0].Value)
 	assert.Equal(t, "transfer", res["functionName"].(string))
 
-	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
+	transferFrom, err := testOntSdk.Native.Ont.NewTransferFromTransaction(2500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
 	transferFrom2, err := transferFrom.IntoImmutable()
 	r, err := ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
@@ -300,7 +300,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
 	assert.Equal(t, uint64(10), rp.Value)
 
-	ongTransfer, err := testOntSdk.Native.Ong.NewTransferTransaction(uint64(500), uint64(20000), acc.Address, acc2.Address, 100000000)
+	ongTransfer, err := testOntSdk.Native.Ong.NewTransferTransaction(uint64(2500), uint64(20000), acc.Address, acc2.Address, 100000000)
 	assert.Nil(t, err)
 	ongTx, err := ongTransfer.IntoImmutable()
 	assert.Nil(t, err)
@@ -388,7 +388,7 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 	testOntSdk = NewOntologySdk()
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	acc, _ := testWallet.GetAccountByAddress("AXdmdzbyf3WZKQzRtrNQwAR91ZxMUfhXkt", testPasswd)
-	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
+	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(2500, 10000, acc.Address, acc.Address, 100)
 	testOntSdk.SignToTransaction(tx, acc)
 	tx2, _ := tx.IntoImmutable()
 	sink := common.NewZeroCopySink(nil)
@@ -477,7 +477,7 @@ func TestOng_WithDrawONG(t *testing.T) {
 		return
 	}
 	fmt.Printf("Address:%s UnboundONG:%d\n", testDefAcc.Address.ToBase58(), unboundONG)
-	_, err = testOntSdk.Native.Ong.WithdrawONG(500, 20000, nil, testDefAcc, unboundONG)
+	_, err = testOntSdk.Native.Ong.WithdrawONG(2500, 20000, nil, testDefAcc, unboundONG)
 	if err != nil {
 		t.Errorf("WithDrawONG error:%s", err)
 		return
