@@ -1055,6 +1055,112 @@ ontSdk.Native.OntId.GetDocumentJson(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
+### 2.6 Credential API
+
+#### 2.6.1 GenSignReq
+
+```
+ontSdk.Credential.GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error)
+```
+`credentialSubject`: [credentialSubject of Credential](https://www.w3.org/TR/vc-data-model/#credential-subject)
+
+`ontId`: holder ONT ID
+
+`signer`: signer account
+
+#### 2.6.2 VerifySignReq
+
+```
+ontSdk.Credential.VerifySignReq(request *Request) error
+```
+`request`: result of GenSignReq
+
+#### 2.6.3 CreateCredential
+
+```
+ontSdk.Credential.CreateCredential(contexts []string, types []string, credentialSubject interface{}, issuerId string, expirationDateTimestamp int64, signer *Account) (*VerifiableCredential, uint32, error)
+```
+`contexts`: [definition](https://www.w3.org/TR/vc-data-model/#contexts)
+
+`types`: [definition](https://www.w3.org/TR/vc-data-model/#types)
+
+`credentialSubject`: [credentialSubject of Credential](https://www.w3.org/TR/vc-data-model/#credential-subject)
+
+`issuerId`: ONT ID of issuer
+
+`expirationDateTimestamp`: unix of expiration date timestamp
+
+`signer`: signer account
+
+#### 2.6.4 CommitCredential
+
+```
+ontSdk.Credential.CommitCredential(gasPrice, gasLimit uint64, credentialId, issuerId, holderId string, index uint32, signer, payer *Account) (common.Uint256, error)
+```
+`credentialId`: Id of credential
+
+`issuerId`: ONT ID of issuer
+
+`holderId`: ONT ID of holder
+
+`index`: key index of issuer used to sign tx
+
+`signer`: signer account
+
+#### 2.6.5 VerifyCredibleOntId
+
+```
+ontSdk.Credential.VerifyCredibleOntId(credibleOntIds []string, credential *VerifiableCredential) error
+```
+`credibleOntIds`: credible ONT ID list
+
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.6 VerifyNotExpired
+
+```
+ontSdk.Credential.VerifyNotExpired(credential *VerifiableCredential) error
+```
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.7 VerifyIssuerSignature
+
+```
+ontSdk.Credential.VerifyIssuerSignature(credential *VerifiableCredential) error
+```
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.8 VerifyStatus
+
+```
+ontSdk.Credential.VerifyStatus(credential *VerifiableCredential) error
+```
+`credential`: [definition](https://www.w3.org/TR/vc-data-model/)
+
+#### 2.6.9 CreatePresentation
+
+```
+ontSdk.Credential.CreatePresentation(credentials []*VerifiableCredential, contexts, types []string, holder string, signers []*Account) (*Presentation, error)
+```
+`credentials`: credential list
+
+`contexts`: [definition](https://www.w3.org/TR/vc-data-model/#contexts)
+
+`types`: [definition](https://www.w3.org/TR/vc-data-model/#types)
+
+`holder`: ONTID of holder
+
+`signers`: signer accounts
+
+#### 2.6.10 VerifyPresentation
+
+```
+ontSdk.Credential.VerifyPresentation(presentation *Presentation, credibleOntIds []string) error
+```
+`presentation`: [definition](https://www.w3.org/TR/vc-data-model/#presentations-0)
+
+`credibleOntIds`: credible ONT ID list
+
 # Contributing
 
 Can I contribute patches to the Ontology project?

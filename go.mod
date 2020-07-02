@@ -11,6 +11,7 @@ require (
 	github.com/ontio/go-bip32 v0.0.0-20190520025953-d3cea6894a2b
 	github.com/ontio/ontology v1.8.2
 	github.com/ontio/ontology-crypto v1.0.7
+	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.4.0
 	github.com/tyler-smith/go-bip39 v1.0.2
 	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915

@@ -37,7 +37,7 @@ func TestOep4(t *testing.T) {
 		t.Fatal(err)
 	}
 	ontSdk := ontology_go_sdk.NewOntologySdk()
-	ontSdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
+	ontSdk.NewRpcClient().SetAddress("http://polaris2.ont.io:20336")
 	oep4 := NewOep4(contractAddr, ontSdk)
 	name, err := oep4.Name()
 	if err != nil {
@@ -86,7 +86,7 @@ func TestOep4(t *testing.T) {
 		t.Fatal(err)
 	}
 	amount := big.NewInt(1000)
-	gasPrice := uint64(500)
+	gasPrice := uint64(2500)
 	gasLimit := uint64(500000)
 	transferTx, err := oep4.Transfer(acc, multiSignAddr, amount, nil, gasPrice, gasLimit)
 	if err != nil {
@@ -157,7 +157,7 @@ func TestOep4_FetchTxTransferEvent(t *testing.T) {
 	addr, _ := common.AddressParseFromBytes(bs)
 	fmt.Println(addr.ToBase58())
 	ontSdk := ontology_go_sdk.NewOntologySdk()
-	ontSdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
+	ontSdk.NewRpcClient().SetAddress("http://polaris2.ont.io:20336")
 	oep4 := NewOep4(contractAddr, ontSdk)
 	res, _ := oep4.FetchTxTransferEvent("8074fabad95400c6705478593f2b2fce865aa356c166e63214d8a9af036ee739")
 	fmt.Println(res)

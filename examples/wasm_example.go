@@ -31,7 +31,7 @@ import (
 func main() {
 	fmt.Println("==========================start============================")
 	//testUrl := "http://127.0.0.1:20336"
-	testUrl := "http://polaris1.ont.io:20336"
+	testUrl := "http://polaris2.ont.io:20336"
 	//initialize ontsdk
 	ontSdk := sdk.NewOntologySdk()
 	//suppose you already start up a local wasm ontology node
@@ -71,7 +71,7 @@ func main() {
 	codeHash := common.ToHexString(code)
 
 	//===========================================
-	gasprice := uint64(500)
+	gasprice := uint64(2500)
 	invokegaslimit := uint64(200000)
 	deploygaslimit := uint64(200000000)
 	// deploy the wasm contract

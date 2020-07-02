@@ -48,9 +48,10 @@ func init() {
 //OntologySdk is the main struct for user
 type OntologySdk struct {
 	client.ClientMgr
-	Native *NativeContract
-	NeoVM  *NeoVMContract
-	WasmVM *WasmVMContract
+	Native     *NativeContract
+	NeoVM      *NeoVMContract
+	WasmVM     *WasmVMContract
+	Credential *Credential
 }
 
 //NewOntologySdk return OntologySdk.
@@ -62,6 +63,8 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.NeoVM = neoVM
 	wasmVM := newWasmVMContract(ontSdk)
 	ontSdk.WasmVM = wasmVM
+	credential := newCredential(ontSdk)
+	ontSdk.Credential = credential
 	return ontSdk
 }
 
@@ -76,6 +79,16 @@ func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 //OpenWallet return a wallet instance
 func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
+}
+
+//OpenWallet return a wallet instance
+func (this *OntologySdk) SetCredContractAddress(addr string) error {
+	address, err := common.AddressFromHexString(addr)
+	if err != nil {
+		return fmt.Errorf("SetCredContractAddress error: %s", err)
+	}
+	this.Credential.credRecordContractAddress = address
+	return nil
 }
 
 func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
