@@ -105,9 +105,14 @@ func TestJWTCredential(t *testing.T) {
 		t.Errorf("TestJWTCredential testOntSdk.Credential.VerifyCredibleOntId error:%s", err)
 		return
 	}
-	err = testOntSdk.Credential.VerifyJWTDate(s)
+	err = testOntSdk.Credential.VerifyJWTIssuanceDate(s)
 	if err != nil {
-		t.Errorf("TestJWTCredential testOntSdk.Credential.VerifyDate error:%s", err)
+		t.Errorf("TestJWTCredential testOntSdk.Credential.VerifyJWTIssuanceDate error:%s", err)
+		return
+	}
+	err = testOntSdk.Credential.VerifyJWTExpirationDate(s)
+	if err != nil {
+		t.Errorf("TestJWTCredential testOntSdk.Credential.VerifyJWTExpirationDate error:%s", err)
 		return
 	}
 	err = testOntSdk.Credential.VerifyJWTIssuerSignature(s)

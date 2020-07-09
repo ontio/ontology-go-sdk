@@ -311,24 +311,28 @@ func (this *Credential) VerifyCredibleOntId(credibleOntIds []string, credential 
 	return fmt.Errorf("VerifyCredibleOntId failed")
 }
 
-func (this *Credential) VerifyDate(credential *VerifiableCredential) error {
+func (this *Credential) VerifyExpirationDate(credential *VerifiableCredential) error {
 	now := time.Now().UTC()
 	if credential.ExpirationDate != "" {
 		expirationDate, err := time.Parse("2006-01-02T15:04:05Z", credential.ExpirationDate)
 		if err != nil {
-			return fmt.Errorf("VerifyDate error: %s", err)
+			return fmt.Errorf("VerifyExpirationDate error: %s", err)
 		}
 		if now.Unix() > expirationDate.Unix() {
-			return fmt.Errorf("VerifyDate expirationDate failed")
+			return fmt.Errorf("VerifyExpirationDate expirationDate failed")
 		}
 	}
+	return nil
+}
 
+func (this *Credential) VerifyIssuanceDate(credential *VerifiableCredential) error {
+	now := time.Now().UTC()
 	issuanceDate, err := time.Parse("2006-01-02T15:04:05Z", credential.IssuanceDate)
 	if err != nil {
-		return fmt.Errorf("VerifyDate error: %s", err)
+		return fmt.Errorf("VerifyIssuanceDate error: %s", err)
 	}
 	if now.Unix() < issuanceDate.Unix() {
-		return fmt.Errorf("VerifyDate issuanceDate failed")
+		return fmt.Errorf("VerifyIssuanceDate issuanceDate failed")
 	}
 	return nil
 }

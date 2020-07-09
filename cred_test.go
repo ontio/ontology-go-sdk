@@ -112,9 +112,14 @@ func TestCredential(t *testing.T) {
 		t.Errorf("TestCredential testOntSdk.Credential.VerifyCredibleOntId error:%s", err)
 		return
 	}
-	err = testOntSdk.Credential.VerifyDate(credential)
+	err = testOntSdk.Credential.VerifyIssuanceDate(credential)
 	if err != nil {
-		t.Errorf("TestCredential testOntSdk.Credential.VerifyDate error:%s", err)
+		t.Errorf("TestCredential testOntSdk.Credential.VerifyIssuanceDate error:%s", err)
+		return
+	}
+	err = testOntSdk.Credential.VerifyExpirationDate(credential)
+	if err != nil {
+		t.Errorf("TestCredential testOntSdk.Credential.VerifyExpirationDate error:%s", err)
 		return
 	}
 	err = testOntSdk.Credential.VerifyIssuerSignature(credential)

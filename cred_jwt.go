@@ -185,27 +185,36 @@ func (this *Credential) VerifyJWTCredibleOntId(credibleOntIds []string, credenti
 	return fmt.Errorf("VerifyJWTCredibleOntId failed")
 }
 
-func (this *Credential) VerifyJWTDate(credential string) error {
+func (this *Credential) VerifyJWTExpirationDate(credential string) error {
 	JWTCredential, err := DeserializeJWT(credential)
 	if err != nil {
-		return fmt.Errorf("VerifyJWTDate, DeserializeJWT error: %s", err)
+		return fmt.Errorf("VerifyJWTExpirationDate, DeserializeJWT error: %s", err)
 	}
 
 	now := time.Now().UTC()
 	if JWTCredential.Payload.Exp != 0 {
 		if now.Unix() > JWTCredential.Payload.Exp {
-			return fmt.Errorf("VerifyJWTDate expirationDate failed")
+			return fmt.Errorf("VerifyJWTExpirationDate expirationDate failed")
 		}
 	}
+	return nil
+}
 
+func (this *Credential) VerifyJWTIssuanceDate(credential string) error {
+	JWTCredential, err := DeserializeJWT(credential)
+	if err != nil {
+		return fmt.Errorf("VerifyJWTIssuanceDate, DeserializeJWT error: %s", err)
+	}
+
+	now := time.Now().UTC()
 	if JWTCredential.Payload.Nbf != 0 {
 		if now.Unix() < JWTCredential.Payload.Nbf {
-			return fmt.Errorf("VerifyJWTDate issuanceDate nbf failed")
+			return fmt.Errorf("VerifyJWTIssuanceDate issuanceDate nbf failed")
 		}
 	}
 	if JWTCredential.Payload.Iat != 0 {
 		if now.Unix() < JWTCredential.Payload.Iat {
-			return fmt.Errorf("VerifyJWTDate issuanceDate iat failed")
+			return fmt.Errorf("VerifyJWTIssuanceDate issuanceDate iat failed")
 		}
 	}
 	return nil
