@@ -40,6 +40,8 @@ type OntologyClient interface {
 	getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error)
 	getStorage(qid, contractAddress string, key []byte) ([]byte, error)
 	getMerkleProof(qid, txHash string) ([]byte, error)
+	getCrossStatesProof(qid string, height uint32, key []byte) ([]byte, error)
+	getCrossChainMsg(qid string, height uint32) ([]byte, error)
 	getMemPoolTxState(qid, txHash string) ([]byte, error)
 	getMemPoolTxCount(qid string) ([]byte, error)
 	sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error)
@@ -59,6 +61,8 @@ const (
 	RPC_GET_SMART_CONTRACT          = "getcontractstate"
 	RPC_GET_GENERATE_BLOCK_TIME     = "getgenerateblocktime"
 	RPC_GET_MERKLE_PROOF            = "getmerkleproof"
+	RPC_GET_CROSS_STATES_PROOF      = "getcrossstatesproof"
+	RPC_GET_CROSS_CHAIN_MSG         = "getcrosschainmsg"
 	RPC_GET_NETWORK_ID              = "getnetworkid"
 	RPC_GET_MEM_POOL_TX_COUNT       = "getmempooltxcount"
 	RPC_GET_MEM_POOL_TX_STATE       = "getmempooltxstate"

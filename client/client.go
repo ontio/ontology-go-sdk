@@ -25,6 +25,7 @@ import (
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	bc "github.com/ontio/ontology/http/base/common"
 	"sync/atomic"
 	"time"
 )
@@ -235,6 +236,30 @@ func (this *ClientMgr) GetMerkleProof(txHash string) (*sdkcom.MerkleProof, error
 		return nil, err
 	}
 	return utils.GetMerkleProof(data)
+}
+
+func (this *ClientMgr) GetCrossStatesProof(height uint32, key []byte) (*bc.CrossStatesProof, error) {
+	client := this.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getCrossStatesProof(this.getNextQid(), height, key)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetCrossStatesProof(data)
+}
+
+func (this *ClientMgr) GetCrossChainMsg(height uint32) (string, error) {
+	client := this.getClient()
+	if client == nil {
+		return "", fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getCrossChainMsg(this.getNextQid(), height)
+	if err != nil {
+		return "", err
+	}
+	return utils.GetCrossChainMsg(data)
 }
 
 func (this *ClientMgr) GetMemPoolTxState(txHash string) (*sdkcom.MemPoolTxState, error) {

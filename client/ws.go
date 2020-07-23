@@ -657,6 +657,14 @@ func (this *WSClient) getMerkleProof(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_MERKLE_PROOF, map[string]interface{}{"Hash": txHash})
 }
 
+func (this *WSClient) getCrossStatesProof(qid string, height uint32, key []byte) ([]byte, error) {
+	return nil, fmt.Errorf("getCrossStateProof not supported by WSClient")
+}
+
+func (this *WSClient) getCrossChainMsg(qid string, height uint32) ([]byte, error) {
+	return nil, fmt.Errorf("getCrossChainMsg not supported by WSClient")
+}
+
 func (this *WSClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HASH, map[string]interface{}{"Hash": txHash})
 }

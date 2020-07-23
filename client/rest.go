@@ -155,6 +155,14 @@ func (this RestClient) getMerkleProof(qid, txHash string) ([]byte, error) {
 	return this.sendRestGetRequest(reqPath)
 }
 
+func (this *RestClient) getCrossStatesProof(qid string, height uint32, key []byte) ([]byte, error) {
+	return nil, fmt.Errorf("getCrossStateProof not supported by RestClient")
+}
+
+func (this *RestClient) getCrossChainMsg(qid string, height uint32) ([]byte, error) {
+	return nil, fmt.Errorf("getCrossChainMsg not supported by RestClient")
+}
+
 func (this *RestClient) getMemPoolTxState(qid, txHash string) ([]byte, error) {
 	reqPath := GET_MEMPOOL_TXSTATE + txHash
 	return this.sendRestGetRequest(reqPath)
