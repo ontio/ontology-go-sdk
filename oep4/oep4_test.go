@@ -36,8 +36,8 @@ func TestOep4(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ontSdk := ontology_go_sdk.NewOntologySdk()
-	ontSdk.NewRpcClient().SetAddress("http://polaris2.ont.io:20336")
+	ontSdk := ontology_go_sdk.NewOntologySdk(utils.ONTOLOGY_SDK)
+	ontSdk.NewRpcClient(utils.ONTOLOGY_SDK).SetAddress("http://polaris2.ont.io:20336")
 	oep4 := NewOep4(contractAddr, ontSdk)
 	name, err := oep4.Name()
 	if err != nil {

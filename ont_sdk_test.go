@@ -31,6 +31,7 @@ import (
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
+	sdk_utils "github.com/ontio/ontology-go-sdk/utils"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -54,8 +55,8 @@ func init() {
 		fmt.Printf("OpenWallet err: %s\n", err)
 		return
 	}
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
+	testOntSdk.NewRpcClient(sdk_utils.ONTOLOGY_SDK).SetAddress(testNetUrl)
 	testDefAcc, err = testWallet.GetDefaultAccount(testPasswd)
 	if err != nil {
 		fmt.Printf("GetDefaultAccount err: %s\n", err)
@@ -63,10 +64,10 @@ func init() {
 	}
 }
 func TestOntId_NewRegIDWithAttributesTransaction(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 }
 func TestParseNativeTxPayload(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -86,7 +87,7 @@ func TestParseNativeTxPayload(t *testing.T) {
 }
 
 func TestParsePayload(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	//transferMulti
 	payloadHex := "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c0114c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
 	//one transfer
@@ -102,7 +103,7 @@ func TestParsePayload(t *testing.T) {
 }
 
 func TestParsePayloadRandom(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -147,7 +148,7 @@ func TestParsePayloadRandom(t *testing.T) {
 	}
 }
 func TestParsePayloadRandomMulti(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -186,7 +187,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 }
 
 func TestOntologySdk_TrabsferFrom(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	payloadHex := "00c66b1421ab6ece5c9e44fa5e35261ef42cc6bc31d98e9c6a7cc814c1d2d106f9d2276b383958973b9fca8e4f48cc966a7cc80400e1f5056a7cc86c51c1087472616e736665721400000000000000000000000000000000000000020068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
 	payloadBytes, err := common.HexToBytes(payloadHex)
 	assert.Nil(t, err)
@@ -254,7 +255,7 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	fmt.Println("res:", res)
 }
 func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	var err error
 	assert.Nil(t, err)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
@@ -311,7 +312,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 
 func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
 	mnemonic := make(map[string]bool)
-	testOntSdk := NewOntologySdk()
+	testOntSdk := NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	for i := 0; i < 100000; i++ {
 		mnemonicStr, err := testOntSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
@@ -324,7 +325,7 @@ func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
 }
 
 func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
-	testOntSdk := NewOntologySdk()
+	testOntSdk := NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	for i := 0; i < 1000; i++ {
 		mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
@@ -352,7 +353,7 @@ func TestGenerateMemory(t *testing.T) {
 	entropy, _ := bip39.NewEntropy(128)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
 	mnemonic = "ecology cricket napkin scrap board purpose picnic toe bean heart coast retire"
-	testOntSdk := NewOntologySdk()
+	testOntSdk := NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	for i := 0; i < len(expectedPrivateKey); i++ {
 		privk, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, uint32(i))
 		assert.Nil(t, err)
@@ -373,7 +374,7 @@ func TestOntologySdk_CreateWallet(t *testing.T) {
 }
 
 func TestNewOntologySdk(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	event := &event.NotifyEventInfo{
 		ContractAddress: common.ADDRESS_EMPTY,
@@ -385,7 +386,7 @@ func TestNewOntologySdk(t *testing.T) {
 }
 
 func TestOntologySdk_GetTxData(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	acc, _ := testWallet.GetAccountByAddress("AXdmdzbyf3WZKQzRtrNQwAR91ZxMUfhXkt", testPasswd)
 	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(2500, 10000, acc.Address, acc.Address, 100)
@@ -399,8 +400,8 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 }
 
 func Init() {
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
+	testOntSdk.NewRpcClient(sdk_utils.ONTOLOGY_SDK).SetAddress(testNetUrl)
 
 	var err error
 	var wallet *Wallet
@@ -435,7 +436,7 @@ func Init() {
 	}
 
 	return
-	ws := testOntSdk.NewWebSocketClient()
+	ws := testOntSdk.NewWebSocketClient(sdk_utils.ONTOLOGY_SDK)
 	err = ws.Connect("ws://localhost:20335")
 	if err != nil {
 		fmt.Printf("Connect ws error:%s", err)
@@ -446,8 +447,8 @@ func Init() {
 func TestOnt_Transfer(t *testing.T) {
 	return
 	Init()
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testOntSdk = NewOntologySdk(sdk_utils.ONTOLOGY_SDK)
+	testOntSdk.NewRpcClient(sdk_utils.ONTOLOGY_SDK).SetAddress(testNetUrl)
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, nil, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
