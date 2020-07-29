@@ -36,8 +36,8 @@ func TestOep4(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ontSdk := ontology_go_sdk.NewOntologySdk(utils.ONTOLOGY_SDK)
-	ontSdk.NewRpcClient(utils.ONTOLOGY_SDK).SetAddress("http://polaris2.ont.io:20336")
+	ontSdk := ontology_go_sdk.NewOntologySdk(utils.LAYER2_SDK)
+	ontSdk.NewRpcClient(utils.LAYER2_SDK).SetAddress("http://polaris2.ont.io:20336")
 	oep4 := NewOep4(contractAddr, ontSdk)
 	name, err := oep4.Name()
 	if err != nil {
@@ -156,8 +156,8 @@ func TestOep4_FetchTxTransferEvent(t *testing.T) {
 	bs, _ := common.HexToBytes("83c12e967885ba0a1285a0c628acbfb1185af8bc")
 	addr, _ := common.AddressParseFromBytes(bs)
 	fmt.Println(addr.ToBase58())
-	ontSdk := ontology_go_sdk.NewOntologySdk(utils.ONTOLOGY_SDK)
-	ontSdk.NewRpcClient(utils.ONTOLOGY_SDK).SetAddress("http://polaris2.ont.io:20336")
+	ontSdk := ontology_go_sdk.NewOntologySdk(utils.LAYER2_SDK)
+	ontSdk.NewRpcClient(utils.LAYER2_SDK).SetAddress("http://polaris2.ont.io:20336")
 	oep4 := NewOep4(contractAddr, ontSdk)
 	res, _ := oep4.FetchTxTransferEvent("8074fabad95400c6705478593f2b2fce865aa356c166e63214d8a9af036ee739")
 	fmt.Println(res)
