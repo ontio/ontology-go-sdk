@@ -17,3 +17,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
 	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
 )
+
+replace (
+	github.com/ontio/ontology => github.com/blockchain-develop/ontology v1.11.1-0.20200728102543-adcdf8013053
+)
