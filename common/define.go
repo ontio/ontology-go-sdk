@@ -278,3 +278,10 @@ type GlobalParam struct {
 	Key   string
 	Value string
 }
+
+type StoreProof struct {
+	Type      string
+	Value     string
+	Proof     string
+	Height    uint32
+}

@@ -37,7 +37,7 @@ func GetVersion(data []byte) (string, error) {
 	return version, nil
 }
 
-func GetBlock(data []byte) (*types.Block, error) {
+func GetBlock(data []byte, flag uint32) (*types.Block, error) {
 	hexStr := ""
 	err := json.Unmarshal(data, &hexStr)
 	if err != nil {
@@ -47,7 +47,11 @@ func GetBlock(data []byte) (*types.Block, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	return types.BlockFromRawBytes(blockData)
+	if flag == ONTOLOGY_SDK {
+		return types.BlockFromRawBytes_ont(blockData)
+	} else {
+		return types.BlockFromRawBytes(blockData)
+	}
 }
 
 func GetUint32(data []byte) (uint32, error) {
@@ -240,4 +244,13 @@ func GetMemPoolTxCount(data []byte) (*sdkcom.MemPoolTxCount, error) {
 		Verified: count[0],
 		Verifing: count[1],
 	}, nil
+}
+
+func GetStoreProof(data []byte) (*sdkcom.StoreProof, error) {
+	proof := &sdkcom.StoreProof{}
+	err := json.Unmarshal(data, proof)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	return proof, nil
 }

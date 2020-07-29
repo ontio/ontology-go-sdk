@@ -31,6 +31,11 @@ import (
 	"strings"
 )
 
+const (
+	ONTOLOGY_SDK = iota
+	LAYER2_SDK
+)
+
 func TransactionFromHexString(rawTx string) (*types.Transaction, error) {
 	txData, err := hex.DecodeString(rawTx)
 	if err != nil {

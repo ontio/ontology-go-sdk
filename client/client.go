@@ -18,6 +18,7 @@
 package client
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
@@ -36,10 +37,12 @@ type ClientMgr struct {
 	ws        *WSClient   //Web socket client used the web socket api of ontology
 	defClient OntologyClient
 	qid       uint64
+	flag      uint32
 }
 
-func (this *ClientMgr) NewRpcClient() *RpcClient {
+func (this *ClientMgr) NewRpcClient(flag uint32) *RpcClient {
 	this.rpc = NewRpcClient()
+	this.flag = flag
 	return this.rpc
 }
 
@@ -47,8 +50,9 @@ func (this *ClientMgr) GetRpcClient() *RpcClient {
 	return this.rpc
 }
 
-func (this *ClientMgr) NewRestClient() *RestClient {
+func (this *ClientMgr) NewRestClient(flag uint32) *RestClient {
 	this.rest = NewRestClient()
+	this.flag = flag
 	return this.rest
 }
 
@@ -56,9 +60,10 @@ func (this *ClientMgr) GetRestClient() *RestClient {
 	return this.rest
 }
 
-func (this *ClientMgr) NewWebSocketClient() *WSClient {
-	wsClient := NewWSClient()
+func (this *ClientMgr) NewWebSocketClient(flag uint32) *WSClient {
+	wsClient := NewWSClient(flag)
 	this.ws = wsClient
+	this.flag = flag
 	return wsClient
 }
 
@@ -103,7 +108,7 @@ func (this *ClientMgr) GetBlockByHeight(height uint32) (*types.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utils.GetBlock(data)
+	return utils.GetBlock(data, this.flag)
 }
 
 func (this *ClientMgr) GetBlockInfoByHeight(height uint32) ([]byte, error) {
@@ -127,7 +132,7 @@ func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utils.GetBlock(data)
+	return utils.GetBlock(data, this.flag)
 }
 
 func (this *ClientMgr) GetTransaction(txHash string) (*types.Transaction, error) {
@@ -315,7 +320,13 @@ func (this *ClientMgr) SendTransaction(mutTx *types.MutableTransaction) (common.
 	if client == nil {
 		return common.UINT256_EMPTY, fmt.Errorf("don't have available client of ontology")
 	}
-	tx, err := mutTx.IntoImmutable()
+	var tx *types.Transaction
+	var err error
+	if this.flag == utils.ONTOLOGY_SDK {
+		tx, err = mutTx.IntoImmutable_ont()
+	} else {
+		tx, err = mutTx.IntoImmutable()
+	}
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -331,7 +342,13 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
 	}
-	tx, err := mutTx.IntoImmutable()
+	var tx *types.Transaction
+	var err error
+	if this.flag == utils.ONTOLOGY_SDK {
+		tx, err = mutTx.IntoImmutable_ont()
+	} else {
+		tx, err = mutTx.IntoImmutable()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -345,6 +362,32 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 		return nil, fmt.Errorf("json.Unmarshal PreExecResult:%s error:%s", data, err)
 	}
 	return preResult, nil
+}
+
+func (this *ClientMgr) GetStoreKey(contractAddress string, key []byte) ([]byte, error) {
+	newKey := make([]byte, 0)
+	if len(contractAddress) > 0 {
+		newKey = append(newKey, byte(0x05))
+		contractAddrBytes, _ := hex.DecodeString(contractAddress)
+		contractAddr := common.ToArrayReverse(contractAddrBytes)
+		newKey = append(newKey, contractAddr...)
+		newKey = append(newKey, key...)
+	} else {
+		newKey = append(newKey, key...)
+	}
+	return newKey, nil
+}
+
+func (this *ClientMgr) GetStoreProof(key []byte) (*sdkcom.StoreProof, error) {
+	client := this.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getStoreProof(this.getNextQid(), key)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetStoreProof(data)
 }
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
