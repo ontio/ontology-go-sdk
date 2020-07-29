@@ -27,6 +27,7 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	bc "github.com/ontio/ontology/http/base/common"
+	"github.com/tendermint/iavl"
 	"sync/atomic"
 	"time"
 )
@@ -362,6 +363,25 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 		return nil, fmt.Errorf("json.Unmarshal PreExecResult:%s error:%s", data, err)
 	}
 	return preResult, nil
+}
+
+func (this *ClientMgr) VerifyStoreProof(key []byte, value []byte, proof []byte, stateRoot []byte) (bool, error) {
+	source := common.NewZeroCopySource(proof)
+	storeProof := new(types.StoreProof)
+	err := storeProof.Deserialization(source)
+	if err != nil {
+		return false, err
+	}
+	proof_iavl := iavl.RangeProof(*storeProof)
+	err = proof_iavl.Verify(stateRoot)
+	if err != nil {
+		return false, err
+	}
+	err = proof_iavl.VerifyItem(key, value)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (this *ClientMgr) GetStoreKey(contractAddress string, key []byte) ([]byte, error) {
