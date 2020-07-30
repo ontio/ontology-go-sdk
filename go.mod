@@ -13,6 +13,7 @@ require (
 	github.com/ontio/ontology-crypto v1.0.9
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.5.1
+	github.com/tendermint/iavl v0.13.2
 	github.com/tyler-smith/go-bip39 v1.0.2
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
 	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
