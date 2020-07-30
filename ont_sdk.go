@@ -51,11 +51,12 @@ type OntologySdk struct {
 	Native     *NativeContract
 	NeoVM      *NeoVMContract
 	WasmVM     *WasmVMContract
+	Flag       int
 	Credential *Credential
 }
 
 //NewOntologySdk return OntologySdk.
-func NewOntologySdk() *OntologySdk {
+func NewOntologySdk(flag int) *OntologySdk {
 	ontSdk := &OntologySdk{}
 	native := newNativeContract(ontSdk)
 	ontSdk.Native = native
@@ -65,6 +66,7 @@ func NewOntologySdk() *OntologySdk {
 	ontSdk.WasmVM = wasmVM
 	credential := newCredential(ontSdk)
 	ontSdk.Credential = credential
+	ontSdk.Flag = flag
 	return ontSdk
 }
 
@@ -382,13 +384,26 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
-	tx := &types.MutableTransaction{
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-		TxType:   types.InvokeNeo,
-		Nonce:    rand.Uint32(),
-		Payload:  invokePayload,
-		Sigs:     make([]types.Sig, 0, 0),
+	var tx *types.MutableTransaction
+	if this.Flag == utils.ONTOLOGY_SDK {
+		tx = &types.MutableTransaction{
+			GasPrice: gasPrice,
+			GasLimit: gasLimit,
+			TxType:   types.InvokeNeo,
+			Nonce:    rand.Uint32(),
+			Payload:  invokePayload,
+			Sigs:     make([]types.Sig, 0, 0),
+		}
+	} else {
+		tx = &types.MutableTransaction{
+			GasPrice: gasPrice,
+			GasLimit: gasLimit,
+			TxType:   types.InvokeNeo,
+			SystemId: 1,
+			Nonce:    rand.Uint32(),
+			Payload:  invokePayload,
+			Sigs:     make([]types.Sig, 0, 0),
+		}
 	}
 	return tx
 }
@@ -410,7 +425,13 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 			return nil
 		}
 	}
-	txHash := tx.Hash()
+
+	var txHash common.Uint256
+	if this.Flag == utils.ONTOLOGY_SDK {
+		txHash = tx.Hash_ont()
+	} else {
+		txHash = tx.Hash()
+	}
 	sigData, err := signer.Sign(txHash.ToArray())
 	if err != nil {
 		return fmt.Errorf("sign error:%s", err)

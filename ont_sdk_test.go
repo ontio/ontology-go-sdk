@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/ontio/ontology-crypto/signature"
 	common2 "github.com/ontio/ontology-go-sdk/common"
+	sdk_utils "github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/utils"
@@ -32,7 +33,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
 	"math/rand"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -54,8 +54,8 @@ func init() {
 		fmt.Printf("OpenWallet err: %s\n", err)
 		return
 	}
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
+	testOntSdk.NewRpcClient(sdk_utils.LAYER2_SDK).SetAddress(testNetUrl)
 	testDefAcc, err = testWallet.GetDefaultAccount(testPasswd)
 	if err != nil {
 		fmt.Printf("GetDefaultAccount err: %s\n", err)
@@ -63,10 +63,10 @@ func init() {
 	}
 }
 func TestOntId_NewRegIDWithAttributesTransaction(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 }
 func TestParseNativeTxPayload(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -86,7 +86,7 @@ func TestParseNativeTxPayload(t *testing.T) {
 }
 
 func TestParsePayload(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	//transferMulti
 	payloadHex := "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c0114c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
 	//one transfer
@@ -102,7 +102,7 @@ func TestParsePayload(t *testing.T) {
 }
 
 func TestParsePayloadRandom(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -147,7 +147,7 @@ func TestParsePayloadRandom(t *testing.T) {
 	}
 }
 func TestParsePayloadRandomMulti(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -186,7 +186,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 }
 
 func TestOntologySdk_TrabsferFrom(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	payloadHex := "00c66b1421ab6ece5c9e44fa5e35261ef42cc6bc31d98e9c6a7cc814c1d2d106f9d2276b383958973b9fca8e4f48cc966a7cc80400e1f5056a7cc86c51c1087472616e736665721400000000000000000000000000000000000000020068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
 	payloadBytes, err := common.HexToBytes(payloadHex)
 	assert.Nil(t, err)
@@ -254,7 +254,7 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	fmt.Println("res:", res)
 }
 func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	var err error
 	assert.Nil(t, err)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
@@ -311,7 +311,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 
 func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
 	mnemonic := make(map[string]bool)
-	testOntSdk := NewOntologySdk()
+	testOntSdk := NewOntologySdk(sdk_utils.LAYER2_SDK)
 	for i := 0; i < 100000; i++ {
 		mnemonicStr, err := testOntSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
@@ -324,7 +324,7 @@ func TestOntologySdk_GenerateMnemonicCodesStr2(t *testing.T) {
 }
 
 func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
-	testOntSdk := NewOntologySdk()
+	testOntSdk := NewOntologySdk(sdk_utils.LAYER2_SDK)
 	for i := 0; i < 1000; i++ {
 		mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
@@ -352,7 +352,7 @@ func TestGenerateMemory(t *testing.T) {
 	entropy, _ := bip39.NewEntropy(128)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
 	mnemonic = "ecology cricket napkin scrap board purpose picnic toe bean heart coast retire"
-	testOntSdk := NewOntologySdk()
+	testOntSdk := NewOntologySdk(sdk_utils.LAYER2_SDK)
 	for i := 0; i < len(expectedPrivateKey); i++ {
 		privk, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, uint32(i))
 		assert.Nil(t, err)
@@ -373,7 +373,7 @@ func TestOntologySdk_CreateWallet(t *testing.T) {
 }
 
 func TestNewOntologySdk(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	event := &event.NotifyEventInfo{
 		ContractAddress: common.ADDRESS_EMPTY,
@@ -385,7 +385,7 @@ func TestNewOntologySdk(t *testing.T) {
 }
 
 func TestOntologySdk_GetTxData(t *testing.T) {
-	testOntSdk = NewOntologySdk()
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	acc, _ := testWallet.GetAccountByAddress("AXdmdzbyf3WZKQzRtrNQwAR91ZxMUfhXkt", testPasswd)
 	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(2500, 10000, acc.Address, acc.Address, 100)
@@ -398,9 +398,20 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 	assert.Equal(t, tx, tx3)
 }
 
+func TestOntologySdk_VerifyStoreProof(t *testing.T) {
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
+	key, _ := hex.DecodeString("050946e00bcd8be898e60b79ace69e082732bc807668656c6c6f")
+	value, _ := hex.DecodeString("001174686973206973206578616d706c652058")
+	proof, _ := hex.DecodeString("050000000513000000000000002a0000000000000020a8e6e09eaaffc9224e77d77da73bf3de391822f10a5e891a33432313cb31728800040a000000000000002a0000000000000020e89e44cb23ceaa71640cdcef34b147d70b22b07ae6464ef95b39b1853651b35300030500000000000000260000000000000020d5779fd4f428a09cdcf3be8b31cb3e5e16f4c21ada3c1541a22c4272256f2fe300020300000000000000260000000000000020b8cfb72dbafa6db660df5aaa5713a94cd8e6399aa36026dc052534812a4893d70001020000000000000026000000000000002083a7e854f781894fae08eb636cdb932ff799237e52f0039b714ae50aeb896fc10000000000010000001a050946e00bcd8be898e60b79ace69e082732bc807668656c6c6f20aa4a40856844e60c5c80b5b30041c3ec7cd0d17a6e34933be621cb546c70ca362600000000000000")
+	stateRoot, _ := hex.DecodeString("5d1cce9f5f8e12185a3482d35aec21b34d6e4c0112aff75adf0bc435c9f9e97d")
+	result, err := testOntSdk.VerifyStoreProof(key, value, proof, stateRoot)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, result)
+}
+
 func Init() {
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testOntSdk = NewOntologySdk(sdk_utils.LAYER2_SDK)
+	testOntSdk.NewRpcClient(sdk_utils.LAYER2_SDK).SetAddress(testNetUrl)
 
 	var err error
 	var wallet *Wallet
@@ -435,146 +446,10 @@ func Init() {
 	}
 
 	return
-	ws := testOntSdk.NewWebSocketClient()
+	ws := testOntSdk.NewWebSocketClient(sdk_utils.LAYER2_SDK)
 	err = ws.Connect("ws://localhost:20335")
 	if err != nil {
 		fmt.Printf("Connect ws error:%s", err)
 		return
-	}
-}
-
-func TestOnt_Transfer(t *testing.T) {
-	return
-	Init()
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
-	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, nil, testDefAcc, testDefAcc.Address, 1)
-	if err != nil {
-		t.Errorf("NewTransferTransaction error:%s", err)
-		return
-	}
-	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
-	evts, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
-	if err != nil {
-		t.Errorf("GetSmartContractEvent error:%s", err)
-		return
-	}
-	fmt.Printf("TxHash:%s\n", txHash.ToHexString())
-	fmt.Printf("State:%d\n", evts.State)
-	fmt.Printf("GasConsume:%d\n", evts.GasConsumed)
-	for _, notify := range evts.Notify {
-		fmt.Printf("ContractAddress:%s\n", notify.ContractAddress)
-		fmt.Printf("States:%+v\n", notify.States)
-	}
-}
-
-func TestOng_WithDrawONG(t *testing.T) {
-	Init()
-	unboundONG, err := testOntSdk.Native.Ong.UnboundONG(testDefAcc.Address)
-	if err != nil {
-		t.Errorf("UnboundONG error:%s", err)
-		return
-	}
-	fmt.Printf("Address:%s UnboundONG:%d\n", testDefAcc.Address.ToBase58(), unboundONG)
-	_, err = testOntSdk.Native.Ong.WithdrawONG(2500, 20000, nil, testDefAcc, unboundONG)
-	if err != nil {
-		t.Errorf("WithDrawONG error:%s", err)
-		return
-	}
-	fmt.Printf("Address:%s WithDrawONG amount:%d success\n", testDefAcc.Address.ToBase58(), unboundONG)
-}
-
-func TestGlobalParam_GetGlobalParams(t *testing.T) {
-	Init()
-	gasPrice := "gasPrice"
-	params := []string{gasPrice}
-	results, err := testOntSdk.Native.GlobalParams.GetGlobalParams(params)
-	if err != nil {
-		t.Errorf("GetGlobalParams:%+v error:%s", params, err)
-		return
-	}
-	fmt.Printf("Params:%s Value:%v\n", gasPrice, results[gasPrice])
-}
-
-func TestGlobalParam_SetGlobalParams(t *testing.T) {
-	return
-	Init()
-	gasPrice := "gasPrice"
-	globalParams, err := testOntSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
-	if err != nil {
-		t.Errorf("GetGlobalParams error:%s", err)
-		return
-	}
-	gasPriceValue, err := strconv.Atoi(globalParams[gasPrice])
-	if err != nil {
-		t.Errorf("Get prama value error:%s", err)
-		return
-	}
-	_, err = testOntSdk.Native.GlobalParams.SetGlobalParams(testGasPrice, testGasLimit, nil, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
-	if err != nil {
-		t.Errorf("SetGlobalParams error:%s", err)
-		return
-	}
-	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
-	globalParams, err = testOntSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
-	if err != nil {
-		t.Errorf("GetGlobalParams error:%s", err)
-		return
-	}
-	gasPriceValueAfter, err := strconv.Atoi(globalParams[gasPrice])
-	if err != nil {
-		t.Errorf("Get prama value error:%s", err)
-		return
-	}
-	fmt.Printf("After set params gasPrice:%d\n", gasPriceValueAfter)
-}
-
-func TestWsScribeEvent(t *testing.T) {
-	return
-	Init()
-	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
-	err := wsClient.SubscribeEvent()
-	if err != nil {
-		t.Errorf("SubscribeTxHash error:%s", err)
-		return
-	}
-	defer wsClient.UnsubscribeTxHash()
-
-	actionCh := wsClient.GetActionCh()
-	timer := time.NewTimer(time.Minute * 3)
-	for {
-		select {
-		case <-timer.C:
-			return
-		case action := <-actionCh:
-			fmt.Printf("Action:%s\n", action.Action)
-			fmt.Printf("Result:%s\n", action.Result)
-		}
-	}
-}
-
-func TestWsTransfer(t *testing.T) {
-	return
-	Init()
-	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
-	testOntSdk.ClientMgr.SetDefaultClient(wsClient)
-	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, nil, testDefAcc, testDefAcc.Address, 1)
-	if err != nil {
-		t.Errorf("NewTransferTransaction error:%s", err)
-		return
-	}
-	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
-	evts, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
-	if err != nil {
-		t.Errorf("GetSmartContractEvent error:%s", err)
-		return
-	}
-	fmt.Printf("TxHash:%s\n", txHash.ToHexString())
-	fmt.Printf("State:%d\n", evts.State)
-	fmt.Printf("GasConsume:%d\n", evts.GasConsumed)
-	for _, notify := range evts.Notify {
-		fmt.Printf("ContractAddress:%s\n", notify.ContractAddress)
-		fmt.Printf("States:%+v\n", notify.States)
 	}
 }

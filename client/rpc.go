@@ -179,6 +179,10 @@ func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isP
 	return this.sendRpcRequest(qid, RPC_SEND_TRANSACTION, params)
 }
 
+func (this *RpcClient) getStoreProof(qid string, key []byte) ([]byte, error) {
+	return this.sendRpcRequest(qid, RPC_STORE_PROOF, []interface{}{hex.EncodeToString(key)})
+}
+
 //sendRpcRequest send Rpc request to ontology
 func (this *RpcClient) sendRpcRequest(qid, method string, params []interface{}) ([]byte, error) {
 	rpcReq := &JsonRpcRequest{

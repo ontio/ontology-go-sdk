@@ -111,6 +111,21 @@ layer2
             * [2.5.45 GetKeyState](#2545-GetKeyState)
             * [2.5.46 GetControllerJson](#2546-GetControllerJson)
             * [2.5.47 GetDocumentJson](#2547-GetDocumentJson)
+        * [2.6 Credential API](#26-credential-api)
+            * [2.6.1 GenSignReq](#261-GenSignReq)
+            * [2.6.2 VerifySignReq](#262-VerifySignReq)
+            * [2.6.3 CreateCredential](#263-CreateCredential)
+            * [2.6.4 CommitCredential](#264-CommitCredential)
+            * [2.6.5 VerifyCredibleOntId](#265-VerifyCredibleOntId)
+            * [2.6.6 VerifyNotExpired](#266-VerifyNotExpired)
+            * [2.6.7 VerifyIssuerSignature](#267-VerifyIssuerSignature)
+            * [2.6.8 VerifyStatus](#268-VerifyStatus)
+            * [2.6.9 CreatePresentation](#269-CreatePresentation)
+            * [2.6.10 VerifyPresentation](#2610-VerifyPresentation)
+        * [2.7 Store API](#27-store-api)
+            * [2.7.1 GetStoreKey](#271-getstorekey)
+            * [2.7.2 GetStoreProof](#272-getstoreproof)
+            * [2.7.3 VerifyStoreProof](#273-verifystoreproof)
 * [Contributing](#contributing)
 	* [Website](#website)
 	* [License](#license)
@@ -1162,6 +1177,43 @@ ontSdk.Credential.VerifyPresentation(presentation *Presentation, credibleOntIds 
 `presentation`: [definition](https://www.w3.org/TR/vc-data-model/#presentations-0)
 
 `credibleOntIds`: credible ONT ID list
+
+### 2.7 Store API
+
+#### 2.7.1 GetStoreKey
+
+```
+ontSdk.GetStoreKey(contractAddr string, key []byte) ([]byte, error)
+```
+`contractAddr`: the contract which the data is stored
+
+`key`: the key which the data is stored
+
+#### 2.7.2 GetStoreProof
+
+```
+ontSdk.GetStoreProof(key []byte) (*sdkcom.StoreProof, error)
+```
+`key`: the key which the data is stored
+
+`StoreProof.Value`: the data is stored under the key
+
+`StoreProof.Proof`: the proof of the stored data
+
+`StoreProof.Height`: which height the proof is generated
+
+#### 2.7.3 VerifyStoreProof
+
+```
+ontSdk.VerifyStoreProof(key []byte, value []byte, proof []byte, stateRoot []byte) (bool, error)
+```
+`key`: the key which the data is stored
+
+`value`: the data is stored under the key
+
+`proof`: the proof of the stored data
+
+`stateRoot`: the state root of all the stored data
 
 # Contributing
 

@@ -98,9 +98,10 @@ type WSClient struct {
 	onClose           func(address string)
 	onError           func(address string, err error)
 	lock              sync.RWMutex
+	flag              uint32
 }
 
-func NewWSClient() *WSClient {
+func NewWSClient(flag uint32) *WSClient {
 	wsClient := &WSClient{
 		defReqTimeout:     DEFAULT_REQ_TIMEOUT,
 		heartbeatInterval: DEFAULT_WS_HEARTBEAT_INTERVAL,
@@ -112,6 +113,7 @@ func NewWSClient() *WSClient {
 		lastHeartbeatTime: time.Now(),
 		lastRecvTime:      time.Now(),
 		exitCh:            make(chan interface{}, 0),
+		flag:              flag,
 	}
 	go wsClient.start()
 	return wsClient
@@ -356,7 +358,7 @@ func (this *WSClient) onAction(resp *WSResponse) {
 }
 
 func (this *WSClient) onRawBlockAction(resp *WSResponse) {
-	block, err := utils.GetBlock(resp.Result)
+	block, err := utils.GetBlock(resp.Result, this.flag)
 	if err != nil {
 		this.GetOnError()(this.addr, fmt.Errorf("onRawBlockAction error:%s", err))
 		return
@@ -671,6 +673,10 @@ func (this *WSClient) getSmartContractEvent(qid, txHash string) ([]byte, error) 
 
 func (this *WSClient) getSmartContractEventByBlock(qid string, blockHeight uint32) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HEIGHT, map[string]interface{}{"Height": blockHeight})
+}
+
+func (this *WSClient) getStoreProof(qid string, key []byte) ([]byte, error) {
+	return this.sendSyncWSRequest(qid, WS_ACTION_GET_STORE_PROOF, map[string]interface{}{"Key": hex.EncodeToString(key)})
 }
 
 func (this *WSClient) GetActionCh() chan *WSAction {
