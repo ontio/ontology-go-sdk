@@ -223,7 +223,7 @@ func (this *ClientMgr) GetSmartContractEventByBlock(height uint32) ([]*sdkcom.Sm
 	if err != nil {
 		return nil, err
 	}
-	if data == nil || string(data) == "" {
+	if data == nil || string(data) == "" || string(data) == "\"\""{
 		return nil, nil
 	}
 	return utils.GetSmartContactEvents(data)
