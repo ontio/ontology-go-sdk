@@ -259,7 +259,7 @@ func (this *Credential) GetPublicKeyList(ontId string) (PublicKeyList, error) {
 
 func (this *Credential) CommitCredential(contractAddress common.Address, gasPrice, gasLimit uint64, credentialId, issuerId,
 	holderId string, signer, payer *Account) (common.Uint256, error) {
-	index, _, err := this.GetPublicKeyId(holderId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
+	index, _, err := this.GetPublicKeyId(issuerId, hex.EncodeToString(keypair.SerializePublicKey(signer.GetPublicKey())))
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("CommitCredential, this.GetPublicKeyId error: %s", err)
 	}
