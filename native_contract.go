@@ -61,6 +61,7 @@ type NativeContract struct {
 	OntId        *OntId
 	GlobalParams *GlobalParam
 	Auth         *Auth
+	Governance   *Governance
 }
 
 func newNativeContract(ontSdk *OntologySdk) *NativeContract {
@@ -70,6 +71,7 @@ func newNativeContract(ontSdk *OntologySdk) *NativeContract {
 	native.OntId = &OntId{native: native, ontSdk: ontSdk}
 	native.GlobalParams = &GlobalParam{native: native, ontSdk: ontSdk}
 	native.Auth = &Auth{native: native, ontSdk: ontSdk}
+	native.Governance = &Governance{native: native, ontSdk: ontSdk}
 	return native
 }
 
@@ -2862,6 +2864,55 @@ func (this *Auth) NewVerifyTokenTransaction(gasPrice, gasLimit uint64, contractA
 
 func (this *Auth) VerifyToken(gasPrice, gasLimit uint64, payer, signer *Account, contractAddress common.Address, caller []byte, funcName string, keyIndex int) (common.Uint256, error) {
 	tx, err := this.NewVerifyTokenTransaction(gasPrice, gasLimit, contractAddress, caller, funcName, keyIndex)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToTransaction(tx, payer)
+		if err != nil {
+			return common.UINT256_EMPTY, err
+		}
+	}
+	err = this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
+type Governance struct {
+	ontSdk *OntologySdk
+	native *NativeContract
+}
+
+type SetFeePercentageParam struct {
+	PeerPubkey string
+	Address    common.Address
+	PeerCost   uint32
+	StakeCost  uint32
+}
+
+func (this *Governance) SetFeePercentageTransaction(gasPrice, gasLimit uint64, peerPubkey string, address common.Address,
+	peerCost, stakeCost uint32) (*types.MutableTransaction, error) {
+	params := SetFeePercentageParam{
+		PeerPubkey: peerPubkey,
+		Address:    address,
+		PeerCost:   peerCost,
+		StakeCost:  stakeCost,
+	}
+	return this.native.NewNativeInvokeTransaction(
+		gasPrice,
+		gasLimit,
+		GOVERNANCE_CONTRACT_VERSION,
+		GOVERNANCE_CONTRACT_ADDRESS,
+		"setFeePercentage",
+		[]interface{}{params})
+}
+
+func (this *Governance) SetFeePercentage(gasPrice, gasLimit uint64, payer, signer *Account, peerPubkey string,
+	peerCost, stakeCost uint32) (common.Uint256, error) {
+	tx, err := this.SetFeePercentageTransaction(gasPrice, gasLimit, peerPubkey, signer.Address, peerCost, stakeCost)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
