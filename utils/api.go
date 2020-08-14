@@ -37,7 +37,7 @@ func GetVersion(data []byte) (string, error) {
 	return version, nil
 }
 
-func GetBlock(data []byte, flag uint32) (*types.Block, error) {
+func GetBlock(data []byte) (*types.Block, error) {
 	hexStr := ""
 	err := json.Unmarshal(data, &hexStr)
 	if err != nil {
@@ -47,11 +47,20 @@ func GetBlock(data []byte, flag uint32) (*types.Block, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	if flag == ONTOLOGY_SDK {
-		return types.BlockFromRawBytes_ont(blockData)
-	} else {
-		return types.BlockFromRawBytes(blockData)
+	return types.BlockFromRawBytes(blockData)
+}
+
+func GetLayer2Block(data []byte) (*Layer2Block, error) {
+	hexStr := ""
+	err := json.Unmarshal(data, &hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
 	}
+	blockData, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
+	return Layer2BlockFromRawBytes(blockData)
 }
 
 func GetUint32(data []byte) (uint32, error) {

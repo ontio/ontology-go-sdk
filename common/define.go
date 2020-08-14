@@ -29,6 +29,7 @@ import (
 
 var (
 	VERSION_TRANSACTION = byte(0)
+	LAYER2_SYSTEM_ID = uint32(1)
 )
 
 const (

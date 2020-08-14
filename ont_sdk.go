@@ -29,6 +29,7 @@ import (
 	"io"
 	"math/rand"
 	"time"
+	"crypto/sha256"
 
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-go-sdk/client"
@@ -51,12 +52,11 @@ type OntologySdk struct {
 	Native     *NativeContract
 	NeoVM      *NeoVMContract
 	WasmVM     *WasmVMContract
-	Flag       int
 	Credential *Credential
 }
 
 //NewOntologySdk return OntologySdk.
-func NewOntologySdk(flag int) *OntologySdk {
+func NewOntologySdk() *OntologySdk {
 	ontSdk := &OntologySdk{}
 	native := newNativeContract(ontSdk)
 	ontSdk.Native = native
@@ -66,7 +66,6 @@ func NewOntologySdk(flag int) *OntologySdk {
 	ontSdk.WasmVM = wasmVM
 	credential := newCredential(ontSdk)
 	ontSdk.Credential = credential
-	ontSdk.Flag = flag
 	return ontSdk
 }
 
@@ -384,26 +383,13 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
-	var tx *types.MutableTransaction
-	if this.Flag == utils.ONTOLOGY_SDK {
-		tx = &types.MutableTransaction{
-			GasPrice: gasPrice,
-			GasLimit: gasLimit,
-			TxType:   types.InvokeNeo,
-			Nonce:    rand.Uint32(),
-			Payload:  invokePayload,
-			Sigs:     make([]types.Sig, 0, 0),
-		}
-	} else {
-		tx = &types.MutableTransaction{
-			GasPrice: gasPrice,
-			GasLimit: gasLimit,
-			TxType:   types.InvokeNeo,
-			SystemId: 1,
-			Nonce:    rand.Uint32(),
-			Payload:  invokePayload,
-			Sigs:     make([]types.Sig, 0, 0),
-		}
+	tx := &types.MutableTransaction{
+		GasPrice: gasPrice,
+		GasLimit: gasLimit,
+		TxType:   types.InvokeNeo,
+		Nonce:    rand.Uint32(),
+		Payload:  invokePayload,
+		Sigs:     make([]types.Sig, 0, 0),
 	}
 	return tx
 }
@@ -425,14 +411,43 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 			return nil
 		}
 	}
-
-	var txHash common.Uint256
-	if this.Flag == utils.ONTOLOGY_SDK {
-		txHash = tx.Hash_ont()
-	} else {
-		txHash = tx.Hash()
-	}
+	txHash := tx.Hash()
 	sigData, err := signer.Sign(txHash.ToArray())
+	if err != nil {
+		return fmt.Errorf("sign error:%s", err)
+	}
+	if tx.Sigs == nil {
+		tx.Sigs = make([]types.Sig, 0)
+	}
+	tx.Sigs = append(tx.Sigs, types.Sig{
+		PubKeys: []keypair.PublicKey{signer.GetPublicKey()},
+		M:       1,
+		SigData: [][]byte{sigData},
+	})
+	return nil
+}
+
+func (this *OntologySdk) SignToLayer2Transaction(tx *types.MutableTransaction, signer Signer) error {
+	if tx.Payer == common.ADDRESS_EMPTY {
+		account, ok := signer.(*Account)
+		if ok {
+			tx.Payer = account.Address
+		}
+	}
+	for _, sigs := range tx.Sigs {
+		if utils.PubKeysEqual([]keypair.PublicKey{signer.GetPublicKey()}, sigs.PubKeys) {
+			//have already signed
+			return nil
+		}
+	}
+	txHash := tx.Hash()
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteBytes(txHash.ToArray())
+	sink.WriteUint32(common3.LAYER2_SYSTEM_ID)
+	temp := sha256.Sum256(sink.Bytes())
+	layer2Hash := common.Uint256(sha256.Sum256(temp[:]))
+
+	sigData, err := signer.Sign(layer2Hash.ToArray())
 	if err != nil {
 		return fmt.Errorf("sign error:%s", err)
 	}

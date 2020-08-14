@@ -33,9 +33,9 @@ func main() {
 	//testUrl := "http://127.0.0.1:20336"
 	testUrl := "http://polaris2.ont.io:20336"
 	//initialize ontsdk
-	ontSdk := sdk.NewOntologySdk(utils.LAYER2_SDK)
+	ontSdk := sdk.NewOntologySdk()
 	//suppose you already start up a local wasm ontology node
-	ontSdk.NewRpcClient(utils.LAYER2_SDK).SetAddress(testUrl)
+	ontSdk.NewRpcClient().SetAddress(testUrl)
 	//your wallet file
 	wallet, err := ontSdk.OpenWallet("./wallet.dat")
 	if err != nil {

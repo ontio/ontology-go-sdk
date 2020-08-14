@@ -98,10 +98,9 @@ type WSClient struct {
 	onClose           func(address string)
 	onError           func(address string, err error)
 	lock              sync.RWMutex
-	flag              uint32
 }
 
-func NewWSClient(flag uint32) *WSClient {
+func NewWSClient() *WSClient {
 	wsClient := &WSClient{
 		defReqTimeout:     DEFAULT_REQ_TIMEOUT,
 		heartbeatInterval: DEFAULT_WS_HEARTBEAT_INTERVAL,
@@ -113,7 +112,6 @@ func NewWSClient(flag uint32) *WSClient {
 		lastHeartbeatTime: time.Now(),
 		lastRecvTime:      time.Now(),
 		exitCh:            make(chan interface{}, 0),
-		flag:              flag,
 	}
 	go wsClient.start()
 	return wsClient
@@ -358,7 +356,7 @@ func (this *WSClient) onAction(resp *WSResponse) {
 }
 
 func (this *WSClient) onRawBlockAction(resp *WSResponse) {
-	block, err := utils.GetBlock(resp.Result, this.flag)
+	block, err := utils.GetBlock(resp.Result)
 	if err != nil {
 		this.GetOnError()(this.addr, fmt.Errorf("onRawBlockAction error:%s", err))
 		return
