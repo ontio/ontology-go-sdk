@@ -481,13 +481,22 @@ func (this *Credential) JWTPresentation2Json(jwtPresentation string) (*Verifiabl
 func (cred *JWTCredential) ToString() (string, error) {
 	headerb, err := json.Marshal(cred.Header)
 	if err != nil {
-		return "", fmt.Errorf("SignData, json.Marshal header error: %s", err)
+		return "", fmt.Errorf("ToString, json.Marshal header error: %s", err)
 	}
 	headerString := base64.StdEncoding.EncodeToString(headerb)
 
-	payloadb, err := json.Marshal(cred.Payload)
+	payloadb_temp, err := json.Marshal(cred.Payload)
 	if err != nil {
-		return "", fmt.Errorf("SignData, json.Marshal payload error: %s", err)
+		return "", fmt.Errorf("ToString, json.Marshal payload error: %s", err)
+	}
+	payload := new(Payload)
+	err = json.Unmarshal(payloadb_temp, payload)
+	if err != nil {
+		return "", fmt.Errorf("ToString, json.Unmarshal payload error: %s", err)
+	}
+	payloadb, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("ToString, json.Marshal payload error: %s", err)
 	}
 	payloadString := base64.StdEncoding.EncodeToString(payloadb)
 
@@ -501,7 +510,16 @@ func (cred *JWTCredential) SignData() ([]byte, error) {
 	}
 	headerString := base64.StdEncoding.EncodeToString(headerb)
 
-	payloadb, err := json.Marshal(cred.Payload)
+	payloadb_temp, err := json.Marshal(cred.Payload)
+	if err != nil {
+		return nil, fmt.Errorf("SignData, json.Marshal payload error: %s", err)
+	}
+	payload := new(Payload)
+	err = json.Unmarshal(payloadb_temp, payload)
+	if err != nil {
+		return nil, fmt.Errorf("SignData, json.Unmarshal payload error: %s", err)
+	}
+	payloadb, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("SignData, json.Marshal payload error: %s", err)
 	}
