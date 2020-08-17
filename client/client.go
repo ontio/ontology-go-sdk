@@ -375,7 +375,7 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 
 func (this *ClientMgr) VerifyStoreProof(key []byte, value []byte, proof []byte, stateRoot []byte) (bool, error) {
 	source := common.NewZeroCopySource(proof)
-	storeProof := new(types.StoreProof)
+	storeProof := new(utils.StoreProof)
 	err := storeProof.Deserialization(source)
 	if err != nil {
 		return false, err
