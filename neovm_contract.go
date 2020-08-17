@@ -67,6 +67,29 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	return this.ontSdk.SendTransaction(tx)
 }
 
+func (this *NeoVMContract) DeployNeoVMSmartContract_Layer2(
+	gasPrice,
+	gasLimit uint64,
+	singer *Account,
+	needStorage bool,
+	code,
+	name,
+	version,
+	author,
+	email,
+	desc string) (common.Uint256, error) {
+	codeBs, err := common.HexToBytes(code)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	tx, err := utils.NewDeployCodeTransaction(gasPrice, gasLimit, codeBs, payload.NEOVM_TYPE, name, version, author, email, desc)
+	err = this.ontSdk.SignToLayer2Transaction(tx, singer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
 func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 	gasPrice,
 	gasLimit uint64,
@@ -99,6 +122,31 @@ func (this *NeoVMContract) InvokeNeoVMContract(
 		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
+func (this *NeoVMContract) InvokeNeoVMContract_Layer2(
+	gasPrice,
+	gasLimit uint64,
+	payer,
+	signer *Account,
+	contractAddress common.Address,
+	params []interface{}) (common.Uint256, error) {
+	tx, err := this.NewNeoVMInvokeTransaction(gasPrice, gasLimit, contractAddress, params)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
+	}
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
+		if err != nil {
+			return common.UINT256_EMPTY, err
+		}
+	}
+	err = this.ontSdk.SignToLayer2Transaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}

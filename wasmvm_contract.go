@@ -65,6 +65,33 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 	}
 	return txHash, nil
 }
+func (this *WasmVMContract) DeployWasmVMSmartContract_Layer2(
+	gasPrice,
+	gasLimit uint64,
+	singer *Account,
+	code,
+	name,
+	version,
+	author,
+	email,
+	desc string) (common.Uint256, error) {
+
+	invokeCode, err := hex.DecodeString(code)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
+	}
+	tx, err := utils2.NewDeployCodeTransaction(gasPrice, gasLimit, invokeCode, payload.WASMVM_TYPE, name, version, author, email, desc)
+	err = this.ontSdk.SignToLayer2Transaction(tx, singer)
+	if err != nil {
+		return common.Uint256{}, err
+	}
+	txHash, err := this.ontSdk.SendTransaction(tx)
+	if err != nil {
+		return common.Uint256{}, fmt.Errorf("SendRawTransaction error:%s", err)
+	}
+	return txHash, nil
+}
+
 
 func (this *WasmVMContract) NewInvokeWasmVmTransaction(gasPrice,
 	gasLimit uint64,
@@ -105,6 +132,32 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.Uint256{}, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
+func (this *WasmVMContract) InvokeWasmVMSmartContract_Layer2(
+	gasPrice,
+	gasLimit uint64,
+	payer,
+	signer *Account,
+	smartcodeAddress common.Address,
+	methodName string,
+	params []interface{}) (common.Uint256, error) {
+	tx, err := this.NewInvokeWasmVmTransaction(gasPrice, gasLimit, smartcodeAddress, methodName, params)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	if payer != nil {
+		this.ontSdk.SetPayer(tx, payer.Address)
+		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
+		if err != nil {
+			return common.Uint256{}, fmt.Errorf("payer sign tx error: %s", err)
+		}
+	}
+	err = this.ontSdk.SignToLayer2Transaction(tx, signer)
 	if err != nil {
 		return common.Uint256{}, err
 	}
