@@ -23,15 +23,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ontio/go-bip32"
-	"github.com/ontio/ontology-go-sdk/bip44"
-	"github.com/ontio/ontology/smartcontract/event"
-	"github.com/tyler-smith/go-bip39"
-	"io"
-	"math/rand"
-	"time"
-	"crypto/sha256"
-
 	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/ontio/ontology-go-sdk/bip44"
 	"github.com/ontio/ontology-go-sdk/client"
 	common3 "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
@@ -40,6 +33,11 @@ import (
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
+	"github.com/ontio/ontology/smartcontract/event"
+	"github.com/tyler-smith/go-bip39"
+	"io"
+	"math/rand"
+	"time"
 )
 
 func init() {
@@ -424,41 +422,6 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 		txHash = tempTx.SigHashForChain(1)
 	}
 	sigData, err := signer.Sign(txHash.ToArray())
-	if err != nil {
-		return fmt.Errorf("sign error:%s", err)
-	}
-	if tx.Sigs == nil {
-		tx.Sigs = make([]types.Sig, 0)
-	}
-	tx.Sigs = append(tx.Sigs, types.Sig{
-		PubKeys: []keypair.PublicKey{signer.GetPublicKey()},
-		M:       1,
-		SigData: [][]byte{sigData},
-	})
-	return nil
-}
-
-func (this *OntologySdk) SignToLayer2Transaction(tx *types.MutableTransaction, signer Signer) error {
-	if tx.Payer == common.ADDRESS_EMPTY {
-		account, ok := signer.(*Account)
-		if ok {
-			tx.Payer = account.Address
-		}
-	}
-	for _, sigs := range tx.Sigs {
-		if utils.PubKeysEqual([]keypair.PublicKey{signer.GetPublicKey()}, sigs.PubKeys) {
-			//have already signed
-			return nil
-		}
-	}
-	txHash := tx.Hash()
-	sink := common.NewZeroCopySink(nil)
-	sink.WriteBytes(txHash.ToArray())
-	sink.WriteUint32(common3.LAYER2_SYSTEM_ID)
-	temp := sha256.Sum256(sink.Bytes())
-	layer2Hash := common.Uint256(sha256.Sum256(temp[:]))
-
-	sigData, err := signer.Sign(layer2Hash.ToArray())
 	if err != nil {
 		return fmt.Errorf("sign error:%s", err)
 	}

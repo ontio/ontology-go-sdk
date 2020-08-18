@@ -123,34 +123,6 @@ func (this *NativeContract) InvokeNativeContract(
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *NativeContract) InvokeNativeContract_Layer2(
-	gasPrice,
-	gasLimit uint64,
-	payer,
-	singer *Account,
-	version byte,
-	contractAddress common.Address,
-	method string,
-	params []interface{},
-) (common.Uint256, error) {
-	tx, err := this.NewNativeInvokeTransaction(gasPrice, gasLimit, version, contractAddress, method, params)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, singer)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
 func (this *NativeContract) PreExecInvokeNativeContract(
 	contractAddress common.Address,
 	version byte,
@@ -197,25 +169,6 @@ func (this *Ont) Transfer(gasPrice, gasLimit uint64, payer *Account, from *Accou
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) Transfer_Layer2(gasPrice, gasLimit uint64, payer *Account, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewTransferTransaction(gasPrice, gasLimit, from.Address, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, from)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
 func (this *Ont) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*ont.State) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
@@ -239,25 +192,6 @@ func (this *Ont) MultiTransfer(gasPrice, gasLimit uint64, payer *Account, states
 		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ont) MultiTransfer_Layer2(gasPrice, gasLimit uint64, payer *Account, states []*ont.State, signer *Account) (common.Uint256, error) {
-	tx, err := this.NewMultiTransferTransaction(gasPrice, gasLimit, states)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -294,25 +228,6 @@ func (this *Ont) TransferFrom(gasPrice, gasLimit uint64, payer *Account, sender 
 		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, sender)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ont) TransferFrom_Layer2(gasPrice, gasLimit uint64, payer *Account, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewTransferFromTransaction(gasPrice, gasLimit, sender.Address, from, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, sender)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -485,25 +400,6 @@ func (this *Ong) Transfer(gasPrice, gasLimit uint64, payer *Account, from *Accou
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ong) Transfer_Layer2(gasPrice, gasLimit uint64, payer *Account, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewTransferTransaction(gasPrice, gasLimit, from.Address, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, from)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
 func (this *Ong) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*ont.State) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
@@ -520,18 +416,6 @@ func (this *Ong) MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, s
 		return common.UINT256_EMPTY, err
 	}
 	err = this.ontSdk.SignToTransaction(tx, signer)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) MultiTransfer_Layer2(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error) {
-	tx, err := this.NewMultiTransferTransaction(gasPrice, gasLimit, states)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -568,25 +452,6 @@ func (this *Ong) TransferFrom(gasPrice, gasLimit uint64, payer *Account, sender 
 		}
 	}
 	err = this.ontSdk.SignToTransaction(tx, sender)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) TransferFrom_Layer2(gasPrice, gasLimit uint64, payer *Account, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewTransferFromTransaction(gasPrice, gasLimit, sender.Address, from, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToLayer2Transaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToLayer2Transaction(tx, sender)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
