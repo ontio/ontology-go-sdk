@@ -51,7 +51,7 @@ type OntologySdk struct {
 	NeoVM      *NeoVMContract
 	WasmVM     *WasmVMContract
 	Credential *Credential
-	flag        uint32
+	ChainId    uint32
 }
 
 //NewOntologySdk return OntologySdk.
@@ -70,7 +70,7 @@ func NewOntologySdk() *OntologySdk {
 
 func NewLayer2Sdk() *OntologySdk {
 	sdk := NewOntologySdk()
-	sdk.flag = 1
+	sdk.ChainId = common3.LAYER2_SYSTEM_ID
 	return sdk
 }
 
@@ -417,7 +417,7 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 		}
 	}
 	txHash := tx.Hash()
-	if this.flag == 1 {
+	if this.ChainId == common3.LAYER2_SYSTEM_ID {
 		tempTx, _ := tx.IntoImmutable()
 		txHash = tempTx.SigHashForChain(1)
 	}
