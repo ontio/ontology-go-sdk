@@ -460,6 +460,11 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m 
 		tx.Payer = payer
 	}
 	txHash := tx.Hash()
+	if this.ChainId == common3.LAYER2_SYSTEM_ID {
+		tempTx, _ := tx.IntoImmutable()
+		txHash = tempTx.SigHashForChain(common3.LAYER2_SYSTEM_ID)
+	}
+
 	if len(tx.Sigs) == 0 {
 		tx.Sigs = make([]types.Sig, 0)
 	}
