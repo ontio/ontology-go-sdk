@@ -52,6 +52,7 @@ type OntologySdk struct {
 	NeoVM      *NeoVMContract
 	WasmVM     *WasmVMContract
 	Credential *Credential
+	ChainId    uint32
 }
 
 //NewOntologySdk return OntologySdk.
@@ -66,6 +67,12 @@ func NewOntologySdk() *OntologySdk {
 	credential := newCredential(ontSdk)
 	ontSdk.Credential = credential
 	return ontSdk
+}
+
+func NewLayer2Sdk() *OntologySdk {
+	sdk := NewOntologySdk()
+	sdk.ChainId = common3.LAYER2_SYSTEM_ID
+	return sdk
 }
 
 //CreateWallet return a new wallet
@@ -411,6 +418,10 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 		}
 	}
 	txHash := tx.Hash()
+	if this.ChainId == common3.LAYER2_SYSTEM_ID {
+		tempTx, _ := tx.IntoImmutable()
+		txHash = tempTx.SigHashForChain(common3.LAYER2_SYSTEM_ID)
+	}
 	sigData, err := signer.Sign(txHash.ToArray())
 	if err != nil {
 		return fmt.Errorf("sign error:%s", err)
