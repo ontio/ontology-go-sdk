@@ -387,9 +387,9 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 	return preResult, nil
 }
 
-func (this *ClientMgr) VerifyStoreProof(key []byte, value []byte, proof []byte, stateRoot []byte) (bool, error) {
+func (this *Layer2ClientMgr) VerifyLayer2StoreProof(key []byte, value []byte, proof []byte, stateRoot []byte) (bool, error) {
 	source := common.NewZeroCopySource(proof)
-	storeProof := new(utils.StoreProof)
+	storeProof := new(utils.Layer2StoreProof)
 	err := storeProof.Deserialization(source)
 	if err != nil {
 		return false, err
@@ -406,7 +406,7 @@ func (this *ClientMgr) VerifyStoreProof(key []byte, value []byte, proof []byte, 
 	return true, nil
 }
 
-func (this *ClientMgr) GetStoreKey(contractAddress string, key []byte) ([]byte, error) {
+func (this *Layer2ClientMgr) GetLayer2StoreKey(contractAddress string, key []byte) ([]byte, error) {
 	newKey := make([]byte, 0)
 	if len(contractAddress) > 0 {
 		newKey = append(newKey, byte(0x05))
@@ -420,12 +420,12 @@ func (this *ClientMgr) GetStoreKey(contractAddress string, key []byte) ([]byte, 
 	return newKey, nil
 }
 
-func (this *ClientMgr) GetStoreProof(key []byte) (*sdkcom.StoreProof, error) {
-	client := this.getClient()
+func (this *Layer2ClientMgr) GetLayer2StoreProof(key []byte) (*sdkcom.Layer2StoreProof, error) {
+	client := this.client.getClient()
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
 	}
-	data, err := client.getStoreProof(this.getNextQid(), key)
+	data, err := client.getLayer2StoreProof(this.client.getNextQid(), key)
 	if err != nil {
 		return nil, err
 	}

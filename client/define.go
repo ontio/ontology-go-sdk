@@ -45,7 +45,7 @@ type OntologyClient interface {
 	getMemPoolTxState(qid, txHash string) ([]byte, error)
 	getMemPoolTxCount(qid string) ([]byte, error)
 	sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error)
-	getStoreProof(qid string, key []byte) ([]byte, error)
+	getLayer2StoreProof(qid string, key []byte) ([]byte, error)
 }
 
 const (

@@ -179,7 +179,7 @@ func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isP
 	return this.sendRpcRequest(qid, RPC_SEND_TRANSACTION, params)
 }
 
-func (this *RpcClient) getStoreProof(qid string, key []byte) ([]byte, error) {
+func (this *RpcClient) getLayer2StoreProof(qid string, key []byte) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_STORE_PROOF, []interface{}{hex.EncodeToString(key)})
 }
 

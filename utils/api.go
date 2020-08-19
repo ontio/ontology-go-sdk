@@ -255,8 +255,8 @@ func GetMemPoolTxCount(data []byte) (*sdkcom.MemPoolTxCount, error) {
 	}, nil
 }
 
-func GetStoreProof(data []byte) (*sdkcom.StoreProof, error) {
-	proof := &sdkcom.StoreProof{}
+func GetStoreProof(data []byte) (*sdkcom.Layer2StoreProof, error) {
+	proof := &sdkcom.Layer2StoreProof{}
 	err := json.Unmarshal(data, proof)
 	if err != nil {
 		return nil, fmt.Errorf("json.Unmarshal error:%s", err)

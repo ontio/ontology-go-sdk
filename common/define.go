@@ -280,7 +280,7 @@ type GlobalParam struct {
 	Value string
 }
 
-type StoreProof struct {
+type Layer2StoreProof struct {
 	Type   string
 	Value  string
 	Proof  string

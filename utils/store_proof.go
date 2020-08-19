@@ -25,9 +25,9 @@ import (
 	"github.com/tendermint/iavl"
 )
 
-type StoreProof iavl.RangeProof
+type Layer2StoreProof iavl.RangeProof
 
-func (this *StoreProof) Serialization(sink *common.ZeroCopySink) {
+func (this *Layer2StoreProof) Serialization(sink *common.ZeroCopySink) {
 	sink.WriteUint32(uint32(len(this.LeftPath)))
 	for _, item := range this.LeftPath {
 		sink.WriteUint8(uint8(item.Height))
@@ -55,7 +55,7 @@ func (this *StoreProof) Serialization(sink *common.ZeroCopySink) {
 	}
 }
 
-func (this *StoreProof) Deserialization(source *common.ZeroCopySource) error {
+func (this *Layer2StoreProof) Deserialization(source *common.ZeroCopySource) error {
 	leftPathLen, _ := source.NextUint32()
 	this.LeftPath = make([]iavl.ProofInnerNode, leftPathLen)
 	var eof bool

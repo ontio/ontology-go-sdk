@@ -673,7 +673,7 @@ func (this *WSClient) getSmartContractEventByBlock(qid string, blockHeight uint3
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_SMARTCONTRACT_BY_HEIGHT, map[string]interface{}{"Height": blockHeight})
 }
 
-func (this *WSClient) getStoreProof(qid string, key []byte) ([]byte, error) {
+func (this *WSClient) getLayer2StoreProof(qid string, key []byte) ([]byte, error) {
 	return this.sendSyncWSRequest(qid, WS_ACTION_GET_STORE_PROOF, map[string]interface{}{"Key": hex.EncodeToString(key)})
 }
 
