@@ -398,13 +398,13 @@ func TestOntologySdk_GetTxData(t *testing.T) {
 	assert.Equal(t, tx, tx3)
 }
 
-func TestOntologySdk_VerifyStoreProof(t *testing.T) {
+func TestOntologySdk_VerifyLayer2StoreProof(t *testing.T) {
 	testLayer2Sdk := NewLayer2Sdk()
 	key, _ := hex.DecodeString("050946e00bcd8be898e60b79ace69e082732bc807668656c6c6f")
 	value, _ := hex.DecodeString("001174686973206973206578616d706c652058")
 	proof, _ := hex.DecodeString("050000000513000000000000002a0000000000000020a8e6e09eaaffc9224e77d77da73bf3de391822f10a5e891a33432313cb31728800040a000000000000002a0000000000000020e89e44cb23ceaa71640cdcef34b147d70b22b07ae6464ef95b39b1853651b35300030500000000000000260000000000000020d5779fd4f428a09cdcf3be8b31cb3e5e16f4c21ada3c1541a22c4272256f2fe300020300000000000000260000000000000020b8cfb72dbafa6db660df5aaa5713a94cd8e6399aa36026dc052534812a4893d70001020000000000000026000000000000002083a7e854f781894fae08eb636cdb932ff799237e52f0039b714ae50aeb896fc10000000000010000001a050946e00bcd8be898e60b79ace69e082732bc807668656c6c6f20aa4a40856844e60c5c80b5b30041c3ec7cd0d17a6e34933be621cb546c70ca362600000000000000")
 	stateRoot, _ := hex.DecodeString("5d1cce9f5f8e12185a3482d35aec21b34d6e4c0112aff75adf0bc435c9f9e97d")
-	result, err := testLayer2Sdk.VerifyStoreProof(key, value, proof, stateRoot)
+	result, err := testLayer2Sdk.VerifyLayer2StoreProof(key, value, proof, stateRoot)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, result)
 }

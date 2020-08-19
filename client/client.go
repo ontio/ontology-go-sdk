@@ -429,7 +429,7 @@ func (this *Layer2ClientMgr) GetLayer2StoreProof(key []byte) (*sdkcom.Layer2Stor
 	if err != nil {
 		return nil, err
 	}
-	return utils.GetStoreProof(data)
+	return utils.GetLayer2StoreProof(data)
 }
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
