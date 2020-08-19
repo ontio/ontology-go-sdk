@@ -44,6 +44,13 @@ type Layer2ClientMgr struct {
 	client    *ClientMgr
 }
 
+func NewLayer2ClientMgr(c *ClientMgr) *Layer2ClientMgr {
+	layer2Client := &Layer2ClientMgr{
+		client: c,
+	}
+	return layer2Client
+}
+
 func (this *ClientMgr) NewRpcClient() *RpcClient {
 	this.rpc = NewRpcClient()
 	return this.rpc

@@ -77,8 +77,10 @@ type Layer2Sdk struct {
 func NewLayer2Sdk() *Layer2Sdk {
 	sdk := NewOntologySdk()
 	sdk.ChainId = common3.LAYER2_SYSTEM_ID
+	layer2Client := client.NewLayer2ClientMgr(&sdk.ClientMgr)
 	return &Layer2Sdk{
 		OntologySdk: sdk,
+		Layer2ClientMgr: layer2Client,
 	}
 }
 
