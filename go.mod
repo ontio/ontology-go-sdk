@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/itchyny/base58-go v0.1.0
 	github.com/ontio/go-bip32 v0.0.0-20190520025953-d3cea6894a2b
-	github.com/ontio/ontology v1.10.1-sdk
+	github.com/ontio/ontology v1.11.1-0.20200817111815-fb3d61fdc12e
 	github.com/ontio/ontology-crypto v1.0.9
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.6.1
