@@ -113,11 +113,11 @@ func (this *ClientMgr) GetBlockByHeight(height uint32) (*types.Block, error) {
 }
 
 func (this *Layer2ClientMgr) GetLayer2BlockByHeight(height uint32) (*utils.Layer2Block, error) {
-	client := this.getClient()
+	client := this.client.getClient()
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
 	}
-	data, err := client.getBlockByHeight(this.getNextQid(), height)
+	data, err := client.getBlockByHeight(this.client.getNextQid(), height)
 	if err != nil {
 		return nil, err
 	}
@@ -149,11 +149,11 @@ func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
 }
 
 func (this *Layer2ClientMgr) GetLayer2BlockByHash(blockHash string) (*utils.Layer2Block, error) {
-	client := this.getClient()
+	client := this.client.getClient()
 	if client == nil {
 		return nil, fmt.Errorf("don't have available client of ontology")
 	}
-	data, err := client.getBlockByHash(this.getNextQid(), blockHash)
+	data, err := client.getBlockByHash(this.client.getNextQid(), blockHash)
 	if err != nil {
 		return nil, err
 	}
