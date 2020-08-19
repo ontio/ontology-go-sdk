@@ -29,6 +29,7 @@ import (
 
 var (
 	VERSION_TRANSACTION = byte(0)
+	LAYER2_SYSTEM_ID    = uint32(1)
 )
 
 const (
@@ -277,4 +278,11 @@ type MemPoolTxCount struct {
 type GlobalParam struct {
 	Key   string
 	Value string
+}
+
+type Layer2StoreProof struct {
+	Type   string
+	Value  string
+	Proof  string
+	Height uint32
 }

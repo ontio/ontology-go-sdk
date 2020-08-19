@@ -52,6 +52,7 @@ type OntologySdk struct {
 	NeoVM      *NeoVMContract
 	WasmVM     *WasmVMContract
 	Credential *Credential
+	ChainId    uint32
 }
 
 //NewOntologySdk return OntologySdk.
@@ -66,6 +67,21 @@ func NewOntologySdk() *OntologySdk {
 	credential := newCredential(ontSdk)
 	ontSdk.Credential = credential
 	return ontSdk
+}
+
+type Layer2Sdk struct {
+	*OntologySdk
+	*client.Layer2ClientMgr
+}
+
+func NewLayer2Sdk() *Layer2Sdk {
+	sdk := NewOntologySdk()
+	sdk.ChainId = common3.LAYER2_SYSTEM_ID
+	layer2Client := client.NewLayer2ClientMgr(&sdk.ClientMgr)
+	return &Layer2Sdk{
+		OntologySdk: sdk,
+		Layer2ClientMgr: layer2Client,
+	}
 }
 
 //CreateWallet return a new wallet
@@ -411,6 +427,10 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 		}
 	}
 	txHash := tx.Hash()
+	if this.ChainId == common3.LAYER2_SYSTEM_ID {
+		tempTx, _ := tx.IntoImmutable()
+		txHash = tempTx.SigHashForChain(common3.LAYER2_SYSTEM_ID)
+	}
 	sigData, err := signer.Sign(txHash.ToArray())
 	if err != nil {
 		return fmt.Errorf("sign error:%s", err)
@@ -449,6 +469,11 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m 
 		tx.Payer = payer
 	}
 	txHash := tx.Hash()
+	if this.ChainId == common3.LAYER2_SYSTEM_ID {
+		tempTx, _ := tx.IntoImmutable()
+		txHash = tempTx.SigHashForChain(common3.LAYER2_SYSTEM_ID)
+	}
+
 	if len(tx.Sigs) == 0 {
 		tx.Sigs = make([]types.Sig, 0)
 	}

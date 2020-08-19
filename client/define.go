@@ -45,6 +45,7 @@ type OntologyClient interface {
 	getMemPoolTxState(qid, txHash string) ([]byte, error)
 	getMemPoolTxCount(qid string) ([]byte, error)
 	sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error)
+	getLayer2StoreProof(qid string, key []byte) ([]byte, error)
 }
 
 const (
@@ -70,6 +71,7 @@ const (
 	RPC_GET_BLOCK_HEIGHT_BY_TX_HASH = "getblockheightbytxhash"
 	SEND_EMERGENCY_GOV_REQ          = "sendemergencygovreq"
 	GET_BLOCK_ROOT_WITH_NEW_TX_ROOT = "getblockrootwithnewtxroot"
+	RPC_STORE_PROOF                 = "getstoreproof"
 )
 
 //JsonRpc version
@@ -115,6 +117,7 @@ const (
 	GET_VERSION           = "/api/v1/version"
 	GET_NETWORK_ID        = "/api/v1/networkid"
 	POST_RAW_TX           = "/api/v1/transaction"
+	GET_STORE_PROOF       = "/api/v1/storeproof/"
 )
 
 const (
@@ -172,6 +175,8 @@ const (
 	WS_ACTION_GET_MEM_POOL_TX_COUNT       = "getmempooltxcount"
 	WS_ACTION_GET_VERSION                 = "getversion"
 	WS_ACTION_GET_NETWORK_ID              = "getnetworkid"
+
+	WS_ACTION_GET_STORE_PROOF = "getstoreproof"
 
 	WS_SUB_ACTION_RAW_BLOCK     = "sendrawblock"
 	WS_SUB_ACTION_JSON_BLOCK    = "sendjsonblock"

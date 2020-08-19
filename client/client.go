@@ -18,6 +18,7 @@
 package client
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
@@ -26,6 +27,7 @@ import (
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
 	bc "github.com/ontio/ontology/http/base/common"
+	"github.com/tendermint/iavl"
 	"sync/atomic"
 	"time"
 )
@@ -36,6 +38,17 @@ type ClientMgr struct {
 	ws        *WSClient   //Web socket client used the web socket api of ontology
 	defClient OntologyClient
 	qid       uint64
+}
+
+type Layer2ClientMgr struct {
+	client *ClientMgr
+}
+
+func NewLayer2ClientMgr(c *ClientMgr) *Layer2ClientMgr {
+	layer2Client := &Layer2ClientMgr{
+		client: c,
+	}
+	return layer2Client
 }
 
 func (this *ClientMgr) NewRpcClient() *RpcClient {
@@ -106,6 +119,18 @@ func (this *ClientMgr) GetBlockByHeight(height uint32) (*types.Block, error) {
 	return utils.GetBlock(data)
 }
 
+func (this *Layer2ClientMgr) GetLayer2BlockByHeight(height uint32) (*utils.Layer2Block, error) {
+	client := this.client.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getBlockByHeight(this.client.getNextQid(), height)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetLayer2Block(data)
+}
+
 func (this *ClientMgr) GetBlockInfoByHeight(height uint32) ([]byte, error) {
 	client := this.getClient()
 	if client == nil {
@@ -128,6 +153,18 @@ func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
 		return nil, err
 	}
 	return utils.GetBlock(data)
+}
+
+func (this *Layer2ClientMgr) GetLayer2BlockByHash(blockHash string) (*utils.Layer2Block, error) {
+	client := this.client.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getBlockByHash(this.client.getNextQid(), blockHash)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetLayer2Block(data)
 }
 
 func (this *ClientMgr) GetTransaction(txHash string) (*types.Transaction, error) {
@@ -348,6 +385,51 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 		return nil, fmt.Errorf("json.Unmarshal PreExecResult:%s error:%s", data, err)
 	}
 	return preResult, nil
+}
+
+func (this *Layer2ClientMgr) VerifyLayer2StoreProof(key []byte, value []byte, proof []byte, stateRoot []byte) (bool, error) {
+	source := common.NewZeroCopySource(proof)
+	storeProof := new(utils.Layer2StoreProof)
+	err := storeProof.Deserialization(source)
+	if err != nil {
+		return false, err
+	}
+	proof_iavl := iavl.RangeProof(*storeProof)
+	err = proof_iavl.Verify(stateRoot)
+	if err != nil {
+		return false, err
+	}
+	err = proof_iavl.VerifyItem(key, value)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (this *Layer2ClientMgr) GetLayer2StoreKey(contractAddress string, key []byte) ([]byte, error) {
+	newKey := make([]byte, 0)
+	if len(contractAddress) > 0 {
+		newKey = append(newKey, byte(0x05))
+		contractAddrBytes, _ := hex.DecodeString(contractAddress)
+		contractAddr := common.ToArrayReverse(contractAddrBytes)
+		newKey = append(newKey, contractAddr...)
+		newKey = append(newKey, key...)
+	} else {
+		newKey = append(newKey, key...)
+	}
+	return newKey, nil
+}
+
+func (this *Layer2ClientMgr) GetLayer2StoreProof(key []byte) (*sdkcom.Layer2StoreProof, error) {
+	client := this.client.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getLayer2StoreProof(this.client.getNextQid(), key)
+	if err != nil {
+		return nil, err
+	}
+	return utils.GetLayer2StoreProof(data)
 }
 
 //WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.

@@ -193,6 +193,11 @@ func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, is
 	return this.sendRestPostRequest(common.SerializeToBytes(tx), reqPath, reqValues)
 }
 
+func (this *RestClient) getLayer2StoreProof(qid string, key []byte) ([]byte, error) {
+	reqPath := GET_STORE_PROOF + hex.EncodeToString(key)
+	return this.sendRestGetRequest(reqPath)
+}
+
 func (this *RestClient) getAddress() (string, error) {
 	if this.addr == "" {
 		return "", fmt.Errorf("cannot get address, please add adrress first")

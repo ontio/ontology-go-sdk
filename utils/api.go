@@ -50,6 +50,19 @@ func GetBlock(data []byte) (*types.Block, error) {
 	return types.BlockFromRawBytes(blockData)
 }
 
+func GetLayer2Block(data []byte) (*Layer2Block, error) {
+	hexStr := ""
+	err := json.Unmarshal(data, &hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	blockData, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
+	}
+	return Layer2BlockFromRawBytes(blockData)
+}
+
 func GetUint32(data []byte) (uint32, error) {
 	count := uint32(0)
 	err := json.Unmarshal(data, &count)
@@ -240,4 +253,13 @@ func GetMemPoolTxCount(data []byte) (*sdkcom.MemPoolTxCount, error) {
 		Verified: count[0],
 		Verifing: count[1],
 	}, nil
+}
+
+func GetLayer2StoreProof(data []byte) (*sdkcom.Layer2StoreProof, error) {
+	proof := &sdkcom.Layer2StoreProof{}
+	err := json.Unmarshal(data, proof)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	return proof, nil
 }
