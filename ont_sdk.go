@@ -71,7 +71,7 @@ func NewOntologySdk() *OntologySdk {
 
 type Layer2Sdk struct {
 	*OntologySdk
-	client *client.Layer2ClientMgr
+	*client.Layer2ClientMgr
 }
 
 func NewLayer2Sdk() *Layer2Sdk {
