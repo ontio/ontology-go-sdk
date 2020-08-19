@@ -193,7 +193,7 @@ func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, is
 	return this.sendRestPostRequest(common.SerializeToBytes(tx), reqPath, reqValues)
 }
 
-func (this RestClient) getLayer2StoreProof(qid string, key []byte) ([]byte, error) {
+func (this *RestClient) getLayer2StoreProof(qid string, key []byte) ([]byte, error) {
 	reqPath := GET_STORE_PROOF + hex.EncodeToString(key)
 	return this.sendRestGetRequest(reqPath)
 }
