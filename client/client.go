@@ -41,7 +41,7 @@ type ClientMgr struct {
 }
 
 type Layer2ClientMgr struct {
-	*ClientMgr
+	client    *ClientMgr
 }
 
 func (this *ClientMgr) NewRpcClient() *RpcClient {
