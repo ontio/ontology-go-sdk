@@ -41,7 +41,7 @@ type ClientMgr struct {
 }
 
 type Layer2ClientMgr struct {
-	client    *ClientMgr
+	client *ClientMgr
 }
 
 func NewLayer2ClientMgr(c *ClientMgr) *Layer2ClientMgr {
