@@ -29,9 +29,9 @@ import (
 type RelationshipCredential []*Relationship
 
 type Relationship struct {
+	Spouse string `json:"spouse"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
-	Spouse string `json:"spouse"`
 }
 
 func TestCredential(t *testing.T) {
