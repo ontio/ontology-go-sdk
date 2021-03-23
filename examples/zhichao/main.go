@@ -14,7 +14,7 @@ func main() {
 	gasPrice := uint64(2500)
 	defGasLimit := uint64(20000000)
 	args := os.Args
-	if len(args) <= 3 {
+	if len(args) <= 2 {
 		fmt.Println("please input: ", "walletFile, address, [gaslimit]")
 		return
 	}
@@ -34,7 +34,7 @@ func main() {
 
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
-	sdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
+	//sdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
 
 	wa, err := sdk.OpenWallet(walletFile)
 	if err != nil {
@@ -51,30 +51,35 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("start check contract address, it needs a few minutes")
 	//检查地址
 	checkContractAddr(destroyedContract, sdk)
-	if true {
-		return
-	}
+	fmt.Println("check contract address success")
+
 	txhash, err := sdk.Native.GlobalParams.AddDestroyedContract(acc, destroyedContract, gasPrice, gasLimit)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("txhash:", txhash.ToHexString())
+	fmt.Println("AddDestroyedContract,txHash:", txhash.ToHexString())
 	sdk.WaitForGenerateBlock(40*time.Second, 1)
 	evt, err := sdk.GetSmartContractEvent(txhash.ToHexString())
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("evt:", evt)
+	fmt.Println("AddDestroyedContract, evt:", evt)
 }
 
 func checkContractAddr(conAddr []string, sdk *ontology_go_sdk.OntologySdk) {
 	special := "80fcdb0099ace9a2df6ab010a52edb0a07687559,d034792f80deeacd983dc257d29784ea71a1d5ec"
+	finish := 0
 	for _, addr := range conAddr {
 		_, err := sdk.GetSmartContract(addr)
+		finish++
+		if finish%20 == 0 {
+			fmt.Println("has checked contract number:", finish)
+		}
 		if err != nil && strings.Contains(err.Error(), "UNKNOWN CONTRACT") {
 			continue
 		}
