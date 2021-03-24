@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ontio/ontology-crypto/keypair"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology/common/password"
 	"github.com/ontio/ontology/smartcontract/service/native/global_params"
@@ -13,6 +14,9 @@ import (
 )
 
 func main() {
+	sdk := ontology_go_sdk.NewOntologySdk()
+	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
+
 	gasPrice := uint64(2500)
 	defGasLimit := uint64(20000000)
 	args := os.Args
@@ -39,14 +43,13 @@ func main() {
 	}
 
 	configMap := getConfig(configFile)
-	sdk := ontology_go_sdk.NewOntologySdk()
-	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
 	//sdk.NewRpcClient().SetAddress("http://polaris2.ont.io:20336")
 
 	walletFileArr := getStringArr(configMap, "wallets")
 	destroyedContract := getStringArr(configMap, "blocksc")
 
 	var accArr []*ontology_go_sdk.Account
+	var pubKey []keypair.PublicKey
 	for _, f := range walletFileArr {
 		wa, err := sdk.OpenWallet(f)
 		if err != nil {
@@ -64,7 +67,15 @@ func main() {
 			return
 		}
 		accArr = append(accArr, acc)
+		pubKey = append(pubKey, acc.PublicKey)
 	}
+
+	multiAddr, err := sdk.GetMultiAddr(pubKey, 5)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("multiAddr:", multiAddr)
 
 	//检查地址
 	if isCheckAddr {
@@ -79,7 +90,7 @@ func main() {
 		return
 	}
 	for _, acc := range accArr {
-		err = sdk.SignToTransaction(tx, acc)
+		err = sdk.MultiSignToTransaction(tx, 5, pubKey, acc)
 		if err != nil {
 			fmt.Println("sign tx failed:", err)
 			return
