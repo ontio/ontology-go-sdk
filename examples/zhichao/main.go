@@ -1,54 +1,45 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology/common/password"
 	"github.com/ontio/ontology/smartcontract/service/native/global_params"
+	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
 
 func main() {
-
-	destroyedContract := getDestroyedContract()
-	fmt.Println("destroyedContract length:", len(destroyedContract))
-
 	gasPrice := uint64(2500)
 	defGasLimit := uint64(20000000)
 	args := os.Args
 	if len(args) <= 2 {
-		fmt.Println("please input: ", "walletFile address [gaslimit]")
+		fmt.Println("please input: ", "configFile [pre]")
 		return
 	}
-	walletFileStr := os.Args[1]
-	addressStr := os.Args[2]
+
+	configFile := os.Args[1]
 	gasLimit := defGasLimit
-	if len(os.Args) > 3 {
-		gasLimitStr := os.Args[3]
-		temp, err := strconv.ParseUint(gasLimitStr, 10, 64)
-		if err != nil {
-			fmt.Println("gasLimit error:", err)
-			return
+	var pre bool
+	if len(os.Args) > 2 {
+		preStr := os.Args[2]
+		if preStr != "0" {
+			pre = true
 		}
-		gasLimit = temp
 	}
-
-
+	configMap := getConfig(configFile)
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
 	//sdk.NewRpcClient().SetAddress("http://polaris2.ont.io:20336")
 
-	walletFileArr := strings.Split(walletFileStr, ",")
-	addressArr := strings.Split(addressStr, ",")
-	if len(walletFileArr) != len(addressArr) {
-		fmt.Println("wallet file number must be equal address")
-		return
-	}
+	walletFileArr := getStringArr(configMap, "wallets")
+	destroyedContract := getStringArr(configMap, "blocksc")
+
 	var accArr []*ontology_go_sdk.Account
-	for i, f := range walletFileArr {
+	for _, f := range walletFileArr {
 		wa, err := sdk.OpenWallet(f)
 		if err != nil {
 			fmt.Println(err)
@@ -59,7 +50,7 @@ func main() {
 			fmt.Printf("input password error: %s\n", err)
 			return
 		}
-		acc, err := wa.GetAccountByAddress(addressArr[i], passwd)
+		acc, err := wa.GetAccountByIndex(1, passwd)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -67,10 +58,12 @@ func main() {
 		accArr = append(accArr, acc)
 	}
 
-	fmt.Println("start check contract address, it needs a few minutes")
 	//检查地址
-	checkContractAddr(destroyedContract, sdk)
-	fmt.Println("check contract address success")
+	if false {
+		fmt.Println("start check contract address, it needs a few minutes")
+		checkContractAddr(destroyedContract, sdk)
+		fmt.Println("check contract address success")
+	}
 
 	tx, err := sdk.Native.GlobalParams.NewAddDestroyedContractTransaction(gasPrice, gasLimit, global_params.ADD_DESTROYED_CONTRACT, destroyedContract)
 	if err != nil {
@@ -84,23 +77,29 @@ func main() {
 			return
 		}
 	}
-	if true {
-		return
+	if pre {
+		res, err := sdk.PreExecTransaction(tx)
+		if err != nil {
+			fmt.Println("PreExecTransaction failed:", err)
+			return
+		}
+		fmt.Println("res.State:", res.State)
+		fmt.Println("res.Result:", res.Result)
+	} else {
+		txhash, err := sdk.SendTransaction(tx)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("AddDestroyedContract,txHash:", txhash.ToHexString())
+		sdk.WaitForGenerateBlock(40*time.Second, 1)
+		evt, err := sdk.GetSmartContractEvent(txhash.ToHexString())
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("AddDestroyedContract, evt:", evt)
 	}
-
-	txhash, err := sdk.SendTransaction(tx)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("AddDestroyedContract,txHash:", txhash.ToHexString())
-	sdk.WaitForGenerateBlock(40*time.Second, 1)
-	evt, err := sdk.GetSmartContractEvent(txhash.ToHexString())
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("AddDestroyedContract, evt:", evt)
 }
 
 func checkContractAddr(conAddr []string, sdk *ontology_go_sdk.OntologySdk) {
@@ -121,6 +120,37 @@ func checkContractAddr(conAddr []string, sdk *ontology_go_sdk.OntologySdk) {
 			panic("unexpected contract address:" + addr)
 		}
 	}
+}
+
+func getStringArr(args map[string]interface{}, key string) []string {
+	res, ok := args[key].([]interface{})
+	if !ok {
+		panic("getWalletFileArr failed")
+	}
+	var r []string
+	for _, v := range res {
+		vStr, ok := v.(string)
+		if !ok {
+			panic("v.(string) failed")
+		}
+		r = append(r, vStr)
+	}
+	return r
+}
+
+func getConfig(configFile string) map[string]interface{} {
+	bs, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	configMap := make(map[string]interface{})
+	err = json.Unmarshal(bs, &configMap)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	return configMap
 }
 
 func getDestroyedContract() []string {
