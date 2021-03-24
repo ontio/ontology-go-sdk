@@ -17,19 +17,27 @@ func main() {
 	defGasLimit := uint64(20000000)
 	args := os.Args
 	if len(args) <= 2 {
-		fmt.Println("please input: ", "configFile [pre]")
+		fmt.Println("please input: ", "configFile pre check   0:sendTx, 1:preTx, 0:no-check-address,1:check address")
 		return
 	}
 
 	configFile := os.Args[1]
 	gasLimit := defGasLimit
-	var pre bool
-	if len(os.Args) > 2 {
-		preStr := os.Args[2]
-		if preStr != "0" {
-			pre = true
-		}
+	if len(args) != 4 {
+		fmt.Println("please input: ", "configFile pre check   0:sendTx, 1:preTx, 0:no-check-address,1:check address")
+		return
 	}
+	var pre bool
+	preStr := os.Args[2]
+	if preStr != "0" {
+		pre = true
+	}
+	var isCheckAddr bool
+	checkAddr := os.Args[3]
+	if checkAddr != "0" {
+		isCheckAddr = true
+	}
+
 	configMap := getConfig(configFile)
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
@@ -59,7 +67,7 @@ func main() {
 	}
 
 	//检查地址
-	if false {
+	if isCheckAddr {
 		fmt.Println("start check contract address, it needs a few minutes")
 		checkContractAddr(destroyedContract, sdk)
 		fmt.Println("check contract address success")
