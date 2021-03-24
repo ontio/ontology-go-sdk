@@ -19,6 +19,7 @@ package ontology_go_sdk
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -62,4 +63,33 @@ func TestOntId(t *testing.T) {
 	}
 	fmt.Printf("TestOntId GetDocumentJson:%+v\n", string(document))
 	return
+}
+
+func TestGlobalParam_AddDestroyedContract(t *testing.T) {
+	Init()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	wallet, _ := testOntSdk.OpenWallet("/Users/sss/gopath/src/github.com/ontio/ontology/wallet.dat")
+	acc, _ := wallet.GetAccountByAddress("APWHbQ74EyRncDoK1wfABTr2taGkQKH7KZ", []byte("111111"))
+	fmt.Println(testDefAcc.Address.ToBase58())
+	txhash, err := testOntSdk.Native.GlobalParams.AddDestroyedContract(acc,
+		[]string{acc.Address.ToHexString()}, 0, 200000)
+	assert.Nil(t, err)
+	testOntSdk.WaitForGenerateBlock(time.Second*20, 1)
+	checkTx(txhash.ToHexString(), testOntSdk)
+	txhash, err = testOntSdk.Native.GlobalParams.RemoveDestroyedContracts(acc,
+		[]string{acc.Address.ToHexString()}, 0, 200000)
+	assert.Nil(t, err)
+	testOntSdk.WaitForGenerateBlock(time.Second*20, 1)
+	checkTx(txhash.ToHexString(), testOntSdk)
+}
+func checkTx(txhash string, sdk *OntologySdk) error {
+	fmt.Println("txhash:", txhash)
+	event, err := testOntSdk.GetSmartContractEvent(txhash)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+		return err
+	}
+	fmt.Println(event.State)
+	return nil
 }

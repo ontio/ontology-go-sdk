@@ -19,7 +19,6 @@ package ontology_go_sdk
 
 import (
 	"fmt"
-
 	"github.com/ontio/ontology-crypto/keypair"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
@@ -2547,6 +2546,55 @@ func (this *GlobalParam) SetGlobalParams(gasPrice, gasLimit uint64, payer, signe
 		return common.UINT256_EMPTY, err
 	}
 	return this.ontSdk.SendTransaction(tx)
+}
+func (this *GlobalParam) RemoveDestroyedContracts(signer *Account, destroyedContract []string,
+	gasPrice uint64, gasLimit uint64) (common.Uint256, error) {
+	tx, err := this.NewAddDestroyedContractTransaction(gasPrice, gasLimit, global_params.REMOVE_DESTROYED_CONTRACT, destroyedContract)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	err = this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
+func (this *GlobalParam) AddDestroyedContract(signer *Account, destroyedContract []string,
+	gasPrice uint64, gasLimit uint64) (common.Uint256, error) {
+	tx, err := this.NewAddDestroyedContractTransaction(gasPrice, gasLimit, global_params.ADD_DESTROYED_CONTRACT, destroyedContract)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	err = this.ontSdk.SignToTransaction(tx, signer)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.ontSdk.SendTransaction(tx)
+}
+
+func (this *GlobalParam) NewAddDestroyedContractTransaction(gasPrice, gasLimit uint64, method string, params []string) (*types.MutableTransaction, error) {
+	args := make([]interface{}, 0)
+	for _, p := range params {
+		pAddr, err := common.AddressFromHexString(p)
+		if err != nil {
+			pAddr, err := common.AddressFromBase58(p)
+			if err != nil {
+				return nil, err
+			} else {
+				args = append(args, pAddr)
+			}
+		} else {
+			args = append(args, pAddr)
+		}
+	}
+	return this.native.NewNativeInvokeTransaction(
+		gasPrice,
+		gasLimit,
+		GLOBAL_PARAMS_CONTRACT_VERSION,
+		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		method,
+		[]interface{}{args})
 }
 
 func (this *GlobalParam) NewTransferAdminTransaction(gasPrice, gasLimit uint64, newAdmin common.Address) (*types.MutableTransaction, error) {
