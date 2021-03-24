@@ -12,6 +12,10 @@ import (
 )
 
 func main() {
+
+	destroyedContract := getDestroyedContract()
+	fmt.Println("destroyedContract length:", len(destroyedContract))
+
 	gasPrice := uint64(2500)
 	defGasLimit := uint64(20000000)
 	args := os.Args
@@ -31,8 +35,7 @@ func main() {
 		}
 		gasLimit = temp
 	}
-	destroyedContract := getDestroyedContract()
-	fmt.Println("destroyedContract length:", len(destroyedContract))
+
 
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
@@ -134,17 +137,6 @@ func getDestroyedContract() []string {
 		"25e6031fc4545ca436f9219d35044560caedc2b0",
 		"1924589e8a009d4d541ef138513df35824fcf142",
 		"d3b733f12df9a6efb13ca547be5ee4e4dbe6d41e",
-		"c316858346ac133a6f3d0149ca7257a2a4e16783",
-		"4cfbe5d9e6b6d2e58f63b2883b26b540e0119c71",
-		"4e4a9b860fb7ffba41f91ea112712191bd7eca53",
-		"95adaa30262e21cefe07bb99624d6249ce0b170d",
-		"eab757b91e95cc6bcb5776215e21141fa05c5e04",
-		"3cb96185093518e7f71bff1b26ca5dadc0a5522b",
-		"60934a39e630c3c26247e327e15b78417fc3c8c1",
-		"662b97beafc697177a85e7fadb55e7bdfc9f5b15",
-		"93a67db2e2c28e70d49c3abd5d4cfba93828bcf8",
-		"25e6031fc4545ca436f9219d35044560caedc2b0",
-		"d3b733f12df9a6efb13ca547be5ee4e4dbe6d41e",
 		"afe613d7f7eab00d90db857b782586d6b21fa037",
 		"e8000e6f23ef1a47be59a68d4707a3770d1ad453",
 		"96a0e1ded874c0ae748c0210b9b76d2364b29aac",
@@ -200,7 +192,6 @@ func getDestroyedContract() []string {
 		"45f93dada46c736d2c8702407e57e23ce51878d2",
 		"c2edda6cde43dd4e00d3e5053306f8fb4ee52ce3",
 		"2a8f0267c38eecffd1c0823fae777e0237265ee9",
-		"803a0fed1fe42befc30f3ffca46923fafd276f0d",
 		"771e4d3a9ca2d1135a88ee3f37fe65e602e72f45",
 		"b2578ee6370f932dbc3e9ab67779c9a001a1add7",
 		"093c94d817ef0e1b5e37898f2d43fd63767d2fa6",
@@ -211,7 +202,6 @@ func getDestroyedContract() []string {
 		"3ffe568f63f6e8ebaf61e24d291fbd9acd7201dc",
 		"1d885fdb17188d3f5cdb25e322623deb690c05b4",
 		"9dd2ca7e20cbf2715d56da1f8e3e19cea9f04d5b",
-		"932dde12bedf784332ac000f57590c108a2cc41d",
 		"ad944c6ddd5752866d81a7743c7df3b390f6fe55",
 		"b1629d1e11b338aa11c18920b86d9895fb1f060c",
 		"c76f675caa6908eaf746ce338abde89f6037dcf5",
