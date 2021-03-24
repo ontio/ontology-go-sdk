@@ -32,6 +32,7 @@ func main() {
 		gasLimit = temp
 	}
 	destroyedContract := getDestroyedContract()
+	fmt.Println("destroyedContract length:", len(destroyedContract))
 
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
@@ -143,7 +144,6 @@ func getDestroyedContract() []string {
 		"662b97beafc697177a85e7fadb55e7bdfc9f5b15",
 		"93a67db2e2c28e70d49c3abd5d4cfba93828bcf8",
 		"25e6031fc4545ca436f9219d35044560caedc2b0",
-		"1924589e8a009d4d541ef138513df35824fcf142",
 		"d3b733f12df9a6efb13ca547be5ee4e4dbe6d41e",
 		"afe613d7f7eab00d90db857b782586d6b21fa037",
 		"e8000e6f23ef1a47be59a68d4707a3770d1ad453",
