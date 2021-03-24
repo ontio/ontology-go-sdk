@@ -4,6 +4,7 @@ import (
 	"fmt"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology/common/password"
+	"github.com/ontio/ontology/smartcontract/service/native/global_params"
 	"os"
 	"strconv"
 	"strings"
@@ -15,11 +16,11 @@ func main() {
 	defGasLimit := uint64(20000000)
 	args := os.Args
 	if len(args) <= 2 {
-		fmt.Println("please input: ", "walletFile, address, [gaslimit]")
+		fmt.Println("please input: ", "walletFile address [gaslimit]")
 		return
 	}
-	walletFile := os.Args[1]
-	address := os.Args[2]
+	walletFileStr := os.Args[1]
+	addressStr := os.Args[2]
 	gasLimit := defGasLimit
 	if len(os.Args) > 3 {
 		gasLimitStr := os.Args[3]
@@ -34,29 +35,56 @@ func main() {
 
 	sdk := ontology_go_sdk.NewOntologySdk()
 	sdk.NewRpcClient().SetAddress("http://dappnode2.ont.io:20336")
-	//sdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
+	//sdk.NewRpcClient().SetAddress("http://polaris2.ont.io:20336")
 
-	wa, err := sdk.OpenWallet(walletFile)
-	if err != nil {
-		fmt.Println(err)
+	walletFileArr := strings.Split(walletFileStr, ",")
+	addressArr := strings.Split(addressStr, ",")
+	if len(walletFileArr) != len(addressArr) {
+		fmt.Println("wallet file number must be equal address")
 		return
 	}
-	passwd, err := password.GetAccountPassword()
-	if err != nil {
-		fmt.Printf("input password error: %s\n", err)
-		return
+	var accArr []*ontology_go_sdk.Account
+	for i, f := range walletFileArr {
+		wa, err := sdk.OpenWallet(f)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		passwd, err := password.GetAccountPassword()
+		if err != nil {
+			fmt.Printf("input password error: %s\n", err)
+			return
+		}
+		acc, err := wa.GetAccountByAddress(addressArr[i], passwd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		accArr = append(accArr, acc)
 	}
-	acc, err := wa.GetAccountByAddress(address, passwd)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+
 	fmt.Println("start check contract address, it needs a few minutes")
 	//检查地址
 	checkContractAddr(destroyedContract, sdk)
 	fmt.Println("check contract address success")
 
-	txhash, err := sdk.Native.GlobalParams.AddDestroyedContract(acc, destroyedContract, gasPrice, gasLimit)
+	tx, err := sdk.Native.GlobalParams.NewAddDestroyedContractTransaction(gasPrice, gasLimit, global_params.ADD_DESTROYED_CONTRACT, destroyedContract)
+	if err != nil {
+		fmt.Println("NewAddDestroyedContractTransaction failed:", err)
+		return
+	}
+	for _, acc := range accArr {
+		err = sdk.SignToTransaction(tx, acc)
+		if err != nil {
+			fmt.Println("sign tx failed:", err)
+			return
+		}
+	}
+	if true {
+		return
+	}
+
+	txhash, err := sdk.SendTransaction(tx)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -72,7 +100,7 @@ func main() {
 }
 
 func checkContractAddr(conAddr []string, sdk *ontology_go_sdk.OntologySdk) {
-	special := "80fcdb0099ace9a2df6ab010a52edb0a07687559,d034792f80deeacd983dc257d29784ea71a1d5ec"
+	special := "80fcdb0099ace9a2df6ab010a52edb0a07687559,d034792f80deeacd983dc257d29784ea71a1d5ec,6b9271d8d853ae7a50a03c33a21ef2ce6761a3d8"
 	finish := 0
 	for _, addr := range conAddr {
 		_, err := sdk.GetSmartContract(addr)
@@ -265,5 +293,6 @@ func getDestroyedContract() []string {
 		"ed4ae41c502aa9315684783f5a8c6ffadaaa1f8a",
 		"80fcdb0099ace9a2df6ab010a52edb0a07687559",
 		"d034792f80deeacd983dc257d29784ea71a1d5ec",
+		"6b9271d8d853ae7a50a03c33a21ef2ce6761a3d8",
 	}
 }
