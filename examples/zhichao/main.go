@@ -123,7 +123,6 @@ func main() {
 }
 
 func checkContractAddr(conAddr []string, sdk *ontology_go_sdk.OntologySdk) {
-	special := "80fcdb0099ace9a2df6ab010a52edb0a07687559,d034792f80deeacd983dc257d29784ea71a1d5ec,6b9271d8d853ae7a50a03c33a21ef2ce6761a3d8"
 	finish := 0
 	for _, addr := range conAddr {
 		_, err := sdk.GetSmartContract(addr)
@@ -134,11 +133,7 @@ func checkContractAddr(conAddr []string, sdk *ontology_go_sdk.OntologySdk) {
 		if err != nil && strings.Contains(err.Error(), "UNKNOWN CONTRACT") {
 			continue
 		}
-		if strings.Contains(special, addr) {
-			continue
-		} else {
-			panic("unexpected contract address:" + addr)
-		}
+		panic("unexpected contract address:" + addr)
 	}
 }
 
