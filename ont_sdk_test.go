@@ -21,6 +21,11 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/ontio/ontology-crypto/signature"
 	common2 "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
@@ -31,10 +36,6 @@ import (
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
-	"math/rand"
-	"strconv"
-	"testing"
-	"time"
 )
 
 var (

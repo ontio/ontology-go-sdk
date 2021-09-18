@@ -21,6 +21,7 @@ import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"

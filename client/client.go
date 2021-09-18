@@ -21,6 +21,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
+	"time"
+
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
@@ -28,8 +31,6 @@ import (
 	"github.com/ontio/ontology/core/types"
 	bc "github.com/ontio/ontology/http/base/common"
 	"github.com/tendermint/iavl"
-	"sync/atomic"
-	"time"
 )
 
 type ClientMgr struct {

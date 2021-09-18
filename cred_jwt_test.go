@@ -21,9 +21,10 @@ package ontology_go_sdk
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology/common"
 	"testing"
 	"time"
+
+	"github.com/ontio/ontology/common"
 )
 
 func TestJWTCredential(t *testing.T) {

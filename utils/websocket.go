@@ -20,8 +20,9 @@ package utils
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 //WebSocketClient use for client to operation web socket

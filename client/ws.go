@@ -21,14 +21,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/types"
 	"math/rand"
 	"strconv"
 	"sync"
 	"time"
+
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/types"
 )
 
 type WSSubscribeStatus struct {

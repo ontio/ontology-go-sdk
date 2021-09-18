@@ -19,8 +19,9 @@ package client
 
 import (
 	"encoding/json"
-	"github.com/ontio/ontology/core/types"
 	"time"
+
+	"github.com/ontio/ontology/core/types"
 )
 
 type OntologyClient interface {

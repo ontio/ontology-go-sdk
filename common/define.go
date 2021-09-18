@@ -23,8 +23,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology/common"
 	"math/big"
+
+	"github.com/ontio/ontology/common"
 )
 
 var (

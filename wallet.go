@@ -22,13 +22,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"sync"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/types"
-	"io/ioutil"
-	"os"
-	"sync"
 )
 
 var DEFAULT_WALLET_NAME = "MyWallet"

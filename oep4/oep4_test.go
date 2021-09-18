@@ -19,14 +19,15 @@ package oep4
 
 import (
 	"fmt"
+	"math/big"
+	"testing"
+	"time"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/types"
-	"math/big"
-	"testing"
-	"time"
 )
 
 const scriptHash = "5e0aebb3dcc7af619e019a8f2195151d4d59644d"

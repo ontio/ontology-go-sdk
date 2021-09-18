@@ -22,13 +22,14 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
+	"math/rand"
+	"time"
+
 	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-go-sdk/bip44"
 	"github.com/ontio/ontology/smartcontract/event"
 	"github.com/tyler-smith/go-bip39"
-	"io"
-	"math/rand"
-	"time"
 
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-go-sdk/client"
@@ -79,7 +80,7 @@ func NewLayer2Sdk() *Layer2Sdk {
 	sdk.ChainId = common3.LAYER2_SYSTEM_ID
 	layer2Client := client.NewLayer2ClientMgr(&sdk.ClientMgr)
 	return &Layer2Sdk{
-		OntologySdk: sdk,
+		OntologySdk:     sdk,
 		Layer2ClientMgr: layer2Client,
 	}
 }
