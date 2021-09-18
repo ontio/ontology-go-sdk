@@ -24,12 +24,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/types"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/types"
 )
 
 //RpcClient for ontology rpc api

@@ -21,14 +21,15 @@ package utils
 import (
 	"encoding/hex"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/signature"
 	"github.com/ontio/ontology/core/types"
 	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
-	"os"
-	"sort"
-	"strings"
 )
 
 func TransactionFromHexString(rawTx string) (*types.Transaction, error) {

@@ -18,14 +18,14 @@
 package main
 
 import (
-	"fmt"
-	sdk "github.com/ontio/ontology-go-sdk"
-
 	"encoding/binary"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/common"
+	"fmt"
 	"io/ioutil"
 	"time"
+
+	sdk "github.com/ontio/ontology-go-sdk"
+	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/ontio/ontology/common"
 )
 
 func main() {

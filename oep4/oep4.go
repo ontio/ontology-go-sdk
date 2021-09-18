@@ -20,13 +20,14 @@ package oep4
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"github.com/ontio/ontology-crypto/keypair"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	scomm "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/types"
-	"math/big"
 )
 
 type Oep4 struct {

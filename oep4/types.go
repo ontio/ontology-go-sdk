@@ -19,8 +19,9 @@ package oep4
 
 import (
 	"fmt"
-	"github.com/ontio/ontology/common"
 	"math/big"
+
+	"github.com/ontio/ontology/common"
 )
 
 type State struct {

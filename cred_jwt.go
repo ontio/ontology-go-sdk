@@ -23,12 +23,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology/core/signature"
 	"strings"
 	"time"
 
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology/common"
+	"github.com/ontio/ontology/core/signature"
 	uuid "github.com/satori/go.uuid"
 )
 

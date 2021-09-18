@@ -20,6 +20,7 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
+
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	utils2 "github.com/ontio/ontology/cmd/utils"
 	"github.com/ontio/ontology/common"

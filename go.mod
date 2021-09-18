@@ -8,7 +8,7 @@ require (
 	github.com/itchyny/base58-go v0.1.0
 	github.com/ontio/go-bip32 v0.0.0-20190520025953-d3cea6894a2b
 	github.com/ontio/ontology v1.14.0-beta.0.20210818114002-fedaf66010a7
-	github.com/ontio/ontology-crypto v1.1.0
+	github.com/ontio/ontology-crypto v1.2.1
 	github.com/ontio/ontology-eventbus v0.9.1 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.6.1
