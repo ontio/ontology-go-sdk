@@ -26,6 +26,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/laizy/bigint"
+
 	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-go-sdk/bip44"
 	"github.com/ontio/ontology/smartcontract/event"
@@ -557,6 +559,64 @@ func (this *OntologySdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) 
 			From:     from,
 			To:       to,
 			Amount:   uint64(amount),
+		}, nil
+	}
+}
+
+type TransferEventV2 struct {
+	FuncName string
+	From     string
+	To       string
+	Amount   bigint.Int
+}
+
+func (this *OntologySdk) ParseNaitveTransferEventV2(event *event.NotifyEventInfo) (*TransferEventV2, error) {
+	if event == nil {
+		return nil, fmt.Errorf("event is nil")
+	}
+	state, ok := event.States.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("state.States is not []interface")
+	}
+	if len(state) != 4 || len(state) != 5 {
+		return nil, fmt.Errorf("state length is not 4 or 5")
+	}
+	funcName, ok := state[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("state.States[0] is not string")
+	}
+	if funcName != "transfer" {
+		return nil, fmt.Errorf("funcName is not transfer")
+	} else {
+		from, ok := state[1].(string)
+		if !ok {
+			return nil, fmt.Errorf("state[1] is not string")
+		}
+		to, ok := state[2].(string)
+		if !ok {
+			return nil, fmt.Errorf("state[2] is not string")
+		}
+		amount, ok := state[3].(uint64)
+		if !ok {
+			return nil, fmt.Errorf("state[3] is not uint64")
+		}
+		if amount%constants.GWei != 0 {
+			value, ok := state[4].(uint64)
+			if !ok {
+				return nil, fmt.Errorf("state[4] is not uint64")
+			}
+			return &TransferEventV2{
+				FuncName: "transfer",
+				From:     from,
+				To:       to,
+				Amount:   bigint.Add(amount, value),
+			}, nil
+		}
+		return &TransferEventV2{
+			FuncName: "transfer",
+			From:     from,
+			To:       to,
+			Amount:   bigint.New(amount),
 		}, nil
 	}
 }
