@@ -62,53 +62,64 @@
 			* [2.4.7 Withdraw ONG](#247-withdraw-ong)
 			* [2.4.8 Get unbound ONG](#248-get-unbound-ong)
         * [2.5 ONT ID API](#25-ont-id-api)
-            * [2.5.1 RegIDWithPublicKey](#251-RegIDWithPublicKey)
-            * [2.5.2 RegIDWithController](#252-RegIDWithController)
-            * [2.5.3 RevokeID](#253-RevokeID)
-            * [2.5.4 RevokeIDByController](#254-RevokeIDByController)
-            * [2.5.5 RemoveController](#255-RemoveController)
-            * [2.5.6 RegIDWithAttributes](#256-RegIDWithAttributes)
-            * [2.5.7 AddKey](#257-AddKey)
-            * [2.5.8 AddKeyByIndex](#258-AddKeyByIndex)
-            * [2.5.9 RemoveKey](#259-RemoveKey)
-            * [2.5.10 RemoveKeyByIndex](#2510-RemoveKeyByIndex)
-            * [2.5.11 SetRecovery](#2511-SetRecovery)
-            * [2.5.12 UpdateRecovery](#2512-UpdateRecovery)
-            * [2.5.13 RemoveRecovery](#2513-RemoveRecovery)
-            * [2.5.14 AddKeyByController](#2514-AddKeyByController)
-            * [2.5.15 RemoveKeyByController](#2515-RemoveKeyByController)
-            * [2.5.16 AddKeyByRecovery](#2516-AddKeyByRecovery)
-            * [2.5.17 RemoveKeyByRecovery](#2517-RemoveKeyByRecovery)
-            * [2.5.18 AddAttributes](#2518-AddAttributes)
-            * [2.5.19 AddAttributesByIndex](#2519-AddAttributesByIndex)
-            * [2.5.20 RemoveAttribute](#2520-RemoveAttribute)
-            * [2.5.21 RemoveAttributeByIndex](#2521-RemoveAttributeByIndex)
-            * [2.5.22 AddAttributesByController](#2522-AddAttributesByController)
-            * [2.5.23 RemoveAttributesByController](#2523-RemoveAttributesByController)
-            * [2.5.24 AddNewAuthKey](#2524-AddNewAuthKey)
-            * [2.5.25 AddNewAuthKeyByRecovery](#2525-AddNewAuthKeyByRecovery)
-            * [2.5.26 AddNewAuthKeyByController](#2526-AddNewAuthKeyByController)
-            * [2.5.27 SetAuthKey](#2527-SetAuthKey)
-            * [2.5.28 SetAuthKeyByRecovery](#2528-SetAuthKeyByRecovery)
-            * [2.5.29 SetAuthKeyByController](#2529-SetAuthKeyByController)
-            * [2.5.30 RemoveAuthKey](#2530-RemoveAuthKey)
-            * [2.5.31 RemoveAuthKeyByRecovery](#2531-RemoveAuthKeyByRecovery)
-            * [2.5.32 RemoveAuthKeyByController](#2532-RemoveAuthKeyByController)
-            * [2.5.33 AddService](#2533-AddService)
-            * [2.5.34 UpdateService](#2534-UpdateService)
-            * [2.5.35 RemoveService](#2535-RemoveService)
-            * [2.5.36 AddContext](#2536-AddContext)
-            * [2.5.37 RemoveContext](#2537-RemoveContext)
-            * [2.5.38 VerifySignature](#2538-VerifySignature)
-            * [2.5.39 VerifyController](#2539-VerifyController)
-            * [2.5.40 GetPublicKeysJson](#2540-GetPublicKeysJson)
-            * [2.5.41 GetAttributesJson](#2541-GetAttributesJson)
-            * [2.5.42 GetAttributes](#2542-GetAttributes)
-            * [2.5.43 GetAttributeByKey](#2543-GetAttributeByKey)
-            * [2.5.44 GetServiceJson](#2544-GetServiceJson)
-            * [2.5.45 GetKeyState](#2545-GetKeyState)
-            * [2.5.46 GetControllerJson](#2546-GetControllerJson)
-            * [2.5.47 GetDocumentJson](#2547-GetDocumentJson)
+			* [2.5.1 RegID With PublicKey](#251-regid-with-publickey)
+            * [2.5.2 RegID With Controller](#252-regid-with-controller)
+            * [2.5.3 Revoke ID](#253-revoke-id)
+            * [2.5.4 Revoke ID By Controller](#254-revoke-id-by-controller)
+            * [2.5.5 Remove Controller](#255-remove-controller)
+            * [2.5.6 RegID With Attributes](#256-regid-with-attributes)
+            * [2.5.7 Add Key](#257-add-key)
+            * [2.5.8 Add Key By Index](#258-add-key-by-index)
+            * [2.5.9 Remove Key](#259-remove-key)
+            * [2.5.10 Remove Key By Index](#2510-remove-key-by-index)
+            * [2.5.11 Set Recovery](#2511-set-recovery)
+            * [2.5.12 Update Recovery](#2512-update-recovery)
+            * [2.5.13 Remove Recovery](#2513-remove-recovery)
+            * [2.5.14 AddKey By Controller](#2514-addkey-by-controller)
+            * [2.5.15 RemoveKey By Controller](#2515-removekey-by-controller)
+            * [2.5.16 AddKey By Recovery](#2516-addkey-by-recovery)
+            * [2.5.17 RemoveKey By Recovery](#2517-removekey-by-recovery)
+            * [2.5.18 Add Attributes](#2518-add-attributes)
+            * [2.5.19 Add Attributes By Index](#2519-add-attributes-by-index)
+            * [2.5.20 Remove Attribute](#2520-remove-attribute)
+            * [2.5.21 Remove Attribute By Index](#2521-remove-attribute-by-index)
+            * [2.5.22 Add Attributes By Controller](#2522-add-attributes-by-controller)
+            * [2.5.23 Remove Attributes By Controller](#2523-remove-attributes-by-controller)
+            * [2.5.24 Add New AuthKey](#2524-add-new-authkey)
+            * [2.5.25 Add NewAuth Key By Recovery](#2525-add-newauth-key-by-recovery)
+            * [2.5.26 Add New AuthKey By Controller](#2526-add-new-authkey-by-controller)
+            * [2.5.27 Set AuthKey](#2527-set-authkey)
+            * [2.5.28 Set AuthKey By Recovery](#2528-set-authkey-by-recovery)
+            * [2.5.29 Set AuthKey By Controller](#2529-set-authkey-by-controller)
+            * [2.5.30 Remove AuthKey](#2530-remove-authkey)
+            * [2.5.31 Remove AuthKey By Recovery](#2531-remove-authkey-by-recovery)
+            * [2.5.32 Remove AuthKey By Controller](#2532-remove-authkey-by-controller)
+            * [2.5.33 Add Service](#2533-add-service)
+            * [2.5.34 Update Service](#2534-update-service)
+            * [2.5.35 Remove Service](#2535-remove-service)
+            * [2.5.36 Add Context](#2536-add-context)
+            * [2.5.37 Remove Context](#2537-remove-context)
+            * [2.5.38 Verify Signature](#2538-verify-signature)
+            * [2.5.39 Verify Controller](#2539-verify-controller)
+            * [2.5.40 Get PublicKeys Json](#2540-get-publickeys-json)
+            * [2.5.41 Get Attributes Json](#2541-get-attributes-json)
+            * [2.5.42 Get Attributes](#2542-get-attributes)
+            * [2.5.43 Get Attribute ByKey](#2543-get-attribute-bykey)
+            * [2.5.44 Get Service Json](#2544-get-service-json)
+            * [2.5.45 Get KeyState](#2545-get-keystate)
+            * [2.5.46 Get Controller Json](#2546-get-controller-json)
+            * [2.5.47 Get Document Json](#2547-get-document-json)
+		* [2.6 Credential API](#26-credential-api)
+			* [2.6.1 Gen Sign Req](#261-gen-sign-req)
+			* [2.6.2 Verify Sign Req](#262-verify-sign-req)
+			* [2.6.3 Create Credential](#263-create-credential)
+			* [2.6.4 Commit Credential](#264-commit-credential)
+			* [2.6.5 Verify Credible OntId](#265-verify-credible-ontid)
+			* [2.6.6 Verify Not Expired](#266-verify-not-expired)
+			* [2.6.7 Verify Issuer Signature](#267-verify-issuer-signature)
+			* [2.6.8 Verify Status](#268-verify-status)
+			* [2.6.9 Create Presentation](#269-create-presentation)
+			* [2.6.10 Verify Presentation](#2610-verify-presentation)
 * [Contributing](#contributing)
 	* [Website](#website)
 	* [License](#license)
@@ -489,7 +500,7 @@ ontSdk.Native.Ong.UnboundONG(address common.Address) (uint64, error)
 
 ### 2.5 ONT ID API
 
-#### 2.5.1 RegIDWithPublicKey
+#### 2.5.1 RegID With PublicKey
 
 ```
 ontSdk.Native.OntId.RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account, ontId string, signer *Account) (common.Uint256, error)
@@ -498,7 +509,7 @@ ontSdk.Native.OntId.RegIDWithPublicKey(gasPrice, gasLimit uint64, payer *Account
 
 `signer`: public key of ONT ID and signer account
 
-#### 2.5.2 RegIDWithController
+#### 2.5.2 RegID With Controller
 
 ```
 ontSdk.Native.OntId.RegIDWithController(gasPrice, gasLimit uint64, payer *Account, ontId string, controller *ontid.Group, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -511,7 +522,7 @@ ontSdk.Native.OntId.RegIDWithController(gasPrice, gasLimit uint64, payer *Accoun
 
 `controllerSigners`: signer accounts
 
-#### 2.5.3 RevokeID
+#### 2.5.3 Revoke ID
 
 ```
 ontSdk.Native.OntId.RevokeID(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signer *Account) (common.Uint256, error)
@@ -522,7 +533,7 @@ ontSdk.Native.OntId.RevokeID(gasPrice, gasLimit uint64, payer *Account, ontId st
 
 `signer`: signer account
 
-#### 2.5.4 RevokeIDByController
+#### 2.5.4 Revoke ID By Controller
 
 ```
 ontSdk.Native.OntId.RevokeIDByController(gasPrice, gasLimit uint64, payer *Account, ontId string, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -533,7 +544,7 @@ ontSdk.Native.OntId.RevokeIDByController(gasPrice, gasLimit uint64, payer *Accou
 
 `controllerSigners`: signer accounts 
 
-#### 2.5.5 RemoveController
+#### 2.5.5 Remove Controller
 
 ```
 ontSdk.Native.OntId.RemoveController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signer *Account) (common.Uint256, error)
@@ -544,7 +555,7 @@ ontSdk.Native.OntId.RemoveController(gasPrice, gasLimit uint64, payer *Account, 
 
 `signer`: signer account
 
-#### 2.5.6 RegIDWithAttributes
+#### 2.5.6 RegID With Attributes
 
 ```
 ontSdk.Native.OntId.RegIDWithAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, signer *Account) (common.Uint256, error)
@@ -555,7 +566,7 @@ ontSdk.Native.OntId.RegIDWithAttributes(gasPrice, gasLimit uint64, payer *Accoun
 
 `signer`: public key of ONT ID and signer account
 
-#### 2.5.7 AddKey
+#### 2.5.7 Add Key
 
 ```
 ontSdk.Native.OntId.AddKey(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, controller string, signer *Account) (common.Uint256, error)
@@ -568,7 +579,7 @@ ontSdk.Native.OntId.AddKey(gasPrice, gasLimit uint64, payer *Account, ontId stri
 
 `signer`: public key of ONT ID and signer account
 
-#### 2.5.8 AddKeyByIndex
+#### 2.5.8 Add Key By Index
 
 ```
 ontSdk.Native.OntId.AddKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, newPubKey []byte, index uint32, controller string, signer *Account) (common.Uint256, error)
@@ -583,7 +594,7 @@ ontSdk.Native.OntId.AddKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: signer account
 
-#### 2.5.9 RemoveKey
+#### 2.5.9 Remove Key
 
 ```
 ontSdk.Native.OntId.RemoveKey(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, signer *Account) (common.Uint256, error)
@@ -594,7 +605,7 @@ ontSdk.Native.OntId.RemoveKey(gasPrice, gasLimit uint64, payer *Account, ontId s
 
 `signer`: public key of ONT ID and signer account
 
-#### 2.5.10 RemoveKeyByIndex
+#### 2.5.10 Remove Key By Index
 
 ```
 ontSdk.Native.OntId.RemoveKeyByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, removedPubKey []byte, index uint32, signer *Account) (common.Uint256, error)
@@ -607,7 +618,7 @@ ontSdk.Native.OntId.RemoveKeyByIndex(gasPrice, gasLimit uint64, payer *Account, 
 
 `signer`: signer account
 
-#### 2.5.11 SetRecovery
+#### 2.5.11 Set Recovery
 
 ```
 ontSdk.Native.OntId.SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, recovery *ontid.Group, index uint32, signer *Account) (common.Uint256, error)
@@ -620,7 +631,7 @@ ontSdk.Native.OntId.SetRecovery(gasPrice, gasLimit uint64, payer *Account, ontId
 
 `signer`: signer account
 
-#### 2.5.12 UpdateRecovery
+#### 2.5.12 Update Recovery
 
 ```
 ontSdk.Native.OntId.UpdateRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, newRecovery *ontid.Group, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
@@ -633,7 +644,7 @@ ontSdk.Native.OntId.UpdateRecovery(gasPrice, gasLimit uint64, payer *Account, on
 
 `recoverySigners`: signer accounts
 
-#### 2.5.13 RemoveRecovery
+#### 2.5.13 Remove Recovery
 
 ```
 ontSdk.Native.OntId.RemoveRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signer *Account) (common.Uint256, error)
@@ -644,7 +655,7 @@ ontSdk.Native.OntId.RemoveRecovery(gasPrice, gasLimit uint64, payer *Account, on
 
 `signer`: signer account
 
-#### 2.5.14 AddKeyByController
+#### 2.5.14 AddKey By Controller
 
 ```
 ontSdk.Native.OntId.AddKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, signers []ontid.Signer, controller string, controllerSigners []*Account) (common.Uint256, error)
@@ -659,7 +670,7 @@ ontSdk.Native.OntId.AddKeyByController(gasPrice, gasLimit uint64, payer *Account
 
 `controllerSigners`: signer accounts
 
-#### 2.5.15 RemoveKeyByController
+#### 2.5.15 RemoveKey By Controller
 
 ```
 ontSdk.Native.OntId.RemoveKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKeyIndex []byte, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -672,7 +683,7 @@ ontSdk.Native.OntId.RemoveKeyByController(gasPrice, gasLimit uint64, payer *Acco
 
 `controllerSigners`: signer accounts
 
-#### 2.5.16 AddKeyByRecovery
+#### 2.5.16 AddKey By Recovery
 
 ```
 ontSdk.Native.OntId.AddKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, signers []ontid.Signer, controller string, recoverySigners []*Account) (common.Uint256, error)
@@ -687,7 +698,7 @@ ontSdk.Native.OntId.AddKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, 
 
 `recoverySigners`: signer accounts
 
-#### 2.5.17 RemoveKeyByRecovery
+#### 2.5.17 RemoveKey By Recovery
 
 ```
 ontSdk.Native.OntId.RemoveKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKeyIndex uint32, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
@@ -700,7 +711,7 @@ ontSdk.Native.OntId.RemoveKeyByRecovery(gasPrice, gasLimit uint64, payer *Accoun
 
 `recoverySigners`: signer accounts
 
-#### 2.5.18 AddAttributes
+#### 2.5.18 Add Attributes
 
 ```
 ontSdk.Native.OntId.AddAttributes(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, signer *Account) (common.Uint256, error)
@@ -711,7 +722,7 @@ ontSdk.Native.OntId.AddAttributes(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: public key of ONT ID and signer account
 
-#### 2.5.19 AddAttributesByIndex
+#### 2.5.19 Add Attributes By Index
 
 ```
 ontSdk.Native.OntId.AddAttributesByIndex(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, index uint32, signer *Account) (common.Uint256, error)
@@ -724,7 +735,7 @@ ontSdk.Native.OntId.AddAttributesByIndex(gasPrice, gasLimit uint64, payer *Accou
 
 `signer`: signer account
 
-#### 2.5.20 RemoveAttribute
+#### 2.5.20 Remove Attribute
 
 ```
 ontSdk.Native.OntId.RemoveAttribute(gasPrice, gasLimit uint64, payer *Account, ontId string, removeKey []byte, signer *Account) (common.Uint256, error)
@@ -735,7 +746,7 @@ ontSdk.Native.OntId.RemoveAttribute(gasPrice, gasLimit uint64, payer *Account, o
 
 `signer`: public key of ONT ID and signer account
 
-#### 2.5.21 RemoveAttributeByIndex
+#### 2.5.21 Remove Attribute By Index
 
 ```
 ontSdk.Native.OntId.RemoveAttributeByIndex(gasPrice, gasLimit uint64, payer *Account, ontId, removeKey []byte, index uint32, signer *Account) (common.Uint256, error)
@@ -748,7 +759,7 @@ ontSdk.Native.OntId.RemoveAttributeByIndex(gasPrice, gasLimit uint64, payer *Acc
 
 `signer`: signer account
 
-#### 2.5.22 AddAttributesByController
+#### 2.5.22 Add Attributes By Controller
 
 ```
 ontSdk.Native.OntId.AddAttributesByController(gasPrice, gasLimit uint64, payer *Account, ontId string, attributes []*DDOAttribute, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -761,7 +772,7 @@ ontSdk.Native.OntId.AddAttributesByController(gasPrice, gasLimit uint64, payer *
 
 `controllerSigners`: signer accounts
 
-#### 2.5.23 RemoveAttributesByController
+#### 2.5.23 Remove Attributes By Controller
 
 ```
 ontSdk.Native.OntId.RemoveAttributesByController(gasPrice, gasLimit uint64, payer *Account, ontId string, key []byte, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -774,7 +785,7 @@ ontSdk.Native.OntId.RemoveAttributesByController(gasPrice, gasLimit uint64, paye
 
 `controllerSigners`: signer accounts
 
-#### 2.5.24 AddNewAuthKey
+#### 2.5.24 Add New AuthKey
 
 ```
 ontSdk.Native.OntId.AddNewAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signIndex uint32, signer *Account) (common.Uint256, error)
@@ -789,7 +800,7 @@ ontSdk.Native.OntId.AddNewAuthKey(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: signer account
 
-#### 2.5.25 AddNewAuthKeyByRecovery
+#### 2.5.25 Add NewAuth Key By Recovery
 
 ```
 ontSdk.Native.OntId.AddNewAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
@@ -804,7 +815,7 @@ ontSdk.Native.OntId.AddNewAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Ac
 
 `recoverySigners`: signer accounts
 
-#### 2.5.26 AddNewAuthKeyByController
+#### 2.5.26 Add New AuthKey By Controller
 
 ```
 ontSdk.Native.OntId.AddNewAuthKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, publicKey []byte, controller string, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -820,7 +831,7 @@ ontSdk.Native.OntId.AddNewAuthKeyByController(gasPrice, gasLimit uint64, payer *
 
 `controllerSigners`: signer accounts
 
-#### 2.5.27 SetAuthKey
+#### 2.5.27 Set AuthKey
 
 ```
 ontSdk.Native.OntId.SetAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index, signIndex uint32, signer *Account) (common.Uint256, error)
@@ -833,7 +844,7 @@ ontSdk.Native.OntId.SetAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId 
 
 `signer`: signer account
 
-#### 2.5.28 SetAuthKeyByRecovery
+#### 2.5.28 Set AuthKey By Recovery
 
 ```
 ontSdk.Native.OntId.SetAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
@@ -846,7 +857,7 @@ ontSdk.Native.OntId.SetAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Accou
 
 `recoverySigners`: signer accounts
 
-#### 2.5.29 SetAuthKeyByController
+#### 2.5.29 Set AuthKey By Controller
 
 ```
 ontSdk.Native.OntId.SetAuthKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -859,7 +870,7 @@ ontSdk.Native.OntId.SetAuthKeyByController(gasPrice, gasLimit uint64, payer *Acc
 
 `controllerSigners`: signer accounts
 
-#### 2.5.30 RemoveAuthKey
+#### 2.5.30 Remove AuthKey
 
 ```
 ontSdk.Native.OntId.RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signIndex uint32, signer *Account) (common.Uint256, error)
@@ -872,7 +883,7 @@ ontSdk.Native.OntId.RemoveAuthKey(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: signer account
 
-#### 2.5.31 RemoveAuthKeyByRecovery
+#### 2.5.31 Remove AuthKey By Recovery
 
 ```
 ontSdk.Native.OntId.RemoveAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, recoverySigners []*Account) (common.Uint256, error)
@@ -885,7 +896,7 @@ ontSdk.Native.OntId.RemoveAuthKeyByRecovery(gasPrice, gasLimit uint64, payer *Ac
 
 `recoverySigners`: signer accounts
 
-#### 2.5.32 RemoveAuthKeyByController
+#### 2.5.32 Remove AuthKey By Controller
 
 ```
 ontSdk.Native.OntId.RemoveAuthKeyByController(gasPrice, gasLimit uint64, payer *Account, ontId string, index uint32, signers []ontid.Signer, controllerSigners []*Account) (common.Uint256, error)
@@ -898,7 +909,7 @@ ontSdk.Native.OntId.RemoveAuthKeyByController(gasPrice, gasLimit uint64, payer *
 
 `controllerSigners`: signer accounts
 
-#### 2.5.33 AddService
+#### 2.5.33 Add Service
 
 ```
 ontSdk.Native.OntId.AddService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, signer *Account) (common.Uint256, error)
@@ -915,7 +926,7 @@ ontSdk.Native.OntId.AddService(gasPrice, gasLimit uint64, payer *Account, ontId 
 
 `signer`: signer account
 
-#### 2.5.34 UpdateService
+#### 2.5.34 Update Service
 
 ```
 ontSdk.Native.OntId.UpdateService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId, type_, serviceEndpint []byte, index uint32, signer *Account) (common.Uint256, error)
@@ -932,7 +943,7 @@ ontSdk.Native.OntId.UpdateService(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: signer account
 
-#### 2.5.35 RemoveService
+#### 2.5.35 Remove Service
 
 ```
 ontSdk.Native.OntId.RemoveService(gasPrice, gasLimit uint64, payer *Account, ontId string, serviceId []byte, index uint32, signer *Account) (common.Uint256, error)
@@ -945,7 +956,7 @@ ontSdk.Native.OntId.RemoveService(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: signer account
 
-#### 2.5.36 AddContext
+#### 2.5.36 Add Context
 
 ```
 ontSdk.Native.OntId.AddContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, signer *Account) (common.Uint256, error)
@@ -958,7 +969,7 @@ ontSdk.Native.OntId.AddContext(gasPrice, gasLimit uint64, payer *Account, ontId 
 
 `signer`: signer account
 
-#### 2.5.37 RemoveContext
+#### 2.5.37 Remove Context
 
 ```
 ontSdk.Native.OntId.RemoveContext(gasPrice, gasLimit uint64, payer *Account, ontId string, contexts [][]byte, index uint32, signer *Account) (common.Uint256, error)
@@ -971,7 +982,7 @@ ontSdk.Native.OntId.RemoveContext(gasPrice, gasLimit uint64, payer *Account, ont
 
 `signer`: signer account
 
-#### 2.5.38 VerifySignature
+#### 2.5.38 Verify Signature
 
 ```
 ontSdk.Native.OntId.VerifySignature(ontId string, keyIndex uint64, account *Account) (bool, error)
@@ -982,7 +993,7 @@ ontSdk.Native.OntId.VerifySignature(ontId string, keyIndex uint64, account *Acco
 
 `account`: signer account
 
-#### 2.5.39 VerifyController
+#### 2.5.39 Verify Controller
 
 ```
 ontSdk.Native.OntId.VerifyController(ontId string, signers []ontid.Signer, accounts []*Account) (bool, error)
@@ -993,28 +1004,28 @@ ontSdk.Native.OntId.VerifyController(ontId string, signers []ontid.Signer, accou
 
 `accounts`: signer accounts
 
-#### 2.5.40 GetPublicKeysJson
+#### 2.5.40 Get PublicKeys Json
 
 ```
 ontSdk.Native.OntId.GetPublicKeysJson(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
-#### 2.5.41 GetAttributesJson
+#### 2.5.41 Get Attributes Json
 
 ```
 ontSdk.Native.OntId.GetAttributesJson(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
-#### 2.5.42 GetAttributes
+#### 2.5.42 Get Attributes
 
 ```
 ontSdk.Native.OntId.GetAttributes(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
-#### 2.5.43 GetAttributeByKey
+#### 2.5.43 Get Attribute ByKey
 
 ```
 ontSdk.Native.OntId.GetAttributeByKey(ontId, key string) ([]byte, error)
@@ -1023,7 +1034,7 @@ ontSdk.Native.OntId.GetAttributeByKey(ontId, key string) ([]byte, error)
 
 `key`: key of attribute want to query
 
-#### 2.5.44 GetServiceJson
+#### 2.5.44 Get Service Json
 
 ```
 ontSdk.Native.OntId.GetServiceJson(ontId string, serviceId string) ([]byte, error)
@@ -1032,7 +1043,7 @@ ontSdk.Native.OntId.GetServiceJson(ontId string, serviceId string) ([]byte, erro
 
 `serviceId`: service Id want to query
 
-#### 2.5.45 GetKeyState
+#### 2.5.45 Get KeyState
 
 ```
 ontSdk.Native.OntId.GetKeyState(ontId string, keyIndex int) (string, error)
@@ -1041,14 +1052,14 @@ ontSdk.Native.OntId.GetKeyState(ontId string, keyIndex int) (string, error)
 
 `keyIndex`: key index of ONT ID
 
-#### 2.5.46 GetControllerJson
+#### 2.5.46 Get Controller Json
 
 ```
 ontSdk.Native.OntId.GetControllerJson(ontId string) ([]byte, error)
 ```
 `ontId`: ONT ID
 
-#### 2.5.47 GetDocumentJson
+#### 2.5.47 Get Document Json
 
 ```
 ontSdk.Native.OntId.GetDocumentJson(ontId string) ([]byte, error)
@@ -1057,7 +1068,7 @@ ontSdk.Native.OntId.GetDocumentJson(ontId string) ([]byte, error)
 
 ### 2.6 Credential API
 
-#### 2.6.1 GenSignReq
+#### 2.6.1 Gen Sign Req
 
 ```
 ontSdk.Credential.GenSignReq(credentialSubject interface{}, ontId string, signer *Account) (*Request, error)
@@ -1068,14 +1079,14 @@ ontSdk.Credential.GenSignReq(credentialSubject interface{}, ontId string, signer
 
 `signer`: signer account
 
-#### 2.6.2 VerifySignReq
+#### 2.6.2 Verify Sign Req
 
 ```
 ontSdk.Credential.VerifySignReq(request *Request) error
 ```
 `request`: result of GenSignReq
 
-#### 2.6.3 CreateCredential
+#### 2.6.3 Create Credential
 
 ```
 ontSdk.Credential.CreateCredential(contexts []string, types []string, credentialSubject interface{}, issuerId string, expirationDateTimestamp int64, signer *Account) (*VerifiableCredential, uint32, error)
@@ -1092,7 +1103,7 @@ ontSdk.Credential.CreateCredential(contexts []string, types []string, credential
 
 `signer`: signer account
 
-#### 2.6.4 CommitCredential
+#### 2.6.4 Commit Credential
 
 ```
 ontSdk.Credential.CommitCredential(gasPrice, gasLimit uint64, credentialId, issuerId, holderId string, index uint32, signer, payer *Account) (common.Uint256, error)
@@ -1107,7 +1118,7 @@ ontSdk.Credential.CommitCredential(gasPrice, gasLimit uint64, credentialId, issu
 
 `signer`: signer account
 
-#### 2.6.5 VerifyCredibleOntId
+#### 2.6.5 Verify Credible OntId
 
 ```
 ontSdk.Credential.VerifyCredibleOntId(credibleOntIds []string, credential *VerifiableCredential) error
@@ -1116,28 +1127,28 @@ ontSdk.Credential.VerifyCredibleOntId(credibleOntIds []string, credential *Verif
 
 `credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
-#### 2.6.6 VerifyNotExpired
+#### 2.6.6 Verify Not Expired
 
 ```
 ontSdk.Credential.VerifyNotExpired(credential *VerifiableCredential) error
 ```
 `credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
-#### 2.6.7 VerifyIssuerSignature
+#### 2.6.7 Verify Issuer Signature
 
 ```
 ontSdk.Credential.VerifyIssuerSignature(credential *VerifiableCredential) error
 ```
 `credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
-#### 2.6.8 VerifyStatus
+#### 2.6.8 Verify Status
 
 ```
 ontSdk.Credential.VerifyStatus(credential *VerifiableCredential) error
 ```
 `credential`: [definition](https://www.w3.org/TR/vc-data-model/)
 
-#### 2.6.9 CreatePresentation
+#### 2.6.9 Create Presentation
 
 ```
 ontSdk.Credential.CreatePresentation(credentials []*VerifiableCredential, contexts, types []string, holder string, signers []*Account) (*Presentation, error)
@@ -1152,7 +1163,7 @@ ontSdk.Credential.CreatePresentation(credentials []*VerifiableCredential, contex
 
 `signers`: signer accounts
 
-#### 2.6.10 VerifyPresentation
+#### 2.6.10 Verify Presentation
 
 ```
 ontSdk.Credential.VerifyPresentation(presentation *Presentation, credibleOntIds []string) error
