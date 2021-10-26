@@ -919,6 +919,10 @@ func (this *Ong) UnboundONG(address common.Address) (uint64, error) {
 	return this.Allowance(ONT_CONTRACT_ADDRESS, address)
 }
 
+func (this *Ong) UnboundONGV2(address common.Address) (*big.Int, error) {
+	return this.AllowanceV2(ONT_CONTRACT_ADDRESS, address)
+}
+
 func (this *Ong) Symbol() (string, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONG_CONTRACT_ADDRESS,

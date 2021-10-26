@@ -52,6 +52,12 @@
 			* [2.3.4 Approve](#234-approve)
 			* [2.3.5 Approve Balance](#235-approve-balance)
 			* [2.3.6 TransferFrom](#236-transferfrom)
+			* [2.3.7 Get balance V2](#237-get-balance-v2)
+			* [2.3.8 Transfer V2](#238-transfer-v2)
+			* [2.3.9 Multiple Transfer V2](#239-multiple-transfer-v2)
+			* [2.3.10 Approve V2](#2310-approve-v2)
+			* [2.3.11 Allowance V2](#2311-allowance-v2)
+			* [2.3.12 Transfer From V2](#2312-transfer-from-v2)
 		* [2.4 ONG Contract API](#24-ong-contract-api)
 			* [2.4.1 Get balance](#241-get-balance)
 			* [2.4.2 Transfer](#242-transfer)
@@ -61,6 +67,14 @@
 			* [2.4.6 TransferFrom](#246-transferfrom)
 			* [2.4.7 Withdraw ONG](#247-withdraw-ong)
 			* [2.4.8 Get unbound ONG](#248-get-unbound-ong)
+			* [2.4.9 Get balance V2](#249-get-balance-v2)
+			* [2.4.10 Transfer V2](#2410-transfer-v2)
+			* [2.4.11 Multiple Transfer V2](#2411-multiple-transfer-v2)
+			* [2.4.12 Approve V2](#2412-approve-v2)
+			* [2.4.13 Approve Balance V2](#2413-approve-balance-v2)
+			* [2.4.14 TransferFrom V2](#2414-transferfrom-v2)
+			* [2.4.15 Withdraw ONG V2](#2415-withdraw-ong-v2)
+			* [2.4.16 Get unbound ONG V2](#2416-get-unbound-ong-v2)
         * [2.5 ONT ID API](#25-ont-id-api)
 			* [2.5.1 RegID With PublicKey](#251-regid-with-publickey)
             * [2.5.2 RegID With Controller](#252-regid-with-controller)
@@ -444,6 +458,43 @@ ontSdk.Native.Ont.Allowance(from, to common.Address) (uint64, error)
 ```
 ontSdk.Native.Ont.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error)
 ```
+#### 2.3.7 Get balance V2
+
+```
+ontSdk.Native.Ont.BalanceOfV2(address common.Address) (uint64, error)
+```
+
+#### 2.3.8 Transfer V2
+
+```
+ontSdk.Native.Ont.TransferV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount bigint.Int) (common.Uint256, error)
+```
+
+#### 2.3.9 Multiple Transfer V2
+
+```
+ontSdk.Native.Ont.MultiTransferV2(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error)
+```
+
+A multi transfer does more than one transfer of ONT in one transaction.
+
+#### 2.3.10 Approve V2
+
+```
+ontSdk.Native.Ont.ApproveV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount bigint.Int) (common.Uint256, error)
+```
+
+#### 2.3.11 Allowance V2
+
+```
+ontSdk.Native.Ont.AllowanceV2(from, to common.Address) (uint64, error)
+```
+
+#### 2.3.12 Transfer From V2
+
+```
+ontSdk.Native.Ont.TransferFromV2(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount bigint.Int) (common.Uint256, error)
+```
 
 ### 2.4 ONG Contract API
 
@@ -498,6 +549,55 @@ ontSdk.Native.Ong.WithdrawONG(gasPrice, gasLimit uint64, address *Account, amoun
 ontSdk.Native.Ong.UnboundONG(address common.Address) (uint64, error)
 ```
 
+#### 2.4.9 Get balance V2
+
+```
+ontSdk.Native.Ong.BalanceOfV2(address common.Address) (*big.Int, error)
+```
+
+#### 2.4.10 Transfer V2
+
+```
+ontSdk.Native.Ong.TransferV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount bigint.Int) (common.Uint256, error)
+```
+
+#### 2.4.11 Multiple Transfer V2
+
+```
+ontSdk.Native.Ong.MultiTransferV2(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error)
+```
+
+A multi transfer does more than one transfer of ONG in one transaction.
+
+#### 2.4.12 Approve V2
+
+```
+ontSdk.Native.Ong.ApproveV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
+```
+
+#### 2.4.13 Approve Balance V2
+
+```
+ontSdk.Native.Ong.AllowanceV2(from, to common.Address) (*big.Int, error)
+```
+
+#### 2.4.14 TransferFrom V2
+
+```
+ontSdk.Native.Ong.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error)
+```
+
+#### 2.4.15 Withdraw ONG V2
+
+```
+ontSdk.Native.Ong.WithdrawONG(gasPrice, gasLimit uint64, address *Account, amount bigint.Int) (common.Uint256, error)
+```
+
+#### 2.4.16 Get unbound ONG V2
+
+```
+ontSdk.Native.Ong.UnboundONGV2(address common.Address) (*big.Int, error)
+```
 ### 2.5 ONT ID API
 
 #### 2.5.1 RegID With PublicKey
