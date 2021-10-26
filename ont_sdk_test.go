@@ -71,12 +71,13 @@ func TestParseNativeTxPayload(t *testing.T) {
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
-	state := &ont.State{
+	assert.Nil(t, err)
+	state := &ont.TransferState{
 		From:  acc.Address,
 		To:    acc.Address,
 		Value: uint64(100),
 	}
-	transfers := make([]*ont.State, 0)
+	transfers := make([]*ont.TransferState, 0)
 	for i := 0; i < 1; i++ {
 		transfers = append(transfers, state)
 	}
@@ -111,12 +112,12 @@ func TestParsePayloadRandom(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 1000000; i++ {
 		amount := rand.Intn(1000000)
-		state := &ont.State{
+		state := &ont.TransferState{
 			From:  acc.Address,
 			To:    acc.Address,
 			Value: uint64(amount),
 		}
-		param := []*ont.State{state}
+		param := []*ont.TransferState{state}
 		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{param})
 		res, err := ParsePayload(invokeCode)
 		assert.Nil(t, err)
@@ -130,9 +131,11 @@ func TestParsePayloadRandom(t *testing.T) {
 		}
 		tr := ont.TransferFrom{
 			Sender: acc.Address,
-			From:   acc.Address,
-			To:     acc.Address,
-			Value:  uint64(amount),
+			TransferState: ont.TransferState{
+				From:  acc.Address,
+				To:    acc.Address,
+				Value: uint64(amount),
+			},
 		}
 		invokeCode, err = utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transferFrom", []interface{}{tr})
 		res, err = ParsePayload(invokeCode)
@@ -156,7 +159,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 100000; i++ {
 		amount := rand.Intn(10000000)
-		state := &ont.State{
+		state := &ont.TransferState{
 			From:  acc.Address,
 			To:    acc.Address,
 			Value: uint64(amount),
@@ -165,7 +168,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 		if paramLen == 0 {
 			paramLen += 1
 		}
-		params := make([]*ont.State, 0)
+		params := make([]*ont.TransferState, 0)
 		for i := 0; i < paramLen; i++ {
 			params = append(params, state)
 		}
