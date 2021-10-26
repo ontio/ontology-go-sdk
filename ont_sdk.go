@@ -524,7 +524,7 @@ type TransferEvent struct {
 	Amount   uint64
 }
 
-func (this *OntologySdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
+func (this *OntologySdk) ParseNativeTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
 	if event == nil {
 		return nil, fmt.Errorf("event is nil")
 	}
@@ -570,7 +570,7 @@ type TransferEventV2 struct {
 	Amount   bigint.Int
 }
 
-func (this *OntologySdk) ParseNaitveTransferEventV2(event *event.NotifyEventInfo) (*TransferEventV2, error) {
+func (this *OntologySdk) ParseNativeTransferEventV2(event *event.NotifyEventInfo) (*TransferEventV2, error) {
 	if event == nil {
 		return nil, fmt.Errorf("event is nil")
 	}

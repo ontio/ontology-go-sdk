@@ -957,7 +957,7 @@ func (this *Ong) BalanceOfV2(address common.Address) (*big.Int, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONG_CONTRACT_ADDRESS,
 		ONG_CONTRACT_VERSION,
-		ont.BALANCEOF_NAME,
+		ont.BALANCEOF_V2_NAME,
 		[]interface{}{address[:]},
 	)
 	if err != nil {
