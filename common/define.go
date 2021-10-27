@@ -19,11 +19,12 @@
 package common
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
+
+	"github.com/laizy/bigint"
 
 	"github.com/ontio/ontology/common"
 )
@@ -46,6 +47,11 @@ type StateInfo struct {
 	Value uint64
 }
 
+type StateInfoV2 struct {
+	From  string
+	To    string
+	Value bigint.Int
+}
 type TransferFromInfo struct {
 	Sender string
 	From   string
@@ -177,8 +183,10 @@ type SmartContactEvent struct {
 type NotifyEventInfo struct {
 	ContractAddress string
 	States          interface{}
+	isEvm           bool
 }
 
+/*
 func (this *NotifyEventInfo) UnmarshalJSON(data []byte) error {
 	type evtInfo struct {
 		ContractAddress string
@@ -228,6 +236,7 @@ func (this *NotifyEventInfo) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+*/
 
 func (this *NotifyEventInfo) originUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &this.States)
@@ -286,4 +295,16 @@ type Layer2StoreProof struct {
 	Value  string
 	Proof  string
 	Height uint32
+}
+
+type TransferState struct {
+	From  common.Address
+	To    common.Address
+	Value uint64
+}
+
+type TransferStateV2 struct {
+	From  common.Address
+	To    common.Address
+	Value bigint.Int
 }

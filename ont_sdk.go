@@ -35,10 +35,9 @@ import (
 
 	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-go-sdk/client"
-	common3 "github.com/ontio/ontology-go-sdk/common"
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
-	common2 "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
@@ -79,7 +78,7 @@ type Layer2Sdk struct {
 
 func NewLayer2Sdk() *Layer2Sdk {
 	sdk := NewOntologySdk()
-	sdk.ChainId = common3.LAYER2_SYSTEM_ID
+	sdk.ChainId = sdkcom.LAYER2_SYSTEM_ID
 	layer2Client := client.NewLayer2ClientMgr(&sdk.ClientMgr)
 	return &Layer2Sdk{
 		OntologySdk:     sdk,
@@ -123,6 +122,19 @@ func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
 	return ParsePayload(code)
 }
 
+func ParseNativeTxPayloadV2(raw []byte) (map[string]interface{}, error) {
+	tx, err := types.TransactionFromRawBytes(raw)
+	if err != nil {
+		return nil, err
+	}
+	invokeCode, ok := tx.Payload.(*payload.InvokeCode)
+	if !ok {
+		return nil, fmt.Errorf("error payload")
+	}
+	code := invokeCode.Code
+	return ParsePayloadV2(code)
+}
+
 func ParsePayload(code []byte) (map[string]interface{}, error) {
 	l := len(code)
 	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
@@ -134,7 +146,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 		// +1   length
 		//TODO if version>15, there will be bug
 		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
-			param := make([]common3.StateInfo, 0)
+			param := make([]sdkcom.StateInfo, 0)
 			source := common.NewZeroCopySource(code)
 			for {
 				zeroByte, eof := source.NextByte()
@@ -168,7 +180,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 				if err != nil {
 					return nil, err
 				}
-				state := common3.StateInfo{
+				state := sdkcom.StateInfo{
 					From:  from.ToBase58(),
 					To:    to.ToBase58(),
 					Value: amount,
@@ -249,7 +261,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			tf := common3.TransferFromInfo{
+			tf := sdkcom.TransferFromInfo{
 				Sender: sender.ToBase58(),
 				From:   from.ToBase58(),
 				To:     to.ToBase58(),
@@ -283,6 +295,169 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 	}
 	return nil, fmt.Errorf("not native transfer and transferFrom transaction")
 }
+
+func ParsePayloadV2(code []byte) (map[string]interface{}, error) {
+	l := len(code)
+	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
+		//46 = 22  "Ontology.Native.Invoke"
+		// +1   length
+		// +1   SYSCALL
+		// +1   version
+		// +20  address
+		// +1   length
+		//TODO if version>15, there will be bug
+		//transferV2
+		if l > 54 && string(code[l-46-10:l-46]) == "transferV2" {
+			param := make([]sdkcom.StateInfoV2, 0)
+			source := common.NewZeroCopySource(code)
+			for {
+				zeroByte, eof := source.NextByte()
+				if eof {
+					return nil, io.ErrUnexpectedEOF
+				}
+				if zeroByte != 0 {
+					break
+				}
+				err := ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				from, err := readAddress(source)
+				if err != nil {
+					return nil, err
+				}
+				err = ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				to, err := readAddress(source)
+				if err != nil {
+					return nil, err
+				}
+				err = ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				amount, err := getValueV2(source)
+				if err != nil {
+					return nil, err
+				}
+				state := sdkcom.StateInfoV2{
+					From:  from.ToBase58(),
+					To:    to.ToBase58(),
+					Value: amount,
+				}
+				param = append(param, state)
+				err = ignoreOpCode(source)
+				if err != nil {
+					return nil, err
+				}
+				var isend bool
+				if isend, err = isEnd(source); err != nil {
+					return nil, err
+				}
+				if isend {
+					break
+				}
+			}
+			err := ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			//method name
+			_, _, irregular, eof := source.NextVarBytes()
+			if irregular || eof {
+				return nil, io.ErrUnexpectedEOF
+			}
+			//contract address
+			contractAddress, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			res := make(map[string]interface{})
+			res["functionName"] = "transfer"
+			res["contractAddress"] = contractAddress
+			res["param"] = param
+			if contractAddress == ONT_CONTRACT_ADDRESS {
+				res["asset"] = "ont"
+			} else if contractAddress == ONG_CONTRACT_ADDRESS {
+				res["asset"] = "ong"
+			}
+			return res, nil
+		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
+			source := common.NewZeroCopySource(code)
+			//ignore 00
+			_, eof := source.NextByte()
+			if eof {
+				return nil, io.ErrUnexpectedEOF
+			}
+			err := ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			sender, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			from, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			to, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			amount, err := getValue(source)
+			if err != nil {
+				return nil, err
+			}
+			tf := sdkcom.TransferFromInfo{
+				Sender: sender.ToBase58(),
+				From:   from.ToBase58(),
+				To:     to.ToBase58(),
+				Value:  amount,
+			}
+			err = ignoreOpCode(source)
+			if err != nil {
+				return nil, err
+			}
+			//method name
+			_, _, irregular, eof := source.NextVarBytes()
+			if irregular || eof {
+				return nil, io.ErrUnexpectedEOF
+			}
+			//contract address
+			contractAddress, err := readAddress(source)
+			if err != nil {
+				return nil, err
+			}
+			res := make(map[string]interface{})
+			res["functionName"] = "transferFrom"
+			res["contractAddress"] = contractAddress
+			res["param"] = tf
+			if contractAddress == ONT_CONTRACT_ADDRESS {
+				res["asset"] = "ont"
+			} else if contractAddress == ONG_CONTRACT_ADDRESS {
+				res["asset"] = "ong"
+			}
+			return res, nil
+		}
+	}
+	return nil, fmt.Errorf("not native transfer and transferFrom transaction")
+}
+
 func getValue(source *common.ZeroCopySource) (uint64, error) {
 	var amount = uint64(0)
 	zeroByte, eof := source.NextByte()
@@ -305,6 +480,30 @@ func getValue(source *common.ZeroCopySource) (uint64, error) {
 	}
 	return amount, nil
 }
+
+func getValueV2(source *common.ZeroCopySource) (bigint.Int, error) {
+	var amount = bigint.Int{}
+	zeroByte, eof := source.NextByte()
+	if eof {
+		return bigint.New(0), io.ErrUnexpectedEOF
+	}
+
+	if zeroByte == 0 {
+		amount = bigint.New(0)
+	} else if zeroByte >= 0x51 && zeroByte <= 0x5f {
+		b := common.BigIntFromNeoBytes([]byte{zeroByte})
+		amount = bigint.Sub(b,0x50)
+	} else {
+		source.BackUp(1)
+		amountBytes, _, irregular, eof := source.NextVarBytes()
+		if irregular || eof {
+			return bigint.New(0), io.ErrUnexpectedEOF
+		}
+		amount = bigint.New(common.BigIntFromNeoBytes(amountBytes))
+	}
+	return amount, nil
+}
+
 func isEnd(source *common.ZeroCopySource) (bool, error) {
 	by, eof := source.NextByte()
 	if eof {
@@ -326,7 +525,7 @@ func isEnd(source *common.ZeroCopySource) (bool, error) {
 	}
 }
 
-func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
+func readAddress(source *common.ZeroCopySource) (common.Address, error) {
 	senderBytes, _, irregular, eof := source.NextVarBytes()
 	if irregular || eof {
 		return common.ADDRESS_EMPTY, io.ErrUnexpectedEOF
@@ -430,9 +629,9 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 		}
 	}
 	txHash := tx.Hash()
-	if this.ChainId == common3.LAYER2_SYSTEM_ID {
+	if this.ChainId == sdkcom.LAYER2_SYSTEM_ID {
 		tempTx, _ := tx.IntoImmutable()
-		txHash = tempTx.SigHashForChain(common3.LAYER2_SYSTEM_ID)
+		txHash = tempTx.SigHashForChain(sdkcom.LAYER2_SYSTEM_ID)
 	}
 	sigData, err := signer.Sign(txHash.ToArray())
 	if err != nil {
@@ -472,9 +671,9 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m 
 		tx.Payer = payer
 	}
 	txHash := tx.Hash()
-	if this.ChainId == common3.LAYER2_SYSTEM_ID {
+	if this.ChainId == sdkcom.LAYER2_SYSTEM_ID {
 		tempTx, _ := tx.IntoImmutable()
-		txHash = tempTx.SigHashForChain(common3.LAYER2_SYSTEM_ID)
+		txHash = tempTx.SigHashForChain(sdkcom.LAYER2_SYSTEM_ID)
 	}
 
 	if len(tx.Sigs) == 0 {
@@ -511,7 +710,7 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
 	}
-	sink := common2.ZeroCopySink{}
+	sink := common.ZeroCopySink{}
 	txData.Serialization(&sink)
 	rawtx := hex.EncodeToString(sink.Bytes())
 	return rawtx, nil
@@ -570,7 +769,7 @@ type TransferEventV2 struct {
 	Amount   bigint.Int
 }
 
-func (this *OntologySdk) ParseNativeTransferEventV2(event *event.NotifyEventInfo) (*TransferEventV2, error) {
+func (this *OntologySdk) ParseNativeTransferEventV2(event *sdkcom.NotifyEventInfo) (*TransferEventV2, error) {
 	if event == nil {
 		return nil, fmt.Errorf("event is nil")
 	}
@@ -578,7 +777,7 @@ func (this *OntologySdk) ParseNativeTransferEventV2(event *event.NotifyEventInfo
 	if !ok {
 		return nil, fmt.Errorf("state.States is not []interface")
 	}
-	if len(state) != 4 || len(state) != 5 {
+	if len(state) != 4 && len(state) != 5 {
 		return nil, fmt.Errorf("state length is not 4 or 5")
 	}
 	funcName, ok := state[0].(string)
@@ -596,12 +795,12 @@ func (this *OntologySdk) ParseNativeTransferEventV2(event *event.NotifyEventInfo
 		if !ok {
 			return nil, fmt.Errorf("state[2] is not string")
 		}
-		amount, ok := state[3].(uint64)
+		amount, ok := state[3].(float64)
 		if !ok {
 			return nil, fmt.Errorf("state[3] is not uint64")
 		}
-		if amount%constants.GWei != 0 {
-			value, ok := state[4].(uint64)
+		if len(state) == 5 {
+			value, ok := state[4].(float64)
 			if !ok {
 				return nil, fmt.Errorf("state[4] is not uint64")
 			}
@@ -609,14 +808,14 @@ func (this *OntologySdk) ParseNativeTransferEventV2(event *event.NotifyEventInfo
 				FuncName: "transfer",
 				From:     from,
 				To:       to,
-				Amount:   bigint.Add(amount, value),
+				Amount:   bigint.Add(bigint.Mul(int(amount)*constants.GWei), int(value)),
 			}, nil
 		}
 		return &TransferEventV2{
 			FuncName: "transfer",
 			From:     from,
 			To:       to,
-			Amount:   bigint.New(amount),
+			Amount:   bigint.New(int(amount)),
 		}, nil
 	}
 }

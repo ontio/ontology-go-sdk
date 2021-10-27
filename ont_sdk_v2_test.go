@@ -23,7 +23,6 @@ import (
 	"github.com/laizy/bigint"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
-	"github.com/ontio/ontology/smartcontract/event"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -130,18 +129,45 @@ func TestOng_TransferV2(t *testing.T) {
 func TestEvent_ParseNativeTransferEventV2(t *testing.T) {
 	testOntSdk = NewOntologySdk()
 	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
-	contractEvent, err := testOntSdk.GetSmartContractEvent("d3580c19b50a86ab85be25787cfad890084687aa9535c53604d60f0030e555eb")
-	//contractEvent,err := testOntSdk.GetSmartContractEvent("209fe1764c868b0de5983cbe58756e1bce98a60fa85fe4de1a924c76ed46ef11")
+	contractEvent, err := testOntSdk.GetSmartContractEvent("56e6ed08773a1ed20e1cb9c3de33e16a4e2cdacbeb9e58c155bc195511a73283")
 	assert.Nil(t, err)
 	for _, notify := range contractEvent.Notify {
-		addr, err := common.AddressFromBase58(notify.ContractAddress)
-		assert.Nil(t, err)
-		eventInfo := &event.NotifyEventInfo{
-			ContractAddress: addr,
-			States:          notify.States,
-		}
-		transfer, err := testOntSdk.ParseNativeTransferEventV2(eventInfo)
+		transfer, err := testOntSdk.ParseNativeTransferEventV2(notify)
 		assert.Nil(t, err)
 		t.Logf("transfer:%v", transfer)
 	}
+}
+
+func TestOnt_NewTransferTransactionV2(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testDefAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	assert.Nil(t, err)
+	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
+	assert.Nil(t, err)
+	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, bigint.New(25))
+	assert.Nil(t, err)
+	ontTx, err := mutableTransaction.IntoImmutable()
+	assert.Nil(t, err)
+	res, err := ParseNativeTxPayloadV2(ontTx.ToArray())
+	assert.Nil(t, err)
+	t.Logf("res:%v", res)
+}
+
+func TestOng_NewTransferTransactionV2(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testDefAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	assert.Nil(t, err)
+	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
+	assert.Nil(t, err)
+	mutableTransaction, err := testOntSdk.Native.Ong.NewTransferTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, bigint.New(1100112025))
+	assert.Nil(t, err)
+	ongTx, err := mutableTransaction.IntoImmutable()
+	assert.Nil(t, err)
+	res, err := ParseNativeTxPayload(ongTx.ToArray())
+	assert.Nil(t, err)
+	t.Logf("res:%v", res)
 }
