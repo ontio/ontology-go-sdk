@@ -334,7 +334,7 @@ func ParsePayloadV2(code []byte) (map[string]interface{}, error) {
 				if err != nil {
 					return nil, err
 				}
-				err = ignoreOpCode(source)
+				err = ignoreOpCodeV2(source)
 				if err != nil {
 					return nil, err
 				}
@@ -492,7 +492,7 @@ func getValueV2(source *common.ZeroCopySource) (bigint.Int, error) {
 		amount = bigint.New(0)
 	} else if zeroByte >= 0x51 && zeroByte <= 0x5f {
 		b := common.BigIntFromNeoBytes([]byte{zeroByte})
-		amount = bigint.Sub(b,0x50)
+		amount = bigint.Sub(b, 0x50)
 	} else {
 		source.BackUp(1)
 		amountBytes, _, irregular, eof := source.NextVarBytes()
@@ -536,6 +536,15 @@ func readAddress(source *common.ZeroCopySource) (common.Address, error) {
 	}
 	return sender, nil
 }
+
+func ignoreOpCodeV2(source *common.ZeroCopySource) error {
+	_, eof := source.NextBytes(3)
+	if eof {
+		return io.EOF
+	}
+	return nil
+}
+
 func ignoreOpCode(source *common.ZeroCopySource) error {
 	s := source.Size()
 	start := source.Pos()
