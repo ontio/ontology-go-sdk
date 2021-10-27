@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/ontio/ontology-crypto/signature"
-	common2 "github.com/ontio/ontology-go-sdk/common"
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/utils"
@@ -72,12 +72,12 @@ func TestParseNativeTxPayload(t *testing.T) {
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
 	assert.Nil(t, err)
-	state := &ont.TransferState{
+	state := &sdkcom.TransferState{
 		From:  acc.Address,
 		To:    acc.Address,
 		Value: uint64(100),
 	}
-	transfers := make([]*ont.TransferState, 0)
+	transfers := make([]*sdkcom.TransferState, 0)
 	for i := 0; i < 1; i++ {
 		transfers = append(transfers, state)
 	}
@@ -126,7 +126,7 @@ func TestParsePayloadRandom(t *testing.T) {
 			fmt.Println(res["param"])
 			return
 		} else {
-			stateInfos := res["param"].([]common2.StateInfo)
+			stateInfos := res["param"].([]sdkcom.StateInfo)
 			assert.Equal(t, uint64(amount), stateInfos[0].Value)
 		}
 		tr := ont.TransferFrom{
@@ -145,7 +145,7 @@ func TestParsePayloadRandom(t *testing.T) {
 			fmt.Println(res["param"])
 			return
 		} else {
-			stateInfos := res["param"].(common2.TransferFromInfo)
+			stateInfos := res["param"].(sdkcom.TransferFromInfo)
 			assert.Equal(t, uint64(amount), stateInfos.Value)
 		}
 	}
@@ -181,7 +181,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 			fmt.Println("invokeCode:", common.ToHexString(invokeCode))
 			return
 		} else {
-			stateInfos := res["param"].([]common2.StateInfo)
+			stateInfos := res["param"].([]sdkcom.StateInfo)
 			for i := 0; i < paramLen; i++ {
 				assert.Equal(t, uint64(amount), stateInfos[i].Value)
 			}
@@ -250,7 +250,7 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	code := invokeCode.Code
 	res, err := ParsePayload(code)
 	assert.Nil(t, err)
-	rp := res["param"].(common2.TransferFromInfo)
+	rp := res["param"].(sdkcom.TransferFromInfo)
 	assert.Equal(t, acc.Address.ToBase58(), rp.Sender)
 	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
 	assert.Equal(t, uint64(amount), rp.Value)
@@ -288,7 +288,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	res, err := ParseNativeTxPayload(tx2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
-	states := res["param"].([]common2.StateInfo)
+	states := res["param"].([]sdkcom.StateInfo)
 	assert.Equal(t, acc.Address.ToBase58(), states[0].From)
 	assert.Equal(t, acc2.Address.ToBase58(), states[0].To)
 	assert.Equal(t, amount, states[0].Value)
@@ -299,7 +299,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	r, err := ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", r)
-	rp := r["param"].(common2.TransferFromInfo)
+	rp := r["param"].(sdkcom.TransferFromInfo)
 	assert.Equal(t, acc.Address.ToBase58(), rp.Sender)
 	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
 	assert.Equal(t, uint64(10), rp.Value)
@@ -383,7 +383,7 @@ func TestNewOntologySdk(t *testing.T) {
 		ContractAddress: common.ADDRESS_EMPTY,
 		States:          []interface{}{"transfer", "Abc3UVbyL1kxd9sK6N9hzAT2u91ftbpoXT", "AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK", uint64(10000000)},
 	}
-	e, err := testOntSdk.ParseNaitveTransferEvent(event)
+	e, err := testOntSdk.ParseNativeTransferEvent(event)
 	assert.Nil(t, err)
 	fmt.Println(e)
 }

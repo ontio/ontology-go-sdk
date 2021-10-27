@@ -303,8 +303,18 @@ type TransferState struct {
 	Value uint64
 }
 
+type TransferFrom struct {
+	Sender common.Address
+	TransferState
+}
+
 type TransferStateV2 struct {
 	From  common.Address
 	To    common.Address
 	Value bigint.Int
+}
+
+type TransferFromStateV2 struct {
+	Sender common.Address
+	TransferStateV2
 }

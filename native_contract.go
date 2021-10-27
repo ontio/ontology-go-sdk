@@ -27,7 +27,6 @@ import (
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/states"
 	"github.com/ontio/ontology/core/types"
 	cutils "github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/smartcontract/service/native/global_params"
@@ -147,21 +146,21 @@ type Ont struct {
 }
 
 func (this *Ont) NewTransferTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferState{
+	state := &sdkcom.TransferState{
 		From:  from,
 		To:    to,
 		Value: amount,
 	}
-	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*ont.TransferState{state})
+	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*sdkcom.TransferState{state})
 }
 
 func (this *Ont) NewTransferTransactionV2(gasPrice, gasLimit uint64, from, to common.Address, amount bigint.Int) (*types.MutableTransaction, error) {
-	state := &ont.TransferStateV2{
+	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: states.NativeTokenBalance{Balance: amount},
+		Value:amount,
 	}
-	return this.NewMultiTransferTransactionV2(gasPrice, gasLimit, []*ont.TransferStateV2{state})
+	return this.NewMultiTransferTransactionV2(gasPrice, gasLimit, []*sdkcom.TransferStateV2{state})
 }
 
 func (this *Ont) Transfer(gasPrice, gasLimit uint64, payer *Account, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
@@ -202,7 +201,7 @@ func (this *Ont) TransferV2(gasPrice, gasLimit uint64, payer *Account, from *Acc
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*ont.TransferState) (*types.MutableTransaction, error) {
+func (this *Ont) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*sdkcom.TransferState) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
@@ -212,7 +211,7 @@ func (this *Ont) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states [
 		[]interface{}{states})
 }
 
-func (this *Ont) NewMultiTransferTransactionV2(gasPrice, gasLimit uint64, states []*ont.TransferStateV2) (*types.MutableTransaction, error) {
+func (this *Ont) NewMultiTransferTransactionV2(gasPrice, gasLimit uint64, states []*sdkcom.TransferStateV2) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
@@ -222,7 +221,7 @@ func (this *Ont) NewMultiTransferTransactionV2(gasPrice, gasLimit uint64, states
 		[]interface{}{states})
 }
 
-func (this *Ont) MultiTransfer(gasPrice, gasLimit uint64, payer *Account, states []*ont.TransferState, signer *Account) (common.Uint256, error) {
+func (this *Ont) MultiTransfer(gasPrice, gasLimit uint64, payer *Account, states []*sdkcom.TransferState, signer *Account) (common.Uint256, error) {
 	tx, err := this.NewMultiTransferTransaction(gasPrice, gasLimit, states)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -241,7 +240,7 @@ func (this *Ont) MultiTransfer(gasPrice, gasLimit uint64, payer *Account, states
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) MultiTransferV2(gasPrice, gasLimit uint64, payer *Account, states []*ont.TransferStateV2, signer *Account) (common.Uint256, error) {
+func (this *Ont) MultiTransferV2(gasPrice, gasLimit uint64, payer *Account, states []*sdkcom.TransferStateV2, signer *Account) (common.Uint256, error) {
 	tx, err := this.NewMultiTransferTransactionV2(gasPrice, gasLimit, states)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -261,9 +260,9 @@ func (this *Ont) MultiTransferV2(gasPrice, gasLimit uint64, payer *Account, stat
 }
 
 func (this *Ont) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferFrom{
+	state := &sdkcom.TransferFrom{
 		Sender: sender,
-		TransferState: ont.TransferState{
+		TransferState: sdkcom.TransferState{
 			From:  from,
 			To:    to,
 			Value: amount,
@@ -280,12 +279,12 @@ func (this *Ont) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, f
 }
 
 func (this *Ont) NewTransferFromTransactionV2(gasPrice, gasLimit uint64, sender, from, to common.Address, amount bigint.Int) (*types.MutableTransaction, error) {
-	state := &ont.TransferFromStateV2{
+	state := &sdkcom.TransferFromStateV2{
 		Sender: sender,
-		TransferStateV2: ont.TransferStateV2{
+		TransferStateV2: sdkcom.TransferStateV2{
 			From:  from,
 			To:    to,
-			Value: states.NativeTokenBalance{Balance: amount},
+			Value:amount,
 		},
 	}
 	return this.native.NewNativeInvokeTransaction(
@@ -337,7 +336,7 @@ func (this *Ont) TransferFromV2(gasPrice, gasLimit uint64, payer *Account, sende
 }
 
 func (this *Ont) NewApproveTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferState{
+	state := &sdkcom.TransferState{
 		From:  from,
 		To:    to,
 		Value: amount,
@@ -353,10 +352,10 @@ func (this *Ont) NewApproveTransaction(gasPrice, gasLimit uint64, from, to commo
 }
 
 func (this *Ont) NewApproveTransactionV2(gasPrice, gasLimit uint64, from, to common.Address, amount bigint.Int) (*types.MutableTransaction, error) {
-	state := &ont.TransferStateV2{
+	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: states.NativeTokenBalance{Balance: amount},
+		Value:amount,
 	}
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
@@ -582,21 +581,21 @@ type Ong struct {
 }
 
 func (this *Ong) NewTransferTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferState{
+	state := &sdkcom.TransferState{
 		From:  from,
 		To:    to,
 		Value: amount,
 	}
-	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*ont.TransferState{state})
+	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*sdkcom.TransferState{state})
 }
 
 func (this *Ong) NewTransferTransactionV2(gasPrice, gasLimit uint64, from, to common.Address, amount bigint.Int) (*types.MutableTransaction, error) {
-	state := &ont.TransferStateV2{
+	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: states.NativeTokenBalance{Balance: amount},
+		Value:amount,
 	}
-	return this.NewMultiTransferTransactionV2(gasPrice, gasLimit, []*ont.TransferStateV2{state})
+	return this.NewMultiTransferTransactionV2(gasPrice, gasLimit, []*sdkcom.TransferStateV2{state})
 }
 
 func (this *Ong) Transfer(gasPrice, gasLimit uint64, payer *Account, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
@@ -637,7 +636,7 @@ func (this *Ong) TransferV2(gasPrice, gasLimit uint64, payer *Account, from *Acc
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ong) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*ont.TransferState) (*types.MutableTransaction, error) {
+func (this *Ong) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*sdkcom.TransferState) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
@@ -647,7 +646,7 @@ func (this *Ong) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states [
 		[]interface{}{states})
 }
 
-func (this *Ong) NewMultiTransferTransactionV2(gasPrice, gasLimit uint64, states []*ont.TransferStateV2) (*types.MutableTransaction, error) {
+func (this *Ong) NewMultiTransferTransactionV2(gasPrice, gasLimit uint64, states []*sdkcom.TransferStateV2) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
@@ -657,7 +656,7 @@ func (this *Ong) NewMultiTransferTransactionV2(gasPrice, gasLimit uint64, states
 		[]interface{}{states})
 }
 
-func (this *Ong) MultiTransfer(gasPrice, gasLimit uint64, states []*ont.TransferState, signer *Account) (common.Uint256, error) {
+func (this *Ong) MultiTransfer(gasPrice, gasLimit uint64, states []*sdkcom.TransferState, signer *Account) (common.Uint256, error) {
 	tx, err := this.NewMultiTransferTransaction(gasPrice, gasLimit, states)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -669,7 +668,7 @@ func (this *Ong) MultiTransfer(gasPrice, gasLimit uint64, states []*ont.Transfer
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ong) MultiTransferV2(gasPrice, gasLimit uint64, states []*ont.TransferStateV2, signer *Account) (common.Uint256, error) {
+func (this *Ong) MultiTransferV2(gasPrice, gasLimit uint64, states []*sdkcom.TransferStateV2, signer *Account) (common.Uint256, error) {
 	tx, err := this.NewMultiTransferTransactionV2(gasPrice, gasLimit, states)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -682,9 +681,9 @@ func (this *Ong) MultiTransferV2(gasPrice, gasLimit uint64, states []*ont.Transf
 }
 
 func (this *Ong) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferFrom{
+	state := &sdkcom.TransferFrom{
 		Sender: sender,
-		TransferState: ont.TransferState{
+		TransferState: sdkcom.TransferState{
 			From:  from,
 			To:    to,
 			Value: amount,
@@ -701,12 +700,12 @@ func (this *Ong) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, f
 }
 
 func (this *Ong) NewTransferFromTransactionV2(gasPrice, gasLimit uint64, sender, from, to common.Address, amount bigint.Int) (*types.MutableTransaction, error) {
-	state := &ont.TransferFromStateV2{
+	state := &sdkcom.TransferFromStateV2{
 		Sender: sender,
-		TransferStateV2: ont.TransferStateV2{
+		TransferStateV2: sdkcom.TransferStateV2{
 			From:  from,
 			To:    to,
-			Value: states.NativeTokenBalance{Balance: amount},
+			Value:amount,
 		},
 	}
 	return this.native.NewNativeInvokeTransaction(
@@ -804,7 +803,7 @@ func (this *Ong) WithdrawONGV2(gasPrice, gasLimit uint64, payer *Account, addres
 }
 
 func (this *Ong) NewApproveTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferState{
+	state := &sdkcom.TransferState{
 		From:  from,
 		To:    to,
 		Value: amount,
@@ -820,10 +819,10 @@ func (this *Ong) NewApproveTransaction(gasPrice, gasLimit uint64, from, to commo
 }
 
 func (this *Ong) NewApproveTransactionV2(gasPrice, gasLimit uint64, from, to common.Address, amount bigint.Int) (*types.MutableTransaction, error) {
-	state := &ont.TransferStateV2{
+	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: states.NativeTokenBalance{Balance: amount},
+		Value:amount,
 	}
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
