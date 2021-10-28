@@ -237,9 +237,9 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			err = ignoreOpCode(source)
-			if err != nil {
-				return nil, err
+			_, eof = source.NextBytes(6)
+			if eof {
+				return nil, io.EOF
 			}
 			from, err := readAddress(source)
 			if err != nil {
