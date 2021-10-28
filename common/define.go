@@ -59,6 +59,13 @@ type TransferFromInfo struct {
 	Value  uint64
 }
 
+type TransferFromInfoV2 struct {
+	Sender string
+	From   string
+	To     string
+	Value  bigint.Int
+}
+
 type PreExecResult struct {
 	State  byte
 	Gas    uint64

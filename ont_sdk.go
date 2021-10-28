@@ -375,7 +375,7 @@ func ParsePayloadV2(code []byte) (map[string]interface{}, error) {
 				return nil, err
 			}
 			res := make(map[string]interface{})
-			res["functionName"] = "transfer"
+			res["functionName"] = "transferV2"
 			res["contractAddress"] = contractAddress
 			res["param"] = param
 			if contractAddress == ONT_CONTRACT_ADDRESS {
@@ -384,7 +384,7 @@ func ParsePayloadV2(code []byte) (map[string]interface{}, error) {
 				res["asset"] = "ong"
 			}
 			return res, nil
-		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
+		} else if l > 58 && string(code[l-46-14:l-46]) == "transferFromV2" {
 			source := common.NewZeroCopySource(code)
 			//ignore 00
 			_, eof := source.NextByte()
@@ -399,31 +399,31 @@ func ParsePayloadV2(code []byte) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			err = ignoreOpCode(source)
-			if err != nil {
-				return nil, err
+			_, eof = source.NextBytes(6)
+			if eof {
+				return nil, io.EOF
 			}
 			from, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
-			err = ignoreOpCode(source)
-			if err != nil {
-				return nil, err
+			_, eof = source.NextBytes(3)
+			if eof {
+				return nil, io.EOF
 			}
 			to, err := readAddress(source)
 			if err != nil {
 				return nil, err
 			}
-			err = ignoreOpCode(source)
+			_, eof = source.NextBytes(3)
+			if eof {
+				return nil, io.EOF
+			}
+			amount, err := getValueV2(source)
 			if err != nil {
 				return nil, err
 			}
-			amount, err := getValue(source)
-			if err != nil {
-				return nil, err
-			}
-			tf := sdkcom.TransferFromInfo{
+			tf := sdkcom.TransferFromInfoV2{
 				Sender: sender.ToBase58(),
 				From:   from.ToBase58(),
 				To:     to.ToBase58(),
@@ -444,7 +444,7 @@ func ParsePayloadV2(code []byte) (map[string]interface{}, error) {
 				return nil, err
 			}
 			res := make(map[string]interface{})
-			res["functionName"] = "transferFrom"
+			res["functionName"] = "transferFromV2"
 			res["contractAddress"] = contractAddress
 			res["param"] = tf
 			if contractAddress == ONT_CONTRACT_ADDRESS {

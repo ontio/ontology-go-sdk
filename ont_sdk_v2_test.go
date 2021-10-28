@@ -171,3 +171,37 @@ func TestOng_NewTransferTransactionV2(t *testing.T) {
 	assert.Nil(t, err)
 	t.Logf("res:%v", res)
 }
+
+func TestOnt_NewTransferFromTransactionV2(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testDefAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	assert.Nil(t, err)
+	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
+	assert.Nil(t, err)
+	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferFromTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, testDefAcc.Address, toAddr, bigint.New(1111111111125))
+	assert.Nil(t, err)
+	ontTx, err := mutableTransaction.IntoImmutable()
+	assert.Nil(t, err)
+	res, err := ParseNativeTxPayloadV2(ontTx.ToArray())
+	assert.Nil(t, err)
+	t.Logf("res:%v", res)
+}
+
+func TestOng_NewTransferFromTransactionV2(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testDefAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	assert.Nil(t, err)
+	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
+	assert.Nil(t, err)
+	mutableTransaction, err := testOntSdk.Native.Ong.NewTransferFromTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, testDefAcc.Address, toAddr, bigint.New(10).ExpUint8(19))
+	assert.Nil(t, err)
+	ontTx, err := mutableTransaction.IntoImmutable()
+	assert.Nil(t, err)
+	res, err := ParseNativeTxPayloadV2(ontTx.ToArray())
+	assert.Nil(t, err)
+	t.Logf("res:%v", res)
+}
