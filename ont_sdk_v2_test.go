@@ -18,9 +18,9 @@
 package ontology_go_sdk
 
 import (
+	"math/big"
 	"testing"
 
-	"github.com/laizy/bigint"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
 	"github.com/stretchr/testify/assert"
@@ -69,7 +69,7 @@ func TestOnt_TotalSupplyV2(t *testing.T) {
 	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
 	res, err := testOntSdk.Native.Ont.TotalSupplyV2()
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(constants.ONT_TOTAL_SUPPLY_V2), res)
+	assert.Equal(t, new(big.Int).SetInt64(constants.ONT_TOTAL_SUPPLY_V2), res)
 }
 
 func TestOng_TotalSupplyV2(t *testing.T) {
@@ -107,7 +107,7 @@ func TestOnt_TransferV2(t *testing.T) {
 	assert.Nil(t, err)
 	addr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
 	assert.Nil(t, err)
-	txHash, err := testOntSdk.Native.Ont.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, bigint.New(98))
+	txHash, err := testOntSdk.Native.Ont.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, new(big.Int).SetInt64(98))
 	assert.Nil(t, err)
 	t.Logf("hash:%v", txHash.ToHexString())
 
@@ -121,7 +121,20 @@ func TestOng_TransferV2(t *testing.T) {
 	assert.Nil(t, err)
 	addr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
 	assert.Nil(t, err)
-	txHash, err := testOntSdk.Native.Ong.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, bigint.New(10000000000887776))
+	txHash, err := testOntSdk.Native.Ong.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, new(big.Int).SetInt64(10000000000887776))
+	assert.Nil(t, err)
+	t.Logf("hash:%v", txHash.ToHexString())
+}
+
+func TestOng_Transfer(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testDefAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	assert.Nil(t, err)
+	addr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
+	assert.Nil(t, err)
+	txHash, err := testOntSdk.Native.Ong.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, new(big.Int).SetInt64(17))
 	assert.Nil(t, err)
 	t.Logf("hash:%v", txHash.ToHexString())
 }
@@ -129,7 +142,7 @@ func TestOng_TransferV2(t *testing.T) {
 func TestEvent_ParseNativeTransferEventV2(t *testing.T) {
 	testOntSdk = NewOntologySdk()
 	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
-	contractEvent, err := testOntSdk.GetSmartContractEvent("04f283f603ba061405e752f52ca04a6856a11e47d82ac41a3481da665c868988")
+	contractEvent, err := testOntSdk.GetSmartContractEvent("ca1ad37ddccd4999c056744e67c8e979407f04e6c041edac3458b63c296b92df")
 	assert.Nil(t, err)
 	for _, notify := range contractEvent.Notify {
 		transfer, err := testOntSdk.ParseNativeTransferEventV2(notify)
@@ -146,7 +159,7 @@ func TestOnt_NewTransferTransactionV2(t *testing.T) {
 	assert.Nil(t, err)
 	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
 	assert.Nil(t, err)
-	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, bigint.New(1111111111125))
+	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, new(big.Int).SetInt64(1111111111125))
 	assert.Nil(t, err)
 	ontTx, err := mutableTransaction.IntoImmutable()
 	assert.Nil(t, err)
@@ -163,7 +176,7 @@ func TestOng_NewTransferTransactionV2(t *testing.T) {
 	assert.Nil(t, err)
 	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
 	assert.Nil(t, err)
-	mutableTransaction, err := testOntSdk.Native.Ong.NewTransferTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, bigint.New(889100112999999025))
+	mutableTransaction, err := testOntSdk.Native.Ong.NewTransferTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, new(big.Int).SetInt64(889100112999999025))
 	assert.Nil(t, err)
 	ongTx, err := mutableTransaction.IntoImmutable()
 	assert.Nil(t, err)
@@ -180,7 +193,7 @@ func TestOnt_NewTransferFromTransactionV2(t *testing.T) {
 	assert.Nil(t, err)
 	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
 	assert.Nil(t, err)
-	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferFromTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, testDefAcc.Address, toAddr, bigint.New(1111111111125))
+	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferFromTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, testDefAcc.Address, toAddr, new(big.Int).SetInt64(1111111111125))
 	assert.Nil(t, err)
 	ontTx, err := mutableTransaction.IntoImmutable()
 	assert.Nil(t, err)
@@ -197,7 +210,7 @@ func TestOng_NewTransferFromTransactionV2(t *testing.T) {
 	assert.Nil(t, err)
 	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
 	assert.Nil(t, err)
-	mutableTransaction, err := testOntSdk.Native.Ong.NewTransferFromTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, testDefAcc.Address, toAddr, bigint.New(10).ExpUint8(19))
+	mutableTransaction, err := testOntSdk.Native.Ong.NewTransferFromTransactionV2(testGasPrice, testGasLimit, testDefAcc.Address, testDefAcc.Address, toAddr, new(big.Int).SetInt64(100000000000000008))
 	assert.Nil(t, err)
 	ontTx, err := mutableTransaction.IntoImmutable()
 	assert.Nil(t, err)

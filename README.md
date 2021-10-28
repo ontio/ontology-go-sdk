@@ -461,13 +461,13 @@ ontSdk.Native.Ont.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from,
 #### 2.3.7 Get balance V2
 
 ```
-ontSdk.Native.Ont.BalanceOfV2(address common.Address) (uint64, error)
+ontSdk.Native.Ont.BalanceOfV2(address common.Address) (*big.Int, error)
 ```
 
 #### 2.3.8 Transfer V2
 
 ```
-ontSdk.Native.Ont.TransferV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount bigint.Int) (common.Uint256, error)
+ontSdk.Native.Ont.TransferV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount *big.Int) (common.Uint256, error)
 ```
 
 #### 2.3.9 Multiple Transfer V2
@@ -481,19 +481,19 @@ A multi transfer does more than one transfer of ONT in one transaction.
 #### 2.3.10 Approve V2
 
 ```
-ontSdk.Native.Ont.ApproveV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount bigint.Int) (common.Uint256, error)
+ontSdk.Native.Ont.ApproveV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount *big.Int) (common.Uint256, error)
 ```
 
 #### 2.3.11 Allowance V2
 
 ```
-ontSdk.Native.Ont.AllowanceV2(from, to common.Address) (uint64, error)
+ontSdk.Native.Ont.AllowanceV2(from, to common.Address) (*big.Int, error)
 ```
 
 #### 2.3.12 Transfer From V2
 
 ```
-ontSdk.Native.Ont.TransferFromV2(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount bigint.Int) (common.Uint256, error)
+ontSdk.Native.Ont.TransferFromV2(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount *big.Int) (common.Uint256, error)
 ```
 
 ### 2.4 ONG Contract API
@@ -558,7 +558,7 @@ ontSdk.Native.Ong.BalanceOfV2(address common.Address) (*big.Int, error)
 #### 2.4.10 Transfer V2
 
 ```
-ontSdk.Native.Ong.TransferV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount bigint.Int) (common.Uint256, error)
+ontSdk.Native.Ong.TransferV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount *big.Int) (common.Uint256, error)
 ```
 
 #### 2.4.11 Multiple Transfer V2
@@ -572,7 +572,7 @@ A multi transfer does more than one transfer of ONG in one transaction.
 #### 2.4.12 Approve V2
 
 ```
-ontSdk.Native.Ong.ApproveV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
+ontSdk.Native.Ong.ApproveV2(gasPrice, gasLimit uint64, from *Account, to common.Address, amount *big.Int) (common.Uint256, error)
 ```
 
 #### 2.4.13 Approve Balance V2
@@ -584,13 +584,13 @@ ontSdk.Native.Ong.AllowanceV2(from, to common.Address) (*big.Int, error)
 #### 2.4.14 TransferFrom V2
 
 ```
-ontSdk.Native.Ong.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error)
+ontSdk.Native.Ong.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount *big.Int) (common.Uint256, error)
 ```
 
 #### 2.4.15 Withdraw ONG V2
 
 ```
-ontSdk.Native.Ong.WithdrawONG(gasPrice, gasLimit uint64, address *Account, amount bigint.Int) (common.Uint256, error)
+ontSdk.Native.Ong.WithdrawONG(gasPrice, gasLimit uint64, address *Account, amount *big.Int) (common.Uint256, error)
 ```
 
 #### 2.4.16 Get unbound ONG V2
