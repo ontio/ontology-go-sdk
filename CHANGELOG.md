@@ -98,7 +98,7 @@ type TransferEventV2 struct {
 	FuncName string
 	From     string
 	To       string
-	Amount   bigint.Int
+	Amount   *big.Int
 }
 
 ParseNativeTransferEventV2(event *sdkcom.NotifyEventInfo) (*TransferEventV2, error) 

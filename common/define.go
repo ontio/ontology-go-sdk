@@ -24,8 +24,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/laizy/bigint"
-
 	"github.com/ontio/ontology/common"
 )
 
@@ -50,7 +48,7 @@ type StateInfo struct {
 type StateInfoV2 struct {
 	From  string
 	To    string
-	Value bigint.Int
+	Value *big.Int
 }
 type TransferFromInfo struct {
 	Sender string
@@ -63,7 +61,7 @@ type TransferFromInfoV2 struct {
 	Sender string
 	From   string
 	To     string
-	Value  bigint.Int
+	Value  *big.Int
 }
 
 type PreExecResult struct {
@@ -318,7 +316,7 @@ type TransferFrom struct {
 type TransferStateV2 struct {
 	From  common.Address
 	To    common.Address
-	Value bigint.Int
+	Value *big.Int
 }
 
 type TransferFromStateV2 struct {

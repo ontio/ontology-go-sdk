@@ -7,7 +7,6 @@ require (
 	github.com/cmars/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/itchyny/base58-go v0.1.0
-	github.com/laizy/bigint v0.1.3
 	github.com/ontio/go-bip32 v0.0.0-20190520025953-d3cea6894a2b
 	github.com/ontio/ontology v1.14.1-alpha
 	github.com/ontio/ontology-crypto v1.2.1

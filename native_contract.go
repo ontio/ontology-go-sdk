@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/laizy/bigint"
 	"github.com/ontio/ontology-crypto/keypair"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
@@ -158,7 +157,7 @@ func (this *Ont) NewTransferTransactionV2(gasPrice, gasLimit uint64, from, to co
 	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: bigint.New(amount),
+		Value: amount,
 	}
 	return this.NewMultiTransferTransactionV2(gasPrice, gasLimit, []*sdkcom.TransferStateV2{state})
 }
@@ -284,7 +283,7 @@ func (this *Ont) NewTransferFromTransactionV2(gasPrice, gasLimit uint64, sender,
 		TransferStateV2: sdkcom.TransferStateV2{
 			From:  from,
 			To:    to,
-			Value: bigint.New(amount),
+			Value: amount,
 		},
 	}
 	return this.native.NewNativeInvokeTransaction(
@@ -355,7 +354,7 @@ func (this *Ont) NewApproveTransactionV2(gasPrice, gasLimit uint64, from, to com
 	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: bigint.New(amount),
+		Value: amount,
 	}
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
@@ -593,7 +592,7 @@ func (this *Ong) NewTransferTransactionV2(gasPrice, gasLimit uint64, from, to co
 	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: bigint.New(amount),
+		Value: amount,
 	}
 	return this.NewMultiTransferTransactionV2(gasPrice, gasLimit, []*sdkcom.TransferStateV2{state})
 }
@@ -705,7 +704,7 @@ func (this *Ong) NewTransferFromTransactionV2(gasPrice, gasLimit uint64, sender,
 		TransferStateV2: sdkcom.TransferStateV2{
 			From:  from,
 			To:    to,
-			Value: bigint.New(amount),
+			Value: amount,
 		},
 	}
 	return this.native.NewNativeInvokeTransaction(
@@ -822,7 +821,7 @@ func (this *Ong) NewApproveTransactionV2(gasPrice, gasLimit uint64, from, to com
 	state := &sdkcom.TransferStateV2{
 		From:  from,
 		To:    to,
-		Value: bigint.New(amount),
+		Value: amount,
 	}
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,

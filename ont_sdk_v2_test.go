@@ -124,6 +124,13 @@ func TestOng_TransferV2(t *testing.T) {
 	txHash, err := testOntSdk.Native.Ong.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, new(big.Int).SetInt64(10000000000887776))
 	assert.Nil(t, err)
 	t.Logf("hash:%v", txHash.ToHexString())
+	contractEvent, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
+	assert.Nil(t, err)
+	for _, notify := range contractEvent.Notify {
+		transfer, err := testOntSdk.ParseNativeTransferEventV2(notify)
+		assert.Nil(t, err)
+		t.Logf("transfer:%v", transfer)
+	}
 }
 
 func TestOng_Transfer(t *testing.T) {
@@ -142,7 +149,7 @@ func TestOng_Transfer(t *testing.T) {
 func TestEvent_ParseNativeTransferEventV2(t *testing.T) {
 	testOntSdk = NewOntologySdk()
 	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
-	contractEvent, err := testOntSdk.GetSmartContractEvent("ca1ad37ddccd4999c056744e67c8e979407f04e6c041edac3458b63c296b92df")
+	contractEvent, err := testOntSdk.GetSmartContractEvent("3b5f4a8e5dc6bb44edb5dfde728cc932627c5053ed6d1033c34af80304e63a01")
 	assert.Nil(t, err)
 	for _, notify := range contractEvent.Notify {
 		transfer, err := testOntSdk.ParseNativeTransferEventV2(notify)
@@ -164,6 +171,23 @@ func TestOnt_NewTransferTransactionV2(t *testing.T) {
 	ontTx, err := mutableTransaction.IntoImmutable()
 	assert.Nil(t, err)
 	res, err := ParseNativeTxPayloadV2(ontTx.ToArray())
+	assert.Nil(t, err)
+	t.Logf("res:%v", res)
+}
+
+func TestOnt_NewTransferTransaction(t *testing.T) {
+	testOntSdk = NewOntologySdk()
+	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testDefAcc, err := testWallet.GetDefaultAccount(testPasswd)
+	assert.Nil(t, err)
+	toAddr, err := common.AddressFromBase58("AWRBh9yYVzYHAfAb3tuWtdKjwGxNubimPo")
+	assert.Nil(t, err)
+	mutableTransaction, err := testOntSdk.Native.Ont.NewTransferTransaction(testGasPrice, testGasLimit, testDefAcc.Address, toAddr, 111111125)
+	assert.Nil(t, err)
+	ontTx, err := mutableTransaction.IntoImmutable()
+	assert.Nil(t, err)
+	res, err := ParseNativeTxPayload(ontTx.ToArray())
 	assert.Nil(t, err)
 	t.Logf("res:%v", res)
 }

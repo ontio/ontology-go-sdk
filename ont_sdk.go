@@ -23,10 +23,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math/big"
 	"math/rand"
 	"time"
-
-	"github.com/laizy/bigint"
 
 	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-go-sdk/bip44"
@@ -481,25 +480,25 @@ func getValue(source *common.ZeroCopySource) (uint64, error) {
 	return amount, nil
 }
 
-func getValueV2(source *common.ZeroCopySource) (bigint.Int, error) {
-	var amount = bigint.Int{}
+func getValueV2(source *common.ZeroCopySource) (*big.Int, error) {
+	var amount = big.NewInt(0)
 	zeroByte, eof := source.NextByte()
 	if eof {
-		return bigint.New(0), io.ErrUnexpectedEOF
+		return nil, io.ErrUnexpectedEOF
 	}
 
 	if zeroByte == 0 {
-		amount = bigint.New(0)
+		amount = big.NewInt(0)
 	} else if zeroByte >= 0x51 && zeroByte <= 0x5f {
 		b := common.BigIntFromNeoBytes([]byte{zeroByte})
-		amount = bigint.Sub(b, 0x50)
+		amount = amount.Sub(b, big.NewInt(0x50))
 	} else {
 		source.BackUp(1)
 		amountBytes, _, irregular, eof := source.NextVarBytes()
 		if irregular || eof {
-			return bigint.New(0), io.ErrUnexpectedEOF
+			return nil, io.ErrUnexpectedEOF
 		}
-		amount = bigint.New(common.BigIntFromNeoBytes(amountBytes))
+		amount = common.BigIntFromNeoBytes(amountBytes)
 	}
 	return amount, nil
 }
@@ -775,7 +774,7 @@ type TransferEventV2 struct {
 	FuncName string
 	From     string
 	To       string
-	Amount   bigint.Int
+	Amount   *big.Int
 }
 
 func (this *OntologySdk) ParseNativeTransferEventV2(event *sdkcom.NotifyEventInfo) (*TransferEventV2, error) {
@@ -813,18 +812,21 @@ func (this *OntologySdk) ParseNativeTransferEventV2(event *sdkcom.NotifyEventInf
 			if !ok {
 				return nil, fmt.Errorf("state[4] is not uint64")
 			}
+			res := big.NewInt(int64(amount))
+			res.Mul(res, big.NewInt(constants.GWei))
+			res.Add(res, big.NewInt(int64(value)))
 			return &TransferEventV2{
 				FuncName: "transfer",
 				From:     from,
 				To:       to,
-				Amount:   bigint.Add(bigint.Mul(int(amount)*constants.GWei), int(value)),
+				Amount:   res,
 			}, nil
 		}
 		return &TransferEventV2{
 			FuncName: "transfer",
 			From:     from,
 			To:       to,
-			Amount:   bigint.New(int(amount)),
+			Amount:   big.NewInt(int64(amount)),
 		}, nil
 	}
 }
