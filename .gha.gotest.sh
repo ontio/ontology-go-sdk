@@ -16,4 +16,4 @@ do
   go test -v $d
 done
 
-pkill ontology
+pkill ontology || true
