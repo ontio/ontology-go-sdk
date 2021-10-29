@@ -20,6 +20,7 @@ package ontology_go_sdk
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
@@ -124,6 +125,8 @@ func TestOng_TransferV2(t *testing.T) {
 	txHash, err := testOntSdk.Native.Ong.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, new(big.Int).SetInt64(10000000000887776))
 	assert.Nil(t, err)
 	t.Logf("hash:%v", txHash.ToHexString())
+	_, err = testOntSdk.WaitForGenerateBlock(30 * time.Second)
+	assert.Nil(t, err)
 	contractEvent, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
 	assert.Nil(t, err)
 	for _, notify := range contractEvent.Notify {
@@ -144,18 +147,6 @@ func TestOng_Transfer(t *testing.T) {
 	txHash, err := testOntSdk.Native.Ong.TransferV2(testGasPrice, testGasLimit, nil, testDefAcc, addr, new(big.Int).SetInt64(17))
 	assert.Nil(t, err)
 	t.Logf("hash:%v", txHash.ToHexString())
-}
-
-func TestEvent_ParseNativeTransferEventV2(t *testing.T) {
-	testOntSdk = NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress(testNetUrl)
-	contractEvent, err := testOntSdk.GetSmartContractEvent("3b5f4a8e5dc6bb44edb5dfde728cc932627c5053ed6d1033c34af80304e63a01")
-	assert.Nil(t, err)
-	for _, notify := range contractEvent.Notify {
-		transfer, err := testOntSdk.ParseNativeTransferEventV2(notify)
-		assert.Nil(t, err)
-		t.Logf("transfer:%v", transfer)
-	}
 }
 
 func TestOnt_NewTransferTransactionV2(t *testing.T) {
