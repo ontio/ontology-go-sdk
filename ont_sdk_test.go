@@ -26,10 +26,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ontio/ontology/core/payload"
+
 	"github.com/ontio/ontology-crypto/signature"
 	sdkcom "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/core/validation"
 	"github.com/ontio/ontology/smartcontract/event"
@@ -45,7 +46,7 @@ var (
 	testDefAcc   *Account
 	testGasPrice = uint64(2500)
 	testGasLimit = uint64(20000)
-	testNetUrl   = "http://polaris2.ont.io:20336"
+	testNetUrl   = "http://127.0.0.1:20336"
 )
 
 func init() {
