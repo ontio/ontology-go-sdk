@@ -36,7 +36,6 @@ import (
 	common3 "github.com/ontio/ontology-go-sdk/common"
 	"github.com/ontio/ontology-go-sdk/utils"
 	"github.com/ontio/ontology/common"
-	common2 "github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/common/constants"
 	"github.com/ontio/ontology/core/payload"
 	"github.com/ontio/ontology/core/types"
@@ -324,7 +323,7 @@ func isEnd(source *common.ZeroCopySource) (bool, error) {
 	}
 }
 
-func readAddress(source *common.ZeroCopySource) (common2.Address, error) {
+func readAddress(source *common.ZeroCopySource) (common.Address, error) {
 	senderBytes, _, irregular, eof := source.NextVarBytes()
 	if irregular || eof {
 		return common.ADDRESS_EMPTY, io.ErrUnexpectedEOF
@@ -369,10 +368,10 @@ func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr
 	if mnemonicCodesStr == "" {
 		return nil, fmt.Errorf("mnemonicCodesStr should not be nil")
 	}
-	//address_index
-	if index < 0 {
-		return nil, fmt.Errorf("index should be bigger than 0")
-	}
+	//address_index, u32 will never less than 0
+	// if index < 0 {
+	// 	return nil, fmt.Errorf("index should be bigger than 0")
+	// }
 	seed := bip39.NewSeed(mnemonicCodesStr, "")
 	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
@@ -405,7 +404,7 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 		TxType:   types.InvokeNeo,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
-		Sigs:     make([]types.Sig, 0, 0),
+		Sigs:     make([]types.Sig, 0),
 	}
 	return tx
 }
@@ -509,7 +508,7 @@ func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
 	}
-	sink := common2.ZeroCopySink{}
+	sink := common.ZeroCopySink{}
 	txData.Serialization(&sink)
 	rawtx := hex.EncodeToString(sink.Bytes())
 	return rawtx, nil

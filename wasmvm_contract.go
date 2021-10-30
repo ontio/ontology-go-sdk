@@ -56,6 +56,9 @@ func (this *WasmVMContract) DeployWasmVMSmartContract(
 		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
 	}
 	tx, err := utils2.NewDeployCodeTransaction(gasPrice, gasLimit, invokeCode, payload.WASMVM_TYPE, name, version, author, email, desc)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("fail to create deploy tx: %v", err)
+	}
 	err = this.ontSdk.SignToTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err
