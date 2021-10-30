@@ -29,12 +29,14 @@ import (
 )
 
 type NeoVMContract struct {
-	ontSdk *OntologySdk
+	ontSdk      *OntologySdk
+	ClaimRecord *ClaimRecord
 }
 
 func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
 	return &NeoVMContract{
-		ontSdk: ontSdk,
+		ontSdk:      ontSdk,
+		ClaimRecord: NewClaimRecord(ontSdk),
 	}
 }
 
