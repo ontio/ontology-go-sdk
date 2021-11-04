@@ -21,6 +21,7 @@ package ontology_go_sdk
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -803,18 +804,26 @@ func (this *OntologySdk) ParseNativeTransferEventV2(event *sdkcom.NotifyEventInf
 		if !ok {
 			return nil, fmt.Errorf("state[2] is not string")
 		}
-		amount, ok := state[3].(float64)
+		amount, ok := state[3].(json.Number)
 		if !ok {
 			return nil, fmt.Errorf("state[3] is not uint64")
 		}
+		transAmount, err := amount.Int64()
+		if err != nil {
+			return nil, err
+		}
 		if len(state) == 5 {
-			value, ok := state[4].(float64)
+			value, ok := state[4].(json.Number)
 			if !ok {
 				return nil, fmt.Errorf("state[4] is not uint64")
 			}
-			res := big.NewInt(int64(amount))
+			transValue, err := value.Int64()
+			if err != nil {
+				return nil, err
+			}
+			res := big.NewInt(transAmount)
 			res.Mul(res, big.NewInt(constants.GWei))
-			res.Add(res, big.NewInt(int64(value)))
+			res.Add(res, big.NewInt(transValue))
 			return &TransferEventV2{
 				FuncName: "transfer",
 				From:     from,
@@ -826,7 +835,7 @@ func (this *OntologySdk) ParseNativeTransferEventV2(event *sdkcom.NotifyEventInf
 			FuncName: "transfer",
 			From:     from,
 			To:       to,
-			Amount:   big.NewInt(int64(amount)),
+			Amount:   big.NewInt(transAmount),
 		}, nil
 	}
 }
