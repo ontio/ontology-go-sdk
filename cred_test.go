@@ -24,6 +24,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ontio/ontology-go-sdk/utils"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ontio/ontology/common"
 )
 
@@ -37,8 +40,10 @@ type Relationship struct {
 
 func TestCredential(t *testing.T) {
 	Init()
-
-	testOntSdk.SetCredContractAddress("52df370680de17bc5d4262c446f102a0ee0d6312")
+	contractAddr, err := utils.GetContractAddress(CredentialCode)
+	assert.Nil(t, err)
+	err = testOntSdk.SetCredContractAddress(contractAddr.ToHexString())
+	assert.Nil(t, err)
 	issuer, err := testWallet.NewDefaultSettingIdentity(testPasswd)
 	if err != nil {
 		t.Errorf("TestCredential NewDefaultSettingIdentity error:%s", err)

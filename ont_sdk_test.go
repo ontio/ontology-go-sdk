@@ -26,10 +26,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ontio/ontology-crypto/signature"
-	common2 "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/payload"
+
+	"github.com/ontio/ontology-crypto/signature"
+	sdkcom "github.com/ontio/ontology-go-sdk/common"
+	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/core/validation"
 	"github.com/ontio/ontology/smartcontract/event"
@@ -45,7 +46,7 @@ var (
 	testDefAcc   *Account
 	testGasPrice = uint64(2500)
 	testGasLimit = uint64(20000)
-	testNetUrl   = "http://polaris2.ont.io:20336"
+	testNetUrl   = "http://127.0.0.1:20336"
 )
 
 func init() {
@@ -71,12 +72,13 @@ func TestParseNativeTxPayload(t *testing.T) {
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
-	state := &ont.State{
+	assert.Nil(t, err)
+	state := &sdkcom.TransferState{
 		From:  acc.Address,
 		To:    acc.Address,
 		Value: uint64(100),
 	}
-	transfers := make([]*ont.State, 0)
+	transfers := make([]*sdkcom.TransferState, 0)
 	for i := 0; i < 1; i++ {
 		transfers = append(transfers, state)
 	}
@@ -88,13 +90,7 @@ func TestParseNativeTxPayload(t *testing.T) {
 
 func TestParsePayload(t *testing.T) {
 	testOntSdk = NewOntologySdk()
-	//transferMulti
-	payloadHex := "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c0114c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
-	//one transfer
-	payloadHex = "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
-
-	//one transferFrom
-	payloadHex = "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0114c86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	payloadHex := "00c66b1421ab6ece5c9e44fa5e35261ef42cc6bc31d98e9c6a7cc814c1d2d106f9d2276b383958973b9fca8e4f48cc966a7cc80400e1f5056a7cc86c51c1087472616e736665721400000000000000000000000000000000000000020068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
 
 	payloadBytes, err := common.HexToBytes(payloadHex)
 	assert.Nil(t, err)
@@ -111,12 +107,12 @@ func TestParsePayloadRandom(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 1000000; i++ {
 		amount := rand.Intn(1000000)
-		state := &ont.State{
+		state := &ont.TransferState{
 			From:  acc.Address,
 			To:    acc.Address,
 			Value: uint64(amount),
 		}
-		param := []*ont.State{state}
+		param := []*ont.TransferState{state}
 		invokeCode, err := utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transfer", []interface{}{param})
 		res, err := ParsePayload(invokeCode)
 		assert.Nil(t, err)
@@ -125,14 +121,16 @@ func TestParsePayloadRandom(t *testing.T) {
 			fmt.Println(res["param"])
 			return
 		} else {
-			stateInfos := res["param"].([]common2.StateInfo)
+			stateInfos := res["param"].([]sdkcom.StateInfo)
 			assert.Equal(t, uint64(amount), stateInfos[0].Value)
 		}
 		tr := ont.TransferFrom{
 			Sender: acc.Address,
-			From:   acc.Address,
-			To:     acc.Address,
-			Value:  uint64(amount),
+			TransferState: ont.TransferState{
+				From:  acc.Address,
+				To:    acc.Address,
+				Value: uint64(amount),
+			},
 		}
 		invokeCode, err = utils.BuildNativeInvokeCode(ONT_CONTRACT_ADDRESS, 0, "transferFrom", []interface{}{tr})
 		res, err = ParsePayload(invokeCode)
@@ -142,7 +140,7 @@ func TestParsePayloadRandom(t *testing.T) {
 			fmt.Println(res["param"])
 			return
 		} else {
-			stateInfos := res["param"].(common2.TransferFromInfo)
+			stateInfos := res["param"].(sdkcom.TransferFromInfo)
 			assert.Equal(t, uint64(amount), stateInfos.Value)
 		}
 	}
@@ -156,7 +154,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 100000; i++ {
 		amount := rand.Intn(10000000)
-		state := &ont.State{
+		state := &ont.TransferState{
 			From:  acc.Address,
 			To:    acc.Address,
 			Value: uint64(amount),
@@ -165,7 +163,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 		if paramLen == 0 {
 			paramLen += 1
 		}
-		params := make([]*ont.State, 0)
+		params := make([]*ont.TransferState, 0)
 		for i := 0; i < paramLen; i++ {
 			params = append(params, state)
 		}
@@ -178,7 +176,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 			fmt.Println("invokeCode:", common.ToHexString(invokeCode))
 			return
 		} else {
-			stateInfos := res["param"].([]common2.StateInfo)
+			stateInfos := res["param"].([]sdkcom.StateInfo)
 			for i := 0; i < paramLen; i++ {
 				assert.Equal(t, uint64(amount), stateInfos[i].Value)
 			}
@@ -247,7 +245,7 @@ func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	code := invokeCode.Code
 	res, err := ParsePayload(code)
 	assert.Nil(t, err)
-	rp := res["param"].(common2.TransferFromInfo)
+	rp := res["param"].(sdkcom.TransferFromInfo)
 	assert.Equal(t, acc.Address.ToBase58(), rp.Sender)
 	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
 	assert.Equal(t, uint64(amount), rp.Value)
@@ -285,7 +283,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	res, err := ParseNativeTxPayload(tx2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
-	states := res["param"].([]common2.StateInfo)
+	states := res["param"].([]sdkcom.StateInfo)
 	assert.Equal(t, acc.Address.ToBase58(), states[0].From)
 	assert.Equal(t, acc2.Address.ToBase58(), states[0].To)
 	assert.Equal(t, amount, states[0].Value)
@@ -296,7 +294,7 @@ func TestOntologySdk_ParseNativeTxPayload(t *testing.T) {
 	r, err := ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", r)
-	rp := r["param"].(common2.TransferFromInfo)
+	rp := r["param"].(sdkcom.TransferFromInfo)
 	assert.Equal(t, acc.Address.ToBase58(), rp.Sender)
 	assert.Equal(t, acc2.Address.ToBase58(), rp.From)
 	assert.Equal(t, uint64(10), rp.Value)
@@ -380,7 +378,7 @@ func TestNewOntologySdk(t *testing.T) {
 		ContractAddress: common.ADDRESS_EMPTY,
 		States:          []interface{}{"transfer", "Abc3UVbyL1kxd9sK6N9hzAT2u91ftbpoXT", "AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK", uint64(10000000)},
 	}
-	e, err := testOntSdk.ParseNaitveTransferEvent(event)
+	e, err := testOntSdk.ParseNativeTransferEvent(event)
 	assert.Nil(t, err)
 	fmt.Println(e)
 }

@@ -19,7 +19,6 @@
 package common
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -46,11 +45,23 @@ type StateInfo struct {
 	Value uint64
 }
 
+type StateInfoV2 struct {
+	From  string
+	To    string
+	Value *big.Int
+}
 type TransferFromInfo struct {
 	Sender string
 	From   string
 	To     string
 	Value  uint64
+}
+
+type TransferFromInfoV2 struct {
+	Sender string
+	From   string
+	To     string
+	Value  *big.Int
 }
 
 type PreExecResult struct {
@@ -177,8 +188,10 @@ type SmartContactEvent struct {
 type NotifyEventInfo struct {
 	ContractAddress string
 	States          interface{}
+	isEvm           bool
 }
 
+/*
 func (this *NotifyEventInfo) UnmarshalJSON(data []byte) error {
 	type evtInfo struct {
 		ContractAddress string
@@ -228,6 +241,7 @@ func (this *NotifyEventInfo) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+*/
 
 func (this *NotifyEventInfo) originUnmarshal(data []byte) error {
 	return json.Unmarshal(data, &this.States)
@@ -286,4 +300,26 @@ type Layer2StoreProof struct {
 	Value  string
 	Proof  string
 	Height uint32
+}
+
+type TransferState struct {
+	From  common.Address
+	To    common.Address
+	Value uint64
+}
+
+type TransferFrom struct {
+	Sender common.Address
+	TransferState
+}
+
+type TransferStateV2 struct {
+	From  common.Address
+	To    common.Address
+	Value *big.Int
+}
+
+type TransferFromStateV2 struct {
+	Sender common.Address
+	TransferStateV2
 }

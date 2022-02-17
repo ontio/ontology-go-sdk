@@ -18,6 +18,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -132,8 +133,9 @@ func GetStorage(data []byte) ([]byte, error) {
 
 func GetSmartContractEvent(data []byte) (*sdkcom.SmartContactEvent, error) {
 	event := &sdkcom.SmartContactEvent{}
-	err := json.Unmarshal(data, &event)
-	if err != nil {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	if err := dec.Decode(&event); err != nil {
 		return nil, fmt.Errorf("json.Unmarshal SmartContactEvent:%s error:%s", data, err)
 	}
 	return event, nil
