@@ -160,6 +160,10 @@ func (this *RestClient) getCrossStatesProof(qid string, height uint32, key []byt
 	return nil, fmt.Errorf("getCrossStateProof not supported by RestClient")
 }
 
+func (this *RestClient) getCrossStatesLeafHashes(qid string, height float64) ([]byte, error) {
+	return nil, fmt.Errorf("getCrossStatesLeafHashes not supported by RestClient")
+}
+
 func (this *RestClient) getCrossChainMsg(qid string, height uint32) ([]byte, error) {
 	return nil, fmt.Errorf("getCrossChainMsg not supported by RestClient")
 }
