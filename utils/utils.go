@@ -19,6 +19,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -121,4 +122,51 @@ func PubKeysEqual(pks1, pks2 []keypair.PublicKey) bool {
 		}
 	}
 	return true
+}
+
+func PubKeyEncodeString(pubKeyHex, SignType string) ([]byte, error) {
+	publicKey, err := hex.DecodeString(pubKeyHex)
+	if err != nil {
+		return nil, err
+	}
+	var buf bytes.Buffer
+	switch SignType {
+	case "EcdsaSecp224r1VerificationKey2019":
+		buf.WriteByte(byte(keypair.PK_ECDSA))
+		buf.WriteByte(keypair.P224)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	case "EcdsaSecp256r1VerificationKey2019":
+		buf.WriteByte(byte(keypair.PK_ECDSA))
+		buf.WriteByte(keypair.P256)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	case "EcdsaSecp384r1VerificationKey2019":
+		buf.WriteByte(byte(keypair.PK_ECDSA))
+		buf.WriteByte(keypair.P384)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	case "EcdsaSecp521r1VerificationKey2019":
+		buf.WriteByte(byte(keypair.PK_ECDSA))
+		buf.WriteByte(keypair.P521)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	case "EcdsaSecp256k1VerificationKey2019":
+		buf.WriteByte(byte(keypair.PK_ECDSA))
+		buf.WriteByte(keypair.SECP256K1)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	case "Ed25519VerificationKey2018":
+		buf.WriteByte(byte(keypair.PK_EDDSA))
+		buf.WriteByte(keypair.ED25519)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	case "SM2VerificationKey2019":
+		buf.WriteByte(byte(keypair.PK_SM2))
+		buf.WriteByte(keypair.SM2P256V1)
+		buf.Write(publicKey)
+		return buf.Bytes(), nil
+	default:
+		return nil, fmt.Errorf("unsupported type 2")
+	}
 }
