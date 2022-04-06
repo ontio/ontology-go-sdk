@@ -291,6 +291,28 @@ func (this *ClientMgr) GetCrossStatesProof(height uint32, key []byte) (*bc.Cross
 	return utils.GetCrossStatesProof(data)
 }
 
+type CrossStatesLeafHashes struct {
+	Height uint32
+	Hashes []string
+}
+
+func (this *ClientMgr) GetCrossStatesLeafHashes(height float64) (*CrossStatesLeafHashes, error) {
+	client := this.getClient()
+	if client == nil {
+		return nil, fmt.Errorf("don't have available client of ontology")
+	}
+	data, err := client.getCrossStatesLeafHashes(this.getNextQid(), height)
+	if err != nil {
+		return nil, err
+	}
+	hashes := &CrossStatesLeafHashes{}
+	err = json.Unmarshal(data, hashes)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal error:%s", err)
+	}
+	return hashes, nil
+}
+
 func (this *ClientMgr) GetCrossChainMsg(height uint32) (string, error) {
 	client := this.getClient()
 	if client == nil {

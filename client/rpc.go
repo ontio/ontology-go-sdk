@@ -151,6 +151,10 @@ func (this *RpcClient) getCrossStatesProof(qid string, height uint32, key []byte
 	return this.sendRpcRequest(qid, RPC_GET_CROSS_STATES_PROOF, []interface{}{height, hex.EncodeToString(key)})
 }
 
+func (this *RpcClient) getCrossStatesLeafHashes(qid string, height float64) ([]byte, error) {
+	return this.sendRpcRequest(qid, RPC_GET_CROSS_STATES_LEAF_HASHES, []interface{}{height})
+}
+
 func (this *RpcClient) getCrossChainMsg(qid string, height uint32) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_CROSS_CHAIN_MSG, []interface{}{height})
 }

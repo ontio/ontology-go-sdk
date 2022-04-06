@@ -662,6 +662,10 @@ func (this *WSClient) getCrossStatesProof(qid string, height uint32, key []byte)
 	return nil, fmt.Errorf("getCrossStateProof not supported by WSClient")
 }
 
+func (this *WSClient) getCrossStatesLeafHashes(qid string, height float64) ([]byte, error) {
+	return nil, fmt.Errorf("getCrossStatesLeafHashes not supported by WSClient")
+}
+
 func (this *WSClient) getCrossChainMsg(qid string, height uint32) ([]byte, error) {
 	return nil, fmt.Errorf("getCrossChainMsg not supported by WSClient")
 }

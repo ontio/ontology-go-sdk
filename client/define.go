@@ -42,6 +42,7 @@ type OntologyClient interface {
 	getStorage(qid, contractAddress string, key []byte) ([]byte, error)
 	getMerkleProof(qid, txHash string) ([]byte, error)
 	getCrossStatesProof(qid string, height uint32, key []byte) ([]byte, error)
+	getCrossStatesLeafHashes(qid string, height float64) ([]byte, error)
 	getCrossChainMsg(qid string, height uint32) ([]byte, error)
 	getMemPoolTxState(qid, txHash string) ([]byte, error)
 	getMemPoolTxCount(qid string) ([]byte, error)
@@ -50,29 +51,30 @@ type OntologyClient interface {
 }
 
 const (
-	RPC_GET_VERSION                 = "getversion"
-	RPC_GET_TRANSACTION             = "getrawtransaction"
-	RPC_SEND_TRANSACTION            = "sendrawtransaction"
-	RPC_GET_BLOCK                   = "getblock"
-	RPC_GET_BLOCK_COUNT             = "getblockcount"
-	RPC_GET_BLOCK_HASH              = "getblockhash"
-	RPC_GET_CURRENT_BLOCK_HASH      = "getbestblockhash"
-	RPC_GET_ONT_BALANCE             = "getbalance"
-	RPC_GET_SMART_CONTRACT_EVENT    = "getsmartcodeevent"
-	RPC_GET_STORAGE                 = "getstorage"
-	RPC_GET_SMART_CONTRACT          = "getcontractstate"
-	RPC_GET_GENERATE_BLOCK_TIME     = "getgenerateblocktime"
-	RPC_GET_MERKLE_PROOF            = "getmerkleproof"
-	RPC_GET_CROSS_STATES_PROOF      = "getcrossstatesproof"
-	RPC_GET_CROSS_CHAIN_MSG         = "getcrosschainmsg"
-	RPC_GET_NETWORK_ID              = "getnetworkid"
-	RPC_GET_MEM_POOL_TX_COUNT       = "getmempooltxcount"
-	RPC_GET_MEM_POOL_TX_STATE       = "getmempooltxstate"
-	RPC_GET_BLOCK_TX_HASH_BY_HEIGHT = "getblocktxsbyheight"
-	RPC_GET_BLOCK_HEIGHT_BY_TX_HASH = "getblockheightbytxhash"
-	SEND_EMERGENCY_GOV_REQ          = "sendemergencygovreq"
-	GET_BLOCK_ROOT_WITH_NEW_TX_ROOT = "getblockrootwithnewtxroot"
-	RPC_STORE_PROOF                 = "getstoreproof"
+	RPC_GET_VERSION                  = "getversion"
+	RPC_GET_TRANSACTION              = "getrawtransaction"
+	RPC_SEND_TRANSACTION             = "sendrawtransaction"
+	RPC_GET_BLOCK                    = "getblock"
+	RPC_GET_BLOCK_COUNT              = "getblockcount"
+	RPC_GET_BLOCK_HASH               = "getblockhash"
+	RPC_GET_CURRENT_BLOCK_HASH       = "getbestblockhash"
+	RPC_GET_ONT_BALANCE              = "getbalance"
+	RPC_GET_SMART_CONTRACT_EVENT     = "getsmartcodeevent"
+	RPC_GET_STORAGE                  = "getstorage"
+	RPC_GET_SMART_CONTRACT           = "getcontractstate"
+	RPC_GET_GENERATE_BLOCK_TIME      = "getgenerateblocktime"
+	RPC_GET_MERKLE_PROOF             = "getmerkleproof"
+	RPC_GET_CROSS_STATES_PROOF       = "getcrossstatesproof"
+	RPC_GET_CROSS_CHAIN_MSG          = "getcrosschainmsg"
+	RPC_GET_NETWORK_ID               = "getnetworkid"
+	RPC_GET_MEM_POOL_TX_COUNT        = "getmempooltxcount"
+	RPC_GET_MEM_POOL_TX_STATE        = "getmempooltxstate"
+	RPC_GET_BLOCK_TX_HASH_BY_HEIGHT  = "getblocktxsbyheight"
+	RPC_GET_BLOCK_HEIGHT_BY_TX_HASH  = "getblockheightbytxhash"
+	SEND_EMERGENCY_GOV_REQ           = "sendemergencygovreq"
+	GET_BLOCK_ROOT_WITH_NEW_TX_ROOT  = "getblockrootwithnewtxroot"
+	RPC_STORE_PROOF                  = "getstoreproof"
+	RPC_GET_CROSS_STATES_LEAF_HASHES = "getcrossstatesleafhashes"
 )
 
 //JsonRpc version
