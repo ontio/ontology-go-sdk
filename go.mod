@@ -14,6 +14,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tendermint/iavl v0.14.0
 	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.1.0
 	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
 )
