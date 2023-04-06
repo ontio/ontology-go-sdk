@@ -19,6 +19,7 @@ package ontology_go_sdk
 
 import (
 	"fmt"
+	"github.com/ontio/ontology/smartcontract/service/native/governance"
 	"math/big"
 
 	"github.com/ontio/ontology-crypto/keypair"
@@ -3357,4 +3358,63 @@ func (this *Governance) SetFeePercentage(gasPrice, gasLimit uint64, payer, signe
 		return common.UINT256_EMPTY, err
 	}
 	return this.ontSdk.SendTransaction(tx)
+}
+
+func (this *Governance) GetCurrentView() (uint32, error) {
+	res, err := this.ontSdk.Native.PreExecInvokeNativeContract(
+		GOVERNANCE_CONTRACT_ADDRESS, GOVERNANCE_CONTRACT_VERSION, "getView", []interface{}{})
+	if err != nil {
+		return 0, err
+	}
+	data, err := res.Result.ToByteArray()
+	if err != nil {
+		return 0, err
+	}
+	source := common.NewZeroCopySource(data)
+	view, eof := source.NextUint32()
+	if eof {
+		return 0, fmt.Errorf("eof")
+	}
+	return view, nil
+}
+
+type GetAuthorizeInfoParam struct {
+	Addr   common.Address
+	PubKey string
+}
+
+func (this *Governance) GetAuthorizeInfo(user common.Address, pubkey string) (*governance.AuthorizeInfo, error) {
+	res, err := this.ontSdk.Native.PreExecInvokeNativeContract(
+		GOVERNANCE_CONTRACT_ADDRESS, GOVERNANCE_CONTRACT_VERSION, "getAuthorizeInfo", []interface{}{GetAuthorizeInfoParam{
+			Addr: user, PubKey: pubkey,
+		}})
+	if err != nil {
+		return nil, err
+	}
+	data, err := res.Result.ToByteArray()
+	if err != nil {
+		return nil, err
+	}
+	source := common.NewZeroCopySource(data)
+	info := &governance.AuthorizeInfo{}
+	err = info.Deserialization(source)
+	return info, err
+}
+
+func (this *Governance) GetAddressFee(user common.Address) (uint64, error) {
+	res, err := this.ontSdk.Native.PreExecInvokeNativeContract(
+		GOVERNANCE_CONTRACT_ADDRESS, GOVERNANCE_CONTRACT_VERSION, "getAddressFee", []interface{}{user})
+	if err != nil {
+		return 0, err
+	}
+	data, err := res.Result.ToByteArray()
+	if err != nil {
+		return 0, err
+	}
+	source := common.NewZeroCopySource(data)
+	amount, eof := source.NextUint64()
+	if eof {
+		return 0, fmt.Errorf("eof")
+	}
+	return amount, nil
 }

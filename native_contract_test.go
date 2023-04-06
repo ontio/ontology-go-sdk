@@ -18,7 +18,10 @@
 package ontology_go_sdk
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/ontio/ontology/common"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -62,4 +65,31 @@ func TestOntId(t *testing.T) {
 	}
 	fmt.Printf("TestOntId GetDocumentJson:%+v\n", string(document))
 	return
+}
+
+func TestGovReadData(t *testing.T) {
+	testNetUrl = "http://172.16.8.254:20336"
+	Init()
+	view, err := testOntSdk.Native.Governance.GetCurrentView()
+	assert.Nil(t, err)
+	t.Logf("current view: %d", view)
+	// consensus node, okex pool
+	user, err := common.AddressFromBase58("APBX1duPLaQ3ikmMCZixjmNi2B73ARq3w6")
+	assert.Nil(t, err)
+	authorizeInfo, err := testOntSdk.Native.Governance.GetAuthorizeInfo(user, "039cadf7145731b3c868bd3528da9172757f89b566fc0372cd51b41351c3b6f237")
+	assert.Nil(t, err)
+	data, _ := json.MarshalIndent(authorizeInfo, "", "	")
+	t.Log(string(data))
+	fee, err := testOntSdk.Native.Governance.GetAddressFee(user)
+	assert.Nil(t, err)
+	t.Logf("fee: %d", fee)
+	// candidate node, BeRich
+	user, _ = common.AddressFromBase58("AHHSvf3Zn2zAhamkYRRYiXa4Ko5GNUrQjv")
+	authorizeInfo, err = testOntSdk.Native.Governance.GetAuthorizeInfo(user, "03446c4703bb907091eff15def2e1ead72772b70f187d0a0a237ae7d28c196f644")
+	assert.Nil(t, err)
+	data, _ = json.MarshalIndent(authorizeInfo, "", "	")
+	t.Log(string(data))
+	fee, err = testOntSdk.Native.Governance.GetAddressFee(user)
+	assert.Nil(t, err)
+	t.Logf("fee: %d", fee)
 }
