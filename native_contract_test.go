@@ -20,10 +20,11 @@ package ontology_go_sdk
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology/common"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/ontio/ontology/common"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOntId(t *testing.T) {

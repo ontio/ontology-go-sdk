@@ -19,7 +19,6 @@ package ontology_go_sdk
 
 import (
 	"fmt"
-	"github.com/ontio/ontology/smartcontract/service/native/governance"
 	"math/big"
 
 	"github.com/ontio/ontology-crypto/keypair"
@@ -30,6 +29,7 @@ import (
 	"github.com/ontio/ontology/core/types"
 	cutils "github.com/ontio/ontology/core/utils"
 	"github.com/ontio/ontology/smartcontract/service/native/global_params"
+	"github.com/ontio/ontology/smartcontract/service/native/governance"
 	"github.com/ontio/ontology/smartcontract/service/native/ont"
 	"github.com/ontio/ontology/smartcontract/service/native/ontid"
 	nutils "github.com/ontio/ontology/smartcontract/service/native/utils"
