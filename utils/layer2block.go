@@ -31,7 +31,7 @@ type Layer2Block struct {
 	Transactions []*types.Transaction
 }
 
-// if no error, ownership of param raw is transfered to Transaction
+// if no error, ownership of param raw is transferred to Transaction
 func Layer2BlockFromRawBytes(raw []byte) (*Layer2Block, error) {
 	source := common.NewZeroCopySource(raw)
 	block := &Layer2Block{}

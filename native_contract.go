@@ -38,7 +38,7 @@ var (
 	ONT_CONTRACT_ADDRESS, _           = utils.AddressFromHexString("0100000000000000000000000000000000000000")
 	ONG_CONTRACT_ADDRESS, _           = utils.AddressFromHexString("0200000000000000000000000000000000000000")
 	ONT_ID_CONTRACT_ADDRESS, _        = utils.AddressFromHexString("0300000000000000000000000000000000000000")
-	GLOABL_PARAMS_CONTRACT_ADDRESS, _ = utils.AddressFromHexString("0400000000000000000000000000000000000000")
+	GLOBAL_PARAMS_CONTRACT_ADDRESS, _ = utils.AddressFromHexString("0400000000000000000000000000000000000000")
 	AUTH_CONTRACT_ADDRESS, _          = utils.AddressFromHexString("0600000000000000000000000000000000000000")
 	GOVERNANCE_CONTRACT_ADDRESS, _    = utils.AddressFromHexString("0700000000000000000000000000000000000000")
 )
@@ -2918,7 +2918,7 @@ type GlobalParam struct {
 
 func (this *GlobalParam) GetGlobalParams(params []string) (map[string]string, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		GLOBAL_PARAMS_CONTRACT_ADDRESS,
 		GLOBAL_PARAMS_CONTRACT_VERSION,
 		global_params.GET_GLOBAL_PARAM_NAME,
 		[]interface{}{params})
@@ -2954,7 +2954,7 @@ func (this *GlobalParam) NewSetGlobalParamsTransaction(gasPrice, gasLimit uint64
 		gasPrice,
 		gasLimit,
 		GLOBAL_PARAMS_CONTRACT_VERSION,
-		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		GLOBAL_PARAMS_CONTRACT_ADDRESS,
 		global_params.SET_GLOBAL_PARAM_NAME,
 		[]interface{}{globalParams})
 }
@@ -2983,7 +2983,7 @@ func (this *GlobalParam) NewTransferAdminTransaction(gasPrice, gasLimit uint64, 
 		gasPrice,
 		gasLimit,
 		GLOBAL_PARAMS_CONTRACT_VERSION,
-		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		GLOBAL_PARAMS_CONTRACT_ADDRESS,
 		global_params.TRANSFER_ADMIN_NAME,
 		[]interface{}{newAdmin})
 }
@@ -3012,7 +3012,7 @@ func (this *GlobalParam) NewAcceptAdminTransaction(gasPrice, gasLimit uint64, ad
 		gasPrice,
 		gasLimit,
 		GLOBAL_PARAMS_CONTRACT_VERSION,
-		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		GLOBAL_PARAMS_CONTRACT_ADDRESS,
 		global_params.ACCEPT_ADMIN_NAME,
 		[]interface{}{admin})
 }
@@ -3041,7 +3041,7 @@ func (this *GlobalParam) NewSetOperatorTransaction(gasPrice, gasLimit uint64, op
 		gasPrice,
 		gasLimit,
 		GLOBAL_PARAMS_CONTRACT_VERSION,
-		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		GLOBAL_PARAMS_CONTRACT_ADDRESS,
 		global_params.SET_OPERATOR,
 		[]interface{}{operator},
 	)
@@ -3071,7 +3071,7 @@ func (this *GlobalParam) NewCreateSnapshotTransaction(gasPrice, gasLimit uint64)
 		gasPrice,
 		gasLimit,
 		GLOBAL_PARAMS_CONTRACT_VERSION,
-		GLOABL_PARAMS_CONTRACT_ADDRESS,
+		GLOBAL_PARAMS_CONTRACT_ADDRESS,
 		global_params.CREATE_SNAPSHOT_NAME,
 		[]interface{}{},
 	)
