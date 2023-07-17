@@ -34,13 +34,13 @@ import (
 	"github.com/ontio/ontology/core/types"
 )
 
-//RpcClient for ontology rpc api
+// RestClient for ontology rpc api
 type RestClient struct {
 	addr       string
 	httpClient *http.Client
 }
 
-//NewRpcClient return RpcClient instance
+// NewRestClient return RestClient instance
 func NewRestClient() *RestClient {
 	return &RestClient{
 		httpClient: &http.Client{
@@ -55,13 +55,13 @@ func NewRestClient() *RestClient {
 	}
 }
 
-//SetAddress set rest server address. Simple http://localhost:20334
+// SetAddress set rest server address. Simple http://localhost:20334
 func (this *RestClient) SetAddress(addr string) *RestClient {
 	this.addr = addr
 	return this
 }
 
-//SetHttpClient set rest client to RestClient. In most cases SetHttpClient is not necessary
+// SetHttpClient set rest client to RestClient. In most cases SetHttpClient is not necessary
 func (this *RestClient) SetHttpClient(httpClient *http.Client) *RestClient {
 	this.httpClient = httpClient
 	return this
@@ -120,7 +120,7 @@ func (this *RestClient) getBlockHash(qid string, height uint32) ([]byte, error) 
 	return this.sendRestGetRequest(reqPath)
 }
 
-//GetRawTransaction return transaction by transaction hash in hex string code
+// GetRawTransaction return transaction by transaction hash in hex string code
 func (this *RestClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 	reqPath := GET_TX + txHash
 	reqValues := &url.Values{}
@@ -133,7 +133,7 @@ func (this *RestClient) getStorage(qid, contractAddress string, key []byte) ([]b
 	return this.sendRestGetRequest(reqPath)
 }
 
-//GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
+// GetSmartContractEvent return smart contract event execute by invoke transaction by hex string code
 func (this *RestClient) getSmartContractEvent(qid, txHash string) ([]byte, error) {
 	reqPath := GET_SMTCOCE_EVTS + txHash
 	return this.sendRestGetRequest(reqPath)

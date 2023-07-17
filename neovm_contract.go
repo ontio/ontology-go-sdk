@@ -44,7 +44,7 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 		contract.Version, contract.Author, contract.Email, contract.Description)
 }
 
-//DeploySmartContract Deploy smart contract to ontology
+// DeployNeoVMSmartContract Deploy smart contract to ontology
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,

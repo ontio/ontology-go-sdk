@@ -39,7 +39,7 @@ func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract {
 	}
 }
 
-//DeploySmartContract Deploy smart contract to ontology
+// DeployWasmVMSmartContract Deploy smart contract to ontology
 func (this *WasmVMContract) DeployWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
@@ -82,10 +82,10 @@ func (this *WasmVMContract) NewInvokeWasmVmTransaction(gasPrice,
 	return tx, nil
 }
 
-//Invoke wasm smart contract
-//methodName is wasm contract action name
-//paramType  is Json or Raw format
-//version should be greater than 0 (0 is reserved for test)
+// Invoke wasm smart contract
+// methodName is wasm contract action name
+// paramType  is Json or Raw format
+// version should be greater than 0 (0 is reserved for test)
 func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
