@@ -23,6 +23,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ontio/ontology-go-sdk/utils"
 	"strings"
 	"time"
 
@@ -243,11 +244,11 @@ func (this *Credential) verifyJWSProof(ontId, kid string, msg []byte, jws string
 		return fmt.Errorf("VerifyJWSProof, base64.StdEncoding.DecodeString jws error: %s", err)
 	}
 
-	publicKeyHex, err := this.GetPublicKey(ontId, kid)
+	publicKey, err := this.GetPublicKey(ontId, kid)
 	if err != nil {
 		return fmt.Errorf("VerifyJWSProof, this.GetPublicKey error: %s", err)
 	}
-	data, err := hex.DecodeString(publicKeyHex)
+	data, err := utils.PubKeyEncodeString(publicKey.PublicKeyHex, publicKey.Type)
 	if err != nil {
 		return fmt.Errorf("VerifyJWSProof, hex.DecodeString public key error: %s", err)
 	}

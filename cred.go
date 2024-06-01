@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ontio/ontology-go-sdk/utils"
 	"reflect"
 	"strings"
 	"time"
@@ -147,7 +148,7 @@ func (this *Credential) VerifySignReq(request *Request) error {
 		return fmt.Errorf("VerifySignReq, this.GetPublicKeyList error: %s", err)
 	}
 	for _, v := range publicKeyList {
-		data, err := hex.DecodeString(v.PublicKeyHex)
+		data, err := utils.PubKeyEncodeString(v.PublicKeyHex, v.Type)
 		if err != nil {
 			return fmt.Errorf("VerifySignReq, hex.DecodeString public key error: %s", err)
 		}
@@ -228,18 +229,18 @@ func (this *Credential) GetPublicKeyId(ontId string, publicKeyHex string) (uint3
 	return 0, nil, fmt.Errorf("GetPublicKeyId, record not found")
 }
 
-func (this *Credential) GetPublicKey(ontId string, Id string) (string, error) {
+func (this *Credential) GetPublicKey(ontId string, Id string) (*PublicKey, error) {
 	publicKeyList, err := this.GetPublicKeyList(ontId)
 	if err != nil {
-		return "", fmt.Errorf("GetPublicKeyId, this.GetPublicKeyList error: %s", err)
+		return nil, fmt.Errorf("GetPublicKeyId, this.GetPublicKeyList error: %s", err)
 	}
 
 	for _, v := range publicKeyList {
 		if v.Id == Id {
-			return v.PublicKeyHex, nil
+			return v, nil
 		}
 	}
-	return "", fmt.Errorf("GetPublicKeyId, record not found")
+	return nil, fmt.Errorf("GetPublicKeyId, record not found")
 }
 
 func (this *Credential) GetPublicKeyList(ontId string) (PublicKeyList, error) {
@@ -541,11 +542,11 @@ func (this *Credential) verifyProof(ontId string, proof *Proof, msg []byte) erro
 		return fmt.Errorf("VerifyProof, hex.DecodeString signature error: %s", err)
 	}
 
-	publicKeyHex, err := this.GetPublicKey(ontId, proof.VerificationMethod)
+	publicKey, err := this.GetPublicKey(ontId, proof.VerificationMethod)
 	if err != nil {
 		return fmt.Errorf("VerifyProof, this.GetPublicKey error: %s", err)
 	}
-	data, err := hex.DecodeString(publicKeyHex)
+	data, err := utils.PubKeyEncodeString(publicKey.PublicKeyHex, publicKey.Type)
 	if err != nil {
 		return fmt.Errorf("VerifyProof, hex.DecodeString public key error: %s", err)
 	}
