@@ -631,9 +631,9 @@ func (this *Wallet) Save() error {
 	for _, identity := range this.identities {
 		walletData.Identities = append(walletData.Identities, identity.ToIdentityData())
 	}
-	for _, acc := range this.accounts {
-		walletData.Accounts = append(walletData.Accounts, acc)
-	}
+
+	walletData.Accounts = append(walletData.Accounts, this.accounts...)
+
 	this.lock.RUnlock()
 	return walletData.Save(this.path)
 }
@@ -654,7 +654,7 @@ func NewWalletData() *WalletData {
 		Scrypt:     keypair.GetScryptParameters(),
 		Identities: nil,
 		Extra:      "",
-		Accounts:   make([]*AccountData, 0, 0),
+		Accounts:   make([]*AccountData, 0),
 	}
 }
 

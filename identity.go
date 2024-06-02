@@ -71,7 +71,7 @@ func (this *Controller) GetSigScheme() s.SignatureScheme {
 
 type ControllerData struct {
 	ID     string `json:"id"`
-	Public string `json:"publicKey,omitemtpy"`
+	Public string `json:"publicKey,omitempty"`
 	SigSch string `json:"signatureScheme"`
 	keypair.ProtectedKey
 	scrypt *keypair.ScryptParam
@@ -423,10 +423,8 @@ func VerifyID(id string) bool {
 	data := buf[:pos]
 	check := buf[pos:]
 	sum := checksum(data)
-	if !bytes.Equal(sum, check) {
-		return false
-	}
-	return true
+
+	return bytes.Equal(sum, check)
 }
 
 func checksum(data []byte) []byte {

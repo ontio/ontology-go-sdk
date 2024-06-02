@@ -61,5 +61,4 @@ func TestOntId(t *testing.T) {
 		return
 	}
 	fmt.Printf("TestOntId GetDocumentJson:%+v\n", string(document))
-	return
 }

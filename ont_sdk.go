@@ -579,10 +579,10 @@ func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr
 	if mnemonicCodesStr == "" {
 		return nil, fmt.Errorf("mnemonicCodesStr should not be nil")
 	}
-	//address_index
-	if index < 0 {
-		return nil, fmt.Errorf("index should be bigger than 0")
-	}
+	//address_index, u32 will never less than 0
+	// if index < 0 {
+	// 	return nil, fmt.Errorf("index should be bigger than 0")
+	// }
 	seed := bip39.NewSeed(mnemonicCodesStr, "")
 	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
@@ -615,7 +615,7 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 		TxType:   types.InvokeNeo,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
-		Sigs:     make([]types.Sig, 0, 0),
+		Sigs:     make([]types.Sig, 0),
 	}
 	return tx
 }
