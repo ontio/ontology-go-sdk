@@ -44,7 +44,7 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 		contract.Version, contract.Author, contract.Email, contract.Description)
 }
 
-//DeploySmartContract Deploy smart contract to ontology
+// DeploySmartContract Deploy smart contract to ontology
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
@@ -92,15 +92,7 @@ func (this *NeoVMContract) InvokeNeoVMContract(
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.UINT256_EMPTY, err
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
-	if err != nil {
+	if err = this.ontSdk.SignAllToTransaction(tx, payer, signer); err != nil {
 		return common.UINT256_EMPTY, err
 	}
 	return this.ontSdk.SendTransaction(tx)

@@ -455,8 +455,8 @@ func (this *Layer2ClientMgr) GetLayer2StoreProof(key []byte) (*sdkcom.Layer2Stor
 	return utils.GetLayer2StoreProof(data)
 }
 
-//WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
-//return timeout error when there is no block generate in some time.
+// WaitForGenerateBlock Wait ontology generate block. Default wait 2 blocks.
+// return timeout error when there is no block generate in some time.
 func (this *ClientMgr) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint32) (bool, error) {
 	count := uint32(2)
 	if len(blockCount) > 0 && blockCount[0] > 0 {

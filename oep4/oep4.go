@@ -136,11 +136,11 @@ func (this *Oep4) TransferMulti(fromAccounts []*ontology_go_sdk.Account, to []co
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("construct tx failed, err: %s", err)
 	}
-	for _, signer := range fromAccounts {
-		err = this.sdk.SignToTransaction(mutableTx, signer)
-		if err != nil {
-			return common.UINT256_EMPTY, fmt.Errorf("sign tx failed, err: %s", err)
-		}
+	if len(fromAccounts) == 0 {
+		return common.UINT256_EMPTY, fmt.Errorf("param invalid")
+	}
+	if err = this.sdk.SignAllToTransaction(mutableTx, fromAccounts...); err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("sign tx failed, err: %s", err)
 	}
 	return this.sdk.SendTransaction(mutableTx)
 }

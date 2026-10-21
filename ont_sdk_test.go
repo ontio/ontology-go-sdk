@@ -218,7 +218,7 @@ func TestOntologySdk_TrabsferFrom(t *testing.T) {
 	fmt.Println("res:", res)
 }
 
-//transferFrom
+// transferFrom
 func TestOntologySdk_ParseNativeTxPayload2(t *testing.T) {
 	var err error
 	assert.Nil(t, err)
@@ -340,7 +340,7 @@ func TestOntologySdk_GenerateMnemonicCodesStr(t *testing.T) {
 		testOntSdk.SignToTransaction(tx, acc)
 		tx2, err := tx.IntoImmutable()
 		assert.Nil(t, err)
-		res := validation.VerifyTransaction(tx2)
+		res := validation.VerifyTransaction(tx2, false)
 		assert.Equal(t, "not an error", res.Error())
 	}
 }

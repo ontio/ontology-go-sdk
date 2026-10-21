@@ -39,7 +39,7 @@ func newWasmVMContract(ontSdk *OntologySdk) *WasmVMContract {
 	}
 }
 
-//DeploySmartContract Deploy smart contract to ontology
+// DeploySmartContract Deploy smart contract to ontology
 func (this *WasmVMContract) DeployWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
@@ -82,10 +82,10 @@ func (this *WasmVMContract) NewInvokeWasmVmTransaction(gasPrice,
 	return tx, nil
 }
 
-//Invoke wasm smart contract
-//methodName is wasm contract action name
-//paramType  is Json or Raw format
-//version should be greater than 0 (0 is reserved for test)
+// Invoke wasm smart contract
+// methodName is wasm contract action name
+// paramType  is Json or Raw format
+// version should be greater than 0 (0 is reserved for test)
 func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
@@ -98,15 +98,7 @@ func (this *WasmVMContract) InvokeWasmVMSmartContract(
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if payer != nil {
-		this.ontSdk.SetPayer(tx, payer.Address)
-		err = this.ontSdk.SignToTransaction(tx, payer)
-		if err != nil {
-			return common.Uint256{}, fmt.Errorf("payer sign tx error: %s", err)
-		}
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
-	if err != nil {
+	if err = this.ontSdk.SignAllToTransaction(tx, payer, signer); err != nil {
 		return common.Uint256{}, err
 	}
 	return this.ontSdk.SendTransaction(tx)

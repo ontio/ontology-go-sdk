@@ -16,7 +16,7 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//Ontolog sdk in golang. Using for operation with ontology
+// Ontolog sdk in golang. Using for operation with ontology
 package ontology_go_sdk
 
 import (
@@ -47,7 +47,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-//OntologySdk is the main struct for user
+// OntologySdk is the main struct for user
 type OntologySdk struct {
 	client.ClientMgr
 	Native     *NativeContract
@@ -57,7 +57,7 @@ type OntologySdk struct {
 	ChainId    uint32
 }
 
-//NewOntologySdk return OntologySdk.
+// NewOntologySdk return OntologySdk.
 func NewOntologySdk() *OntologySdk {
 	ontSdk := &OntologySdk{}
 	native := newNativeContract(ontSdk)
@@ -86,7 +86,7 @@ func NewLayer2Sdk() *Layer2Sdk {
 	}
 }
 
-//CreateWallet return a new wallet
+// CreateWallet return a new wallet
 func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 	if utils.IsFileExist(walletFile) {
 		return nil, fmt.Errorf("wallet:%s has already exist", walletFile)
@@ -94,12 +94,12 @@ func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 	return NewWallet(walletFile), nil
 }
 
-//OpenWallet return a wallet instance
+// OpenWallet return a wallet instance
 func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
 }
 
-//OpenWallet return a wallet instance
+// OpenWallet return a wallet instance
 func (this *OntologySdk) SetCredContractAddress(addr string) error {
 	address, err := common.AddressFromHexString(addr)
 	if err != nil {
@@ -604,7 +604,7 @@ func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr
 	return keyBytes[46:78], nil
 }
 
-//NewInvokeTransaction return smart contract invoke transaction
+// NewInvokeTransaction return smart contract invoke transaction
 func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
@@ -620,16 +620,86 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	return tx
 }
 
+// Deprecated: use SetSignerAddresses
 func (this *OntologySdk) SetPayer(tx *types.MutableTransaction, payer common.Address) {
 	tx.Payer = payer
 }
 
-func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
-	if tx.Payer == common.ADDRESS_EMPTY {
-		account, ok := signer.(*Account)
-		if ok {
-			tx.Payer = account.Address
+// SetSignerAddresses finalizes the complete signer set before any signature
+// is added.
+func (this *OntologySdk) SetSignerAddresses(tx *types.MutableTransaction, signers ...common.Address) error {
+	if len(tx.Sigs) != 0 {
+		return fmt.Errorf("signer set must be finalized before signing")
+	}
+	if len(signers) == 0 {
+		return fmt.Errorf("payer or signers must be set")
+	}
+	tx.Payer = signers[0]
+
+	seen := make(map[common.Address]bool, len(signers))
+	seen[tx.Payer] = true
+	extra := make([]common.Address, 0, len(signers)-1)
+	for _, signer := range signers {
+		if seen[signer] {
+			continue
 		}
+		seen[signer] = true
+		extra = append(extra, signer)
+	}
+	if len(extra) > constants.TX_MAX_SIG_SIZE-1 {
+		return fmt.Errorf("too many extra signers: %d", len(extra))
+	}
+
+	tx.ExtraSigners = extra
+	return nil
+}
+
+// SignAllToTransaction finalizes the complete signer set and then signs the
+// transaction.
+func (this *OntologySdk) SignAllToTransaction(tx *types.MutableTransaction, signers ...*Account) error {
+	addresses := make([]common.Address, 0, len(signers))
+	for _, signer := range signers {
+		if signer != nil {
+			addresses = append(addresses, signer.Address)
+		}
+	}
+	if err := this.SetSignerAddresses(tx, addresses...); err != nil {
+		return err
+	}
+
+	for _, signer := range signers {
+		if signer != nil {
+			if err := this.SignToTransaction(tx, signer); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (this *OntologySdk) appendSignerAddress(tx *types.MutableTransaction, signerAddr common.Address) error {
+	if len(tx.Sigs) == 0 { // still has chance to append signerAddr
+		var allSigners []common.Address
+		if tx.Payer != common.ADDRESS_EMPTY {
+			allSigners = append(allSigners, tx.Payer)
+		}
+		allSigners = append(allSigners, tx.ExtraSigners...)
+		allSigners = append(allSigners, signerAddr)
+		if err := this.SetSignerAddresses(tx, allSigners...); err != nil {
+			return err
+		}
+	} else if signerAddr != tx.Payer && !containsAddress(tx.ExtraSigners, signerAddr) {
+		return fmt.Errorf("signer %s is not declared in ExtraSigners; call SetSignerAddresses before signing", signerAddr.ToBase58())
+	}
+
+	return nil
+}
+
+func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
+	signerAddr := types.AddressFromPubKey(signer.GetPublicKey())
+	err := this.appendSignerAddress(tx, signerAddr)
+	if err != nil {
+		return err
 	}
 	for _, sigs := range tx.Sigs {
 		if utils.PubKeysEqual([]keypair.PublicKey{signer.GetPublicKey()}, sigs.PubKeys) {
@@ -657,6 +727,15 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 	return nil
 }
 
+func containsAddress(addresses []common.Address, target common.Address) bool {
+	for _, addr := range addresses {
+		if addr == target {
+			return true
+		}
+	}
+	return false
+}
+
 func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
 	pkSize := len(pubKeys)
 	if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
@@ -672,13 +751,15 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m 
 	if !validPubKey {
 		return fmt.Errorf("invalid signer")
 	}
-	if tx.Payer == common.ADDRESS_EMPTY {
-		payer, err := types.AddressFromMultiPubKeys(pubKeys, int(m))
-		if err != nil {
-			return fmt.Errorf("AddressFromMultiPubKeys error:%s", err)
-		}
-		tx.Payer = payer
+	multiAddr, err := types.AddressFromMultiPubKeys(pubKeys, int(m))
+	if err != nil {
+		return fmt.Errorf("AddressFromMultiPubKeys error:%s", err)
 	}
+	err = this.appendSignerAddress(tx, multiAddr)
+	if err != nil {
+		return err
+	}
+
 	txHash := tx.Hash()
 	if this.ChainId == sdkcom.LAYER2_SYSTEM_ID {
 		tempTx, _ := tx.IntoImmutable()
@@ -849,11 +930,7 @@ func (this *OntologySdk) GetMutableTx(rawTx string) (*types.MutableTransaction, 
 	if err != nil {
 		return nil, fmt.Errorf("TransactionFromRawBytes error:%s", err)
 	}
-	mutTx, err := tx.IntoMutable()
-	if err != nil {
-		return nil, fmt.Errorf("[ONT]IntoMutable error:%s", err)
-	}
-	return mutTx, nil
+	return tx.IntoMutable(), nil
 }
 
 func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
